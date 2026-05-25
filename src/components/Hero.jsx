@@ -1,4 +1,4 @@
-export default function Hero({ liveDate }) {
+export default function Hero({ liveDate, theme, onToggleTheme }) {
   const { date, brisbane, mantra, city } = liveDate;
 
   return (
@@ -8,6 +8,27 @@ export default function Hero({ liveDate }) {
         background: 'var(--gradient)',
         zIndex: -1,
       }} />
+
+      {/* theme toggle — top-right */}
+      <div className="lp-tap" onClick={onToggleTheme} style={{
+        position: 'absolute', top: 20, right: 20,
+        display: 'flex', alignItems: 'center', gap: 5,
+        padding: '5px 10px', borderRadius: 99,
+        border: '0.5px solid var(--hair-strong)',
+        background: 'color-mix(in oklch, var(--bg-2) 70%, transparent)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+      }}>
+        <span className="lp-mono" style={{ fontSize: 11, color: 'var(--accent)', lineHeight: 1 }}>
+          {theme === 'dark' ? '○' : '●'}
+        </span>
+        <span className="lp-mono" style={{
+          fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase',
+          color: 'var(--muted)',
+        }}>
+          {theme === 'dark' ? 'light' : 'dark'}
+        </span>
+      </div>
 
       <div className="lp-eyebrow" style={{ color: 'var(--muted)', marginBottom: 14 }}>
         <span style={{ color: 'var(--accent)' }}>●</span>

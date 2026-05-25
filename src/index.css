@@ -15,6 +15,21 @@
   --font-mono:    "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
 }
 
+/* Light theme — parchment palette */
+html[data-theme="light"] {
+  --bg:          oklch(0.96 0.012 80);
+  --bg-2:        oklch(0.99 0.008 80);
+  --bg-3:        oklch(0.93 0.012 80);
+  --hair:        rgba(40,30,20,0.10);
+  --hair-strong: rgba(40,30,20,0.18);
+  --text:        oklch(0.22 0.012 80);
+  --muted:       oklch(0.45 0.015 80);
+  --faint:       oklch(0.60 0.015 80);
+  --accent:      oklch(0.55 0.13 50);
+  --accent2:     oklch(0.50 0.09 160);
+  --gradient:    radial-gradient(120% 80% at 10% 0%, oklch(0.92 0.020 80) 0%, oklch(0.96 0.012 80) 65%);
+}
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body, #root {

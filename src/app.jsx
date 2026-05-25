@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { useNotionData } from './hooks/useNotionData.js';
 import Hero         from './components/Hero.jsx';
 import TabBar       from './components/TabBar.jsx';
@@ -47,8 +47,20 @@ export default function App() {
   const [tab, setTab]               = useState('Daily');
   const [pull, setPull]             = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+  const [theme, setTheme]           = useState(() => localStorage.getItem('lp-theme') || 'dark');
   const scrollRef = useRef(null);
   const pullRef   = useRef(0);
+
+  // Sync theme to <html data-theme="..."> before first paint to avoid flash
+  useLayoutEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    const next = theme === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+    localStorage.setItem('lp-theme', next);
+  };
 
   const { tasks, priorities, monthly, goals, liveDate, loading, error, refetch } = useNotionData();
 
@@ -98,7 +110,7 @@ export default function App() {
     <div className="lp-root">
       <PullIndicator pull={pull} refreshing={refreshing} />
 
-      <Hero liveDate={liveDate} />
+      <Hero liveDate={liveDate} theme={theme} onToggleTheme={toggleTheme} />
       <TabBar tab={tab} onChange={setTab} />
 
       <div
