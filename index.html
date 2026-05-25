@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Life Planner</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #0d0d14;
+    color: #e8e6f0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+  }
+
+  .db-root {
+    width: 100%;
+    max-width: 480px;
+    background: #0d0d14;
+  }
+
+  /* HERO */
+  .hero {
+    position: relative;
+    height: 180px;
+    background: linear-gradient(135deg, #1a0a2e 0%, #0d1a3a 40%, #0a1628 100%);
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+    padding: 20px;
+  }
+
+  .hero-stars {
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 15% 25%, rgba(255,255,255,.7) 0%, transparent 100%),
+      radial-gradient(1px 1px at 40% 15%, rgba(255,255,255,.5) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 60% 30%, rgba(255,255,255,.8) 0%, transparent 100%),
+      radial-gradient(1px 1px at 80% 20%, rgba(255,255,255,.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 25% 60%, rgba(255,255,255,.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 55%, rgba(255,255,255,.5) 0%, transparent 100%),
+      radial-gradient(2px 2px at 90% 40%, rgba(180,160,255,.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 50% 70%, rgba(255,255,255,.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 10% 80%, rgba(255,255,255,.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 33% 45%, rgba(255,255,255,.35) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 75% 75%, rgba(200,180,255,.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 55% 10%, rgba(255,255,255,.6) 0%, transparent 100%);
+  }
+
+  .hero-glow {
+    position: absolute; bottom: -40px; right: -40px;
+    width: 220px; height: 220px;
+    background: radial-gradient(circle, rgba(120,80,220,.28) 0%, transparent 70%);
+  }
+
+  .hero-glow2 {
+    position: absolute; top: -20px; left: 30%;
+    width: 160px; height: 130px;
+    background: radial-gradient(circle, rgba(60,100,200,.22) 0%, transparent 70%);
+  }
+
+  .hero-content { position: relative; z-index: 2; }
+
+  .hero-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 26px; font-weight: 700;
+    color: #f0eeff; margin: 0 0 3px;
+    letter-spacing: -.3px;
+  }
+
+  .hero-sub {
+    font-size: 13px; font-weight: 300;
+    color: rgba(200,190,255,.6);
+    letter-spacing: .4px;
+  }
+
+  /* BODY */
+  .body { padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+
+  /* NAV */
+  .nav-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+
+  .nav-card {
+    background: #16152a;
+    border: 0.5px solid rgba(255,255,255,.08);
+    border-radius: 14px; padding: 14px 10px;
+    cursor: pointer; text-align: center;
+    text-decoration: none;
+    transition: background .15s, border-color .15s;
+    display: block;
+  }
+
+  .nav-card:hover { background: #1e1c38; border-color: rgba(150,120,255,.3); }
+  .nav-card i { font-size: 22px; color: #9b87f5; display: block; margin-bottom: 7px; }
+  .nav-card.g i { color: #6dd5a8; }
+  .nav-card.r i { color: #f0a070; }
+  .nav-label { font-size: 12px; color: rgba(220,215,255,.65); }
+
+  /* LABELS / DIVIDERS */
+  .section-label {
+    font-size: 10px; font-weight: 500;
+    letter-spacing: 1.4px; color: rgba(180,170,255,.45);
+    text-transform: uppercase; margin-bottom: 12px;
+  }
+
+  .divider { height: 0.5px; background: rgba(255,255,255,.06); }
+
+  /* TIME BARS */
+  .time-block { display: flex; flex-direction: column; gap: 12px; }
+  .time-row { display: flex; flex-direction: column; gap: 6px; }
+  .time-row-top { display: flex; justify-content: space-between; align-items: baseline; }
+  .time-name { font-size: 13px; color: rgba(220,215,255,.75); }
+  .time-val { font-size: 12px; color: rgba(180,170,255,.55); }
+
+  .bar-track {
+    height: 4px; background: rgba(255,255,255,.07);
+    border-radius: 4px; overflow: hidden;
+  }
+
+  .bar-fill { height: 100%; border-radius: 4px; transition: width .8s ease; width: 0%; }
+  .bar-week { background: #9b87f5; }
+  .bar-month { background: #6dd5a8; }
+  .bar-year { background: #f0a070; }
+
+  /* TASKS */
+  .task-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .task-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; background: #16152a;
+    border: 0.5px solid rgba(255,255,255,.07);
+    border-radius: 12px; cursor: pointer;
+    transition: background .12s; user-select: none;
+  }
+
+  .task-item:hover { background: #1e1c38; }
+  .task-item.done { opacity: .4; }
+  .task-item.done .task-text { text-decoration: line-through; }
+
+  .task-check {
+    width: 18px; height: 18px; border-radius: 50%;
+    border: 1.5px solid rgba(155,135,245,.45); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .12s, border-color .12s;
+  }
+
+  .task-item.done .task-check { background: #9b87f5; border-color: #9b87f5; }
+  .task-check i { font-size: 11px; color: white; display: none; }
+  .task-item.done .task-check i { display: block; }
+  .task-text { font-size: 13px; color: rgba(230,225,255,.85); flex: 1; line-height: 1.4; }
+
+  /* FOCUS */
+  .week-focus { display: flex; flex-direction: column; gap: 8px; }
+
+  .focus-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; background: #16152a;
+    border-left: 2px solid #9b87f5;
+    border-top: 0.5px solid rgba(255,255,255,.06);
+    border-right: 0.5px solid rgba(255,255,255,.06);
+    border-bottom: 0.5px solid rgba(255,255,255,.06);
+    border-radius: 0 12px 12px 0;
+  }
+
+  .focus-text { font-size: 13px; color: rgba(230,225,255,.85); line-height: 1.4; }
+
+  /* MONTHLY */
+  .monthly-goal-card {
+    background: #16152a;
+    border: 0.5px solid rgba(155,135,245,.2);
+    border-radius: 14px; padding: 16px;
+  }
+
+  .monthly-goal-label {
+    font-size: 11px; color: rgba(155,135,245,.6);
+    margin-bottom: 6px; font-weight: 500;
+  }
+
+  .monthly-goal-text {
+    font-size: 14px; color: rgba(230,225,255,.85);
+    font-style: italic; line-height: 1.6;
+  }
+
+  /* GOALS */
+  .goal-block { display: flex; flex-direction: column; gap: 10px; }
+
+  .goal-card {
+    background: #16152a;
+    border: 0.5px solid rgba(255,255,255,.07);
+    border-radius: 14px; padding: 14px 16px;
+  }
+
+  .goal-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .goal-name { font-size: 13px; color: rgba(230,225,255,.9); flex: 1; margin-right: 10px; line-height: 1.4; }
+
+  .goal-pct {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px; font-weight: 600; color: #9b87f5; white-space: nowrap;
+  }
+
+  .goal-bar-track { height: 3px; background: rgba(255,255,255,.07); border-radius: 4px; overflow: hidden; }
+  .goal-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #7b6be0, #9b87f5); }
+  .goal-meta { display: flex; justify-content: space-between; margin-top: 6px; }
+  .goal-area { font-size: 11px; color: rgba(180,170,255,.4); }
+  .goal-status { font-size: 11px; color: rgba(180,170,255,.4); }
+
+  /* LOADING / ERROR */
+  .state-msg {
+    padding: 20px; text-align: center;
+    font-size: 13px; color: rgba(180,170,255,.5);
+  }
+
+  .loading-dot {
+    display: inline-block;
+    animation: pulse 1.2s infinite;
+  }
+
+  @keyframes pulse { 0%,100% { opacity:.3; } 50% { opacity:1; } }
+
+  /* QUOTE */
+  .quote-block { padding: 16px; border-left: 2px solid rgba(155,135,245,.35); margin-top: 4px; }
+  .quote-text { font-size: 12px; color: rgba(180,170,255,.5); font-style: italic; line-height: 1.7; }
+</style>
+</head>
+<body>
+<div class="db-root">
+
+  <div class="hero">
+    <div class="hero-stars"></div>
+    <div class="hero-glow"></div>
+    <div class="hero-glow2"></div>
+    <div class="hero-content">
+      <p class="hero-title">Life Planner</p>
+      <p class="hero-sub" id="hero-date">Loading...</p>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <!-- NAV -->
+    <div class="nav-grid">
+      <a class="nav-card" href="https://www.notion.so/f35023fab2344a4a8a71f87f6e7d9610" target="_blank">
+        <i class="ti ti-sun" aria-hidden="true"></i>
+        <div class="nav-label">Daily</div>
+      </a>
+      <a class="nav-card" href="https://www.notion.so/2682d573db944fcf84c08dac4acc1a02" target="_blank">
+        <i class="ti ti-calendar-week" aria-hidden="true"></i>
+        <div class="nav-label">Weekly</div>
+      </a>
+      <a class="nav-card g" href="https://www.notion.so/a24a10e0ad52408ab4fdd70e2768b979" target="_blank">
+        <i class="ti ti-calendar-month" aria-hidden="true"></i>
+        <div class="nav-label">Monthly</div>
+      </a>
+      <a class="nav-card g" href="https://www.notion.so/2ac4ae462b4d436baa485b4dd14a75ea" target="_blank">
+        <i class="ti ti-rotate-clockwise" aria-hidden="true"></i>
+        <div class="nav-label">Quarterly</div>
+      </a>
+      <a class="nav-card r" href="https://www.notion.so/bde57e266a3f43438d5913bf205c10f3" target="_blank">
+        <i class="ti ti-target" aria-hidden="true"></i>
+        <div class="nav-label">Goals</div>
+      </a>
+      <a class="nav-card r" href="https://www.notion.so/4194de42a76d41088a0681d348d39aa7" target="_blank">
+        <i class="ti ti-check" aria-hidden="true"></i>
+        <div class="nav-label">Habits</div>
+      </a>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- TIME -->
+    <div>
+      <div class="section-label">Time remaining</div>
+      <div class="time-block">
+        <div class="time-row">
+          <div class="time-row-top">
+            <span class="time-name">This week</span>
+            <span class="time-val" id="week-val"></span>
+          </div>
+          <div class="bar-track"><div class="bar-fill bar-week" id="week-bar"></div></div>
+        </div>
+        <div class="time-row">
+          <div class="time-row-top">
+            <span class="time-name">This month</span>
+            <span class="time-val" id="month-val"></span>
+          </div>
+          <div class="bar-track"><div class="bar-fill bar-month" id="month-bar"></div></div>
+        </div>
+        <div class="time-row">
+          <div class="time-row-top">
+            <span class="time-name">This year</span>
+            <span class="time-val" id="year-val"></span>
+          </div>
+          <div class="bar-track"><div class="bar-fill bar-year" id="year-bar"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- TODAY -->
+    <div>
+      <div class="section-label">Today's focus</div>
+      <div class="task-list" id="today-tasks">
+        <div class="state-msg"><span class="loading-dot">●</span> Loading from Notion...</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- WEEK -->
+    <div>
+      <div class="section-label">This week's priorities</div>
+      <div class="week-focus" id="week-priorities">
+        <div class="state-msg"><span class="loading-dot">●</span> Loading from Notion...</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- MONTH -->
+    <div>
+      <div class="section-label" id="monthly-label">Monthly focus</div>
+      <div class="monthly-goal-card">
+        <div class="monthly-goal-text" id="monthly-focus">
+          <span class="loading-dot">●</span> Loading from Notion...
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- GOALS -->
+    <div>
+      <div class="section-label">Active goals</div>
+      <div class="goal-block" id="goals-list">
+        <div class="state-msg"><span class="loading-dot">●</span> Loading from Notion...</div>
+      </div>
+    </div>
+
+    <div class="quote-block">
+      <div class="quote-text">"2026 is not about becoming someone new — it's about becoming more stable, clearer, and braver as who I already am."</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // ── REPLACE THIS with your Cloudflare Worker URL after deployment ──
+  const WORKER_URL = "https://life-planner-proxy.chatouphonstch.workers.dev/";
+
+  function toggleTask(el) { el.classList.toggle("done"); }
+
+  function updateTime() {
+    const now = new Date();
+    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+
+    document.getElementById("hero-date").textContent =
+      days[now.getDay()] + ", " + months[now.getMonth()] + " " + now.getDate() + " · " + now.getFullYear();
+
+    const daysSinceMonday = (now.getDay() + 6) % 7;
+    const weekPct = Math.round((daysSinceMonday / 7) * 100);
+    document.getElementById("week-val").textContent = (7 - daysSinceMonday) + "d left";
+    document.getElementById("week-bar").style.width = weekPct + "%";
+
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const monthPct = Math.round((now.getDate() / daysInMonth) * 100);
+    document.getElementById("month-val").textContent = (daysInMonth - now.getDate()) + "d left";
+    document.getElementById("month-bar").style.width = monthPct + "%";
+
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const dayOfYear = Math.ceil((now - startOfYear) / 86400000);
+    const daysInYear = now.getFullYear() % 4 === 0 ? 366 : 365;
+    const yearPct = Math.round((dayOfYear / daysInYear) * 100);
+    document.getElementById("year-val").textContent = yearPct + "% complete";
+    document.getElementById("year-bar").style.width = yearPct + "%";
+  }
+
+  function renderTasks(tasks) {
+    const container = document.getElementById("today-tasks");
+    if (!tasks || tasks.length === 0) {
+      container.innerHTML = '<div class="state-msg">No tasks found for today.<br>Add them in your Daily Journal.</div>';
+      return;
+    }
+    container.innerHTML = tasks.map(t => `
+      <div class="task-item" onclick="toggleTask(this)">
+        <div class="task-check"><i class="ti ti-check"></i></div>
+        <span class="task-text">${escHtml(t)}</span>
+      </div>
+    `).join("");
+  }
+
+  function renderPriorities(priorities, weekName) {
+    const container = document.getElementById("week-priorities");
+    if (!priorities || priorities.length === 0) {
+      container.innerHTML = '<div class="state-msg">No priorities found.<br>Update your Weekly Plan in Notion.</div>';
+      return;
+    }
+    container.innerHTML = priorities.map(p => `
+      <div class="focus-item"><span class="focus-text">${escHtml(p)}</span></div>
+    `).join("");
+  }
+
+  function renderMonth(data) {
+    const label = document.getElementById("monthly-label");
+    const focus = document.getElementById("monthly-focus");
+    if (data.name) label.textContent = "Monthly focus — " + data.name;
+    const text = data.theme || data.focus || "No monthly focus set yet.";
+    focus.textContent = text;
+  }
+
+  function renderGoals(goals) {
+    const container = document.getElementById("goals-list");
+    if (!goals || goals.length === 0) {
+      container.innerHTML = '<div class="state-msg">No active goals found.</div>';
+      return;
+    }
+    container.innerHTML = goals.map(g => {
+      const pct = g.progress != null ? Math.round(g.progress) : 0;
+      return `
+        <div class="goal-card">
+          <div class="goal-top">
+            <span class="goal-name">${escHtml(g.name)}</span>
+            <span class="goal-pct">${pct}%</span>
+          </div>
+          <div class="goal-bar-track">
+            <div class="goal-bar-fill" style="width:${pct}%"></div>
+          </div>
+          <div class="goal-meta">
+            <span class="goal-area">${escHtml(g.area || "")} · ${escHtml(g.quarter || "")}</span>
+            <span class="goal-status">${escHtml(g.status || "")}</span>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g,"&amp;").replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+
+  async function loadData() {
+    try {
+      const res = await fetch(WORKER_URL);
+      if (!res.ok) throw new Error("Worker returned " + res.status);
+      const data = await res.json();
+      renderTasks(data.today?.tasks);
+      renderPriorities(data.week?.priorities, data.week?.name);
+      renderMonth(data.month || {});
+      renderGoals(data.goals);
+    } catch (err) {
+      console.error("Dashboard load error:", err);
+      ["today-tasks","week-priorities","goals-list"].forEach(id => {
+        document.getElementById(id).innerHTML =
+          '<div class="state-msg">Could not load data.<br>Check your Worker URL is set correctly.</div>';
+      });
+      document.getElementById("monthly-focus").textContent = "Could not load data.";
+    }
+  }
+
+  updateTime();
+  loadData();
+</script>
+</body>
+</html>
