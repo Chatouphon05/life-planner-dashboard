@@ -3,7 +3,10 @@
 export const config = { runtime: 'edge' };
 
 const NOTION_VERSION = "2022-06-28";
-const ALLOWED_ORIGIN = "https://chatouphon05.github.io";
+const ALLOWED_ORIGINS = [
+  "https://chatouphon05.github.io",
+  "https://life-planner-dashboard.vercel.app",
+];
 
 const DB = {
   tasks:   "972a5ee5fce3470796efa210a62ffdcb",
@@ -14,12 +17,15 @@ const DB = {
   goals:   "bde57e266a3f43438d5913bf205c10f3",
 };
 
-const CORS = {
-  "Access-Control-Allow-Origin":  ALLOWED_ORIGIN,
+const getAllowedOrigin = (origin) =>
+  ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+
+const getCORS = (origin) => ({
+  "Access-Control-Allow-Origin":  getAllowedOrigin(origin),
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type",
   "Access-Control-Max-Age":       "86400",
-};
+});
 
 // ── Notion helpers ────────────────────────────────────────────────────────────
 async function notionQuery(dbId, filter, sorts, token) {
@@ -218,6 +224,9 @@ async function handlePatch(body, token) {
 // ── Edge handler ──────────────────────────────────────────────────────────────
 export default async function handler(request) {
   const token = process.env.NOTION_TOKEN;
+  const origin = request.headers.get("Origin") || "";
+  const CORS = getCORS(origin);
+
   if (!token) {
     return new Response(JSON.stringify({ error: "NOTION_TOKEN env var not set" }), {
       status: 500,
@@ -229,8 +238,7 @@ export default async function handler(request) {
     return new Response(null, { headers: CORS });
   }
 
-  const origin = request.headers.get("Origin") || "";
-  if (request.method !== "GET" && origin !== ALLOWED_ORIGIN) {
+  if (request.method !== "GET" && !ALLOWED_ORIGINS.includes(origin)) {
     return new Response(JSON.stringify({ error: "Forbidden" }), {
       status: 403,
       headers: { ...CORS, "Content-Type": "application/json" },
