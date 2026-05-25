@@ -106,8 +106,18 @@ function adaptWorkerData(raw) {
   return { tasks, habits, today, taskHistory, habitHistory, priorities, monthly, goals };
 }
 
+const CACHE_KEY = 'lp-data-v1';
+
+function loadCache() {
+  try { return JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); } catch { return null; }
+}
+function saveCache(data) {
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch {}
+}
+
 const EMPTY_STATE = {
   loading:      true,
+  stale:        false,
   error:        null,
   tasks:        [],
   habits:       [],
@@ -120,7 +130,11 @@ const EMPTY_STATE = {
 };
 
 export function useNotionData() {
-  const [state, setState] = useState(EMPTY_STATE);
+  const [state, setState] = useState(() => {
+    const cached = loadCache();
+    if (cached) return { loading: false, stale: true, error: null, ...cached };
+    return EMPTY_STATE;
+  });
 
   // Central write-back: POST { type, pageId, value } to Worker
   const writeback = useCallback(async (type, pageId, value) => {
@@ -134,14 +148,28 @@ export function useNotionData() {
   }, []);
 
   const fetchData = useCallback(async () => {
-    setState(s => ({ ...s, loading: true, error: null }));
+    // Only show loading spinner when there's nothing to show yet
+    setState(s => ({
+      ...s,
+      loading: !s.tasks.length && !s.habits.length,
+      stale:   true,
+      error:   null,
+    }));
     try {
       const res = await fetch(WORKER_URL);
       if (!res.ok) throw new Error(`Worker returned ${res.status}`);
-      const raw = await res.json();
-      setState({ loading: false, error: null, ...adaptWorkerData(raw) });
+      const raw     = await res.json();
+      const adapted = adaptWorkerData(raw);
+      saveCache(adapted);
+      setState({ loading: false, stale: false, error: null, ...adapted });
     } catch (err) {
-      setState(s => ({ ...s, loading: false, error: err.message }));
+      // If we have cached data, stay silent on background-refresh failure
+      setState(s => ({
+        ...s,
+        loading: false,
+        stale:   false,
+        error:   (s.tasks.length || s.habits.length) ? null : err.message,
+      }));
     }
   }, []);
 

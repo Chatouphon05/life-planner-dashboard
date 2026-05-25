@@ -1,12 +1,20 @@
-import { Eyebrow } from './Primitives.jsx';
+import { Eyebrow, Skeleton } from './Primitives.jsx';
 
 export default function WeekPriorities({ priorities, loading }) {
   if (loading) return (
     <div>
       <Eyebrow>This week · top 3</Eyebrow>
-      <p className="lp-mono" style={{ fontSize: 11, color: 'var(--faint)', marginTop: 16, textAlign: 'center' }}>
-        Syncing Notion…
-      </p>
+      <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {[85, 65, 75].map((w, i) => (
+          <div key={i} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', paddingBottom: 14, borderBottom: '0.5px solid var(--hair)' }}>
+            <Skeleton width={24} height={28} radius={3} />
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <Skeleton width={`${w}%`} height={13} />
+              <Skeleton width="45%" height={9} />
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 

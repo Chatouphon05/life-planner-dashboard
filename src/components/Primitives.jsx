@@ -1,3 +1,9 @@
+export function Skeleton({ width = '100%', height = 12, radius = 4, style: s = {} }) {
+  return (
+    <div className="lp-shimmer" style={{ width, height, borderRadius: radius, flexShrink: 0, ...s }} />
+  );
+}
+
 export function Bullet({ kind = 'task', color, size = 14, style: s = {} }) {
   const glyphs = { task: '·', done: '✕', event: '○', note: '–', priority: '★', irrelevant: '⊘' };
   return (

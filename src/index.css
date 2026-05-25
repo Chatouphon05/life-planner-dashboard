@@ -70,6 +70,18 @@ body {
 @keyframes lp-fade-in  { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 @keyframes lp-bar-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @keyframes lp-spin     { to { transform: rotate(360deg); } }
+@keyframes lp-pulse    { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+@keyframes lp-shimmer  {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
 
-.lp-fade { animation: lp-fade-in .42s cubic-bezier(.2,.7,.3,1) both; }
+.lp-fade     { animation: lp-fade-in .42s cubic-bezier(.2,.7,.3,1) both; }
 .lp-bar-anim > div { transform-origin: left; animation: lp-bar-fill .9s cubic-bezier(.2,.7,.3,1) both; }
+.lp-shimmer  {
+  background: linear-gradient(90deg,
+    var(--hair) 0%, var(--hair-strong) 50%, var(--hair) 100%);
+  background-size: 200% 100%;
+  animation: lp-shimmer 1.6s ease-in-out infinite;
+  border-radius: 4px;
+}

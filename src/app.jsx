@@ -67,7 +67,7 @@ export default function App() {
   const {
     tasks, habits, today, taskHistory, habitHistory,
     priorities, monthly, goals,
-    liveDate, loading, error, refetch, writeback,
+    liveDate, loading, stale, error, refetch, writeback,
   } = useNotionData();
 
   // Pull-to-refresh gesture
@@ -116,7 +116,7 @@ export default function App() {
     <div className="lp-root">
       <PullIndicator pull={pull} refreshing={refreshing} />
 
-      <Hero liveDate={liveDate} theme={theme} onToggleTheme={toggleTheme} />
+      <Hero liveDate={liveDate} theme={theme} onToggleTheme={toggleTheme} syncing={stale} />
       <TabBar tab={tab} onChange={setTab} />
 
       <div
@@ -132,7 +132,7 @@ export default function App() {
 
           {tab === 'Daily' && (
             <>
-              <MoodPicker today={today} writeback={writeback} />
+              <MoodPicker today={today} writeback={writeback} loading={loading} />
               <NavGrid />
               <TodayTasks
                 tasks={tasks}

@@ -1,4 +1,4 @@
-export default function Hero({ liveDate, theme, onToggleTheme }) {
+export default function Hero({ liveDate, theme, onToggleTheme, syncing }) {
   const { date, brisbane, mantra, city } = liveDate;
 
   return (
@@ -31,7 +31,10 @@ export default function Hero({ liveDate, theme, onToggleTheme }) {
       </div>
 
       <div className="lp-eyebrow" style={{ color: 'var(--muted)', marginBottom: 14 }}>
-        <span style={{ color: 'var(--accent)' }}>●</span>
+        <span style={{
+          color: 'var(--accent)',
+          animation: syncing ? 'lp-pulse 1.4s ease-in-out infinite' : 'none',
+        }}>●</span>
         &nbsp;{date.day.toUpperCase()} · {city.toUpperCase()}
       </div>
 

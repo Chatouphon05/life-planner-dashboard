@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Eyebrow, ProgressBar } from './Primitives.jsx';
+import { Eyebrow, ProgressBar, Skeleton } from './Primitives.jsx';
 
 const AREA_ORDER = ['Career & Learning', 'Health & Fitness', 'Personal Growth', 'Relationships'];
 const AREA_GLYPH = {
@@ -15,9 +15,22 @@ export default function Goals({ goals, loading }) {
   if (loading) return (
     <div>
       <Eyebrow>Active goals · 2026</Eyebrow>
-      <p className="lp-mono" style={{ fontSize: 11, color: 'var(--faint)', marginTop: 16, textAlign: 'center' }}>
-        Syncing Notion…
-      </p>
+      <div style={{ marginTop: 8 }}>
+        {[null, null].map((_, i) => (
+          <div key={i} style={{ borderBottom: '0.5px solid var(--hair)', padding: '14px 0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <Skeleton width={18} height={18} radius={3} />
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <Skeleton width="55%" height={12} />
+                  <Skeleton width={36} height={12} />
+                </div>
+                <Skeleton width="100%" height={2} />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 

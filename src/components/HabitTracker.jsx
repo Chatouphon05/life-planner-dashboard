@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Eyebrow } from './Primitives.jsx';
+import { Eyebrow, Skeleton } from './Primitives.jsx';
 
 const DOT = 18;
 const GAP = 2;
@@ -75,9 +75,21 @@ export default function HabitTracker({ habits, habitHistory, loading, writeback 
   if (loading) return (
     <div>
       <Eyebrow>Today · habits</Eyebrow>
-      <p className="lp-mono" style={{ fontSize: 11, color: 'var(--faint)', marginTop: 16, textAlign: 'center' }}>
-        Syncing Notion…
-      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 12 }}>
+        {[90, 75, 110].map((w, i) => (
+          <div key={i}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+              <Skeleton width={w} height={12} />
+              <Skeleton width={20} height={12} />
+            </div>
+            <div style={{ display: 'flex', gap: GAP }}>
+              {Array(14).fill(0).map((_, j) => (
+                <Skeleton key={j} width={DOT} height={DOT} radius={99} style={{ flex: 'none' }} />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 

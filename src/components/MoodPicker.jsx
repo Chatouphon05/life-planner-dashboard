@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Eyebrow } from './Primitives.jsx';
+import { Eyebrow, Skeleton } from './Primitives.jsx';
 
 const MOODS    = ['🚀 Amazing', '😊 Good', '😐 Okay', '😔 Low', '😴 Tired'];
 const ENERGIES = ['⚡ High', '🔋 Medium', '🪫 Low'];
@@ -30,7 +30,26 @@ function Chip({ label, selected, onSelect, disabled }) {
   );
 }
 
-export default function MoodPicker({ today, writeback }) {
+export default function MoodPicker({ today, writeback, loading }) {
+  if (loading) return (
+    <div>
+      <Eyebrow>Today · check-in</Eyebrow>
+      <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div>
+          <Skeleton width={32} height={9} style={{ marginBottom: 8 }} />
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {[80, 70, 65, 60, 70].map((w, i) => <Skeleton key={i} width={w} height={30} radius={99} />)}
+          </div>
+        </div>
+        <div>
+          <Skeleton width={40} height={9} style={{ marginBottom: 8 }} />
+          <div style={{ display: 'flex', gap: 6 }}>
+            {[60, 80, 55].map((w, i) => <Skeleton key={i} width={w} height={30} radius={99} />)}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
   const { mood: initMood, energy: initEnergy, dailyId } = today || {};
 
   const [mood,      setMood]      = useState(initMood   || null);

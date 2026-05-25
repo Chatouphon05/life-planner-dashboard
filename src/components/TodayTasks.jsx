@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Eyebrow, TaskRow } from './Primitives.jsx';
+import { Eyebrow, TaskRow, Skeleton } from './Primitives.jsx';
 
 const HEAT = [
   'var(--hair)',
@@ -61,9 +61,18 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
   if (loading) return (
     <div>
       <Eyebrow>Today · tasks</Eyebrow>
-      <p className="lp-mono" style={{ fontSize: 11, color: 'var(--faint)', marginTop: 16, textAlign: 'center' }}>
-        Syncing Notion…
-      </p>
+      <div style={{ display: 'flex', gap: 2, marginBottom: 14, marginTop: 10 }}>
+        {Array(14).fill(0).map((_, i) => <Skeleton key={i} height={18} style={{ flex: 1 }} />)}
+      </div>
+      {[120, 80, 100].map((w, i) => (
+        <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'flex-start', padding: '10px 0', borderBottom: '0.5px dashed var(--hair)' }}>
+          <Skeleton width={22} height={22} radius={99} />
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6, paddingTop: 2 }}>
+            <Skeleton width={`${w}%`} height={13} />
+            <Skeleton width="40%" height={9} />
+          </div>
+        </div>
+      ))}
     </div>
   );
 
