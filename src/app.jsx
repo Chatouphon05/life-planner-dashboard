@@ -8,6 +8,8 @@ import WeekPriorities from './components/WeekPriorities.jsx';
 import TimeRemaining  from './components/TimeRemaining.jsx';
 import MonthlyFocus   from './components/MonthlyFocus.jsx';
 import Goals          from './components/Goals.jsx';
+import HabitTracker   from './components/HabitTracker.jsx';
+import MoodPicker     from './components/MoodPicker.jsx';
 
 function PullIndicator({ pull, refreshing }) {
   const pct = Math.min(1, pull / 60);
@@ -62,7 +64,11 @@ export default function App() {
     localStorage.setItem('lp-theme', next);
   };
 
-  const { tasks, priorities, monthly, goals, liveDate, loading, error, refetch } = useNotionData();
+  const {
+    tasks, habits, today, taskHistory, habitHistory,
+    priorities, monthly, goals,
+    liveDate, loading, error, refetch, writeback,
+  } = useNotionData();
 
   // Pull-to-refresh gesture
   useEffect(() => {
@@ -126,12 +132,21 @@ export default function App() {
 
           {tab === 'Daily' && (
             <>
+              <MoodPicker today={today} writeback={writeback} />
               <NavGrid />
               <TodayTasks
                 tasks={tasks}
+                taskHistory={taskHistory}
                 loading={loading}
                 error={error}
                 dayLabel={liveDate.date.day}
+                writeback={writeback}
+              />
+              <HabitTracker
+                habits={habits}
+                habitHistory={habitHistory}
+                loading={loading}
+                writeback={writeback}
               />
             </>
           )}

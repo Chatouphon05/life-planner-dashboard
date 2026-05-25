@@ -1,5 +1,5 @@
 export function Bullet({ kind = 'task', color, size = 14, style: s = {} }) {
-  const glyphs = { task: '·', done: '✕', event: '○', note: '–', priority: '★' };
+  const glyphs = { task: '·', done: '✕', event: '○', note: '–', priority: '★', irrelevant: '⊘' };
   return (
     <span className="lp-mono" style={{
       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -54,27 +54,41 @@ export function MetricRow({ label, value, pct, color, sub }) {
   );
 }
 
-export function TaskRow({ task, done, onToggle, priority, meta }) {
+export function TaskRow({ task, done, onToggle, priority, meta, failed }) {
+  const bulletKind  = failed ? 'irrelevant' : (done ? 'done' : (priority ? 'priority' : 'task'));
+  const bulletColor = failed ? 'var(--faint)'
+    : done     ? 'var(--accent2)'
+    : priority ? 'var(--accent)'
+    :            'var(--muted)';
+  const bulletSize  = priority && !done && !failed ? 11 : 13;
+
   return (
-    <div className="lp-tap" onClick={onToggle} style={{
-      display: 'flex', alignItems: 'flex-start', gap: 4,
-      padding: '8px 0', borderBottom: '0.5px dashed var(--hair)',
-      opacity: done ? 0.4 : 1, transition: 'opacity .18s',
-    }}>
-      <Bullet
-        kind={done ? 'done' : (priority ? 'priority' : 'task')}
-        color={done ? 'var(--accent2)' : (priority ? 'var(--accent)' : 'var(--muted)')}
-        size={priority && !done ? 11 : 13}
-      />
+    <div
+      className={failed ? '' : 'lp-tap'}
+      onClick={failed ? undefined : onToggle}
+      style={{
+        display: 'flex', alignItems: 'flex-start', gap: 4,
+        padding: '8px 0', borderBottom: '0.5px dashed var(--hair)',
+        opacity: done ? 0.4 : (failed ? 0.55 : 1),
+        transition: 'opacity .18s',
+      }}
+    >
+      <Bullet kind={bulletKind} color={bulletColor} size={bulletSize} />
       <div style={{ flex: 1, minWidth: 0, paddingTop: 4 }}>
         <div style={{
-          fontSize: 14, lineHeight: 1.4, color: 'var(--text)',
+          fontSize: 14, lineHeight: 1.4,
+          color: failed ? 'var(--faint)' : 'var(--text)',
           textDecoration: done ? 'line-through' : 'none',
           textDecorationColor: 'var(--muted)', textDecorationThickness: '0.5px',
         }}>{task}</div>
-        {meta && (
+        {meta && !failed && (
           <div className="lp-mono" style={{ fontSize: 10, color: 'var(--faint)', marginTop: 3 }}>
             {meta}
+          </div>
+        )}
+        {failed && (
+          <div className="lp-mono" style={{ fontSize: 10, color: 'var(--faint)', marginTop: 3 }}>
+            sync failed · pull to retry
           </div>
         )}
       </div>
