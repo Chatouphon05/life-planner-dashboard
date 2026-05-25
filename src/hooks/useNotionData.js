@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const WORKER_URL = 'https://life-planner-proxy.chatouphonstch.workers.dev/';
+const WORKER_URL = 'https://life-planner-dashboard.vercel.app/api';
 
 const BRISBANE_DATE      = new Date(2026, 5, 7); // June 7, 2026
 const BRISBANE_TOTAL_DAYS = 158;                 // Jan 1 → Jun 7
