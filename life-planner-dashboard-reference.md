@@ -1,17 +1,19 @@
 # Life Planner Dashboard — Project Reference
 
-> This document is the authoritative reference for the Life Planner Dashboard project.
-> Any Claude session working on this project should read this file first before proceeding.
+> Authoritative reference for all Claude sessions working on this project.
+> Read this file first. Do not assume — verify here.
 
 ---
 
 ## 1. Project Vision
 
-A personal life operating system dashboard that surfaces the right information at the right time — replacing the friction of navigating deep Notion pages with a single, beautiful, mobile-first view that makes Lunk *want* to open it every day.
+A personal life OS dashboard that surfaces the right information at the right time.
+Replaces deep Notion navigation with one beautiful, mobile-first view that makes
+Lunk *want* to open it every day — even on low-energy days.
 
 **2026 theme:** *"Becoming more stable, clearer, and braver as who I already am."*
 
-**Core design principle:** The dashboard must survive low-energy days — it should be so frictionless and visually motivating that opening it feels effortless even when motivation is low.
+**Core design principle:** Survive low-energy days. Frictionless to open, instant to act on.
 
 ---
 
@@ -20,163 +22,256 @@ A personal life operating system dashboard that surfaces the right information a
 | Field | Detail |
 |---|---|
 | **Name** | Lunk (Chatouphon) |
-| **Current location** | Vientiane, Laos — departing 7 June 2026 |
-| **Next location** | Brisbane, Australia (QUT MDS program, July 2026) |
+| **Location** | Vientiane, Laos → Brisbane, Australia (departing 7 June 2026) |
+| **Program** | QUT Master of Data Science, starting July 2026 |
 | **Role** | BI Analyst / Data Engineer → transitioning to Data Scientist |
-| **Primary workspace** | Notion (life planner, weekly plans, goals, daily journal) |
-| **Working style** | Deep single focus, plans well, executes lightly on low-energy days |
+| **Primary workspace** | Notion |
+| **Working style** | Deep single focus. Plans well, executes lightly on low-energy days |
+| **Usage mode** | Phone home screen bookmark (standalone, not Notion embed) |
 
 ---
 
-## 3. Current State (as of May 2026)
+## 3. Live System
 
-### What's Built
-- **Dashboard page:** Dark-themed, mobile-first HTML dashboard
-- **Hosting:** GitHub Pages — `https://chatouphon05.github.io/life-planner-dashboard/`
-- **Data proxy:** Cloudflare Worker — `https://life-planner-proxy.chatouphonstch.workers.dev/`
-- **Usage mode:** Standalone web app (bookmarked to phone home screen)
-
-### What's Working
-- Live time progress bars (week, month, year) — auto-calculated from current date
-- Live Notion data via Cloudflare Worker proxy:
-  - Today's tasks (from Daily Journal)
-  - This week's priorities (from Weekly Plans)
-  - Monthly focus/theme (from Monthly Plans)
-  - Active goals with progress % (from Goals database)
-- Quick nav cards linking directly to Notion databases
-- Tappable task checkboxes (session-only, resets on reload)
-- Dark atmospheric aesthetic with purple/night theme
-
-### Known Limitations
-- Tasks checked off reset on page reload (no persistence)
-- Cannot be embedded in Notion iframe (Notion sandbox blocks external fetch)
-- Monthly focus empty if Notion Monthly Plan has no Theme field filled
-- No Spotify widget yet
-- No calendar view yet
-- No habit tracker yet
-- Static layout — not yet built with a component framework
+| Resource | URL |
+|---|---|
+| **Dashboard** | https://chatouphon05.github.io/life-planner-dashboard/ |
+| **GitHub repo** | https://github.com/chatouphon05/life-planner-dashboard |
+| **Cloudflare Worker** | https://life-planner-proxy.chatouphonstch.workers.dev/ |
+| **Notion workspace** | https://www.notion.so/3311e53d8332812bb12de15882223821 |
+| **Notion integrations** | https://www.notion.so/my-integrations |
 
 ---
 
-## 4. Technical Architecture
+## 4. Architecture
 
 ```
 Phone Home Screen (bookmark)
         ↓
 GitHub Pages — index.html
-(HTML + CSS + vanilla JS)
-        ↓
-Cloudflare Worker (CORS proxy)
+(HTML + CSS + vanilla JS → React in Phase C)
+        ↓  GET (load)  /  POST (write-back)
+Cloudflare Worker v2
 https://life-planner-proxy.chatouphonstch.workers.dev/
         ↓
-Notion API (v1)
-Notion Integration: "Life Planner Dashboard"
-Token: secret_... (stored only in Cloudflare Worker env)
+Notion API v1 (2022-06-28)
+Integration: "Life Planner Dashboard"
+Token: secret_... (stored ONLY in Cloudflare Worker env — never in frontend)
 ```
 
-### Notion Databases Connected
-
-| Database | ID | Fields Used |
-|---|---|---|
-| ☀️ Daily Journal | `f35023fab2344a4a8a71f87f6e7d9610` | `To Do List`, `Date` |
-| 📋 Weekly Plans | `2682d573db944fcf84c08dac4acc1a02` | `Top 3 Priorities`, `Status`, `Week` |
-| 📆 Monthly Plans | `a24a10e0ad52408ab4fdd70e2768b979` | `Theme`, `Focus Areas`, `Month`, `Status` |
-| 🎯 Goals | `bde57e266a3f43438d5913bf205c10f3` | `Goal`, `Area`, `Progress %`, `Status`, `Quarter` |
-
-### Cloudflare Worker Logic
-- Receives GET request from dashboard
-- Queries all 4 Notion databases in parallel (`Promise.all`)
-- Filters: Daily by today's date, Weekly/Monthly by `In Progress` status, Goals by `In Progress` or `On Track`
-- Returns unified JSON response
-- Handles CORS for browser access
-
-### GitHub Repository
-- **Repo:** `https://github.com/chatouphon05/life-planner-dashboard`
-- **Branch:** `main`
-- **Entry point:** `index.html` (single file, vanilla HTML/CSS/JS)
-- **Pages URL:** `https://chatouphon05.github.io/life-planner-dashboard/`
+### Key constraints
+- GitHub Pages: **static only** — no server-side logic
+- Cloudflare Worker: **free tier** — batch reads, minimize calls
+- Notion embed: **does NOT work** — Notion iframe sandbox blocks external fetch
+- Notion token: **never in frontend code** — Worker only
 
 ---
 
-## 5. Design Reference
+## 5. Notion Databases
 
-### Visual Direction
-- **Inspiration:** Dark purple/night aesthetic, atmospheric, city-at-night feel
-- **Color palette:**
-  - Background: `#0d0d14`
-  - Card background: `#16152a`
-  - Primary accent: `#9b87f5` (purple)
-  - Secondary accent: `#6dd5a8` (green)
-  - Tertiary accent: `#f0a070` (orange)
-  - Text primary: `rgba(230,225,255,0.85)`
-  - Text muted: `rgba(180,170,255,0.5)`
-- **Typography:** Syne (headings, numbers) + DM Sans (body)
-- **Border style:** `0.5px solid rgba(255,255,255,0.07)` — subtle, not harsh
-- **Border radius:** 12–14px cards, 4px bars
+### Connected to integration "Life Planner Dashboard"
 
-### Current Sections (top to bottom)
-1. Hero — title + live date
-2. Quick nav — 6 cards linking to Notion databases
-3. Time remaining — week / month / year progress bars
-4. Today's focus — live tasks from Daily Journal
-5. This week's priorities — live from Weekly Plans
-6. Monthly focus — live from Monthly Plans
-7. Active goals — live from Goals with progress bars
-8. Quote — 2026 theme
+| Database | ID | Key Fields | Write-back? |
+|---|---|---|---|
+| ✅ Tasks | `972a5ee5fce3470796efa210a62ffdcb` | Task, Done, Date, Area, Priority | ✅ Yes — Done checkbox |
+| 🔁 Habits | `e00177c934234bbebbcffed9cd847b98` | Habit, Done, Date, Category, Streak | ✅ Yes — Done checkbox |
+| ☀️ Daily Journal | `f35023fab2344a4a8a71f87f6e7d9610` | Mood (select), Energy (select), Date | ✅ Yes — Mood + Energy |
+| 📋 Weekly Plans | `2682d573db944fcf84c08dac4acc1a02` | Week, Top 3 Priorities, Status | ❌ Read only |
+| 📆 Monthly Plans | `a24a10e0ad52408ab4fdd70e2768b979` | Month, Theme, Focus Areas, Status | ❌ Read only |
+| 🎯 Goals | `bde57e266a3f43438d5913bf205c10f3` | Goal, Area, Progress %, Status, Quarter | ❌ Read only |
+
+### Daily Journal schema (key fields)
+```
+Mood:   select → ["🚀 Amazing", "😊 Good", "😐 Okay", "😔 Low", "😴 Tired"]
+Energy: select → ["⚡ High", "🔋 Medium", "🪫 Low"]
+Date:   date
+```
+
+### Tasks schema (new — replaces To Do List text field)
+```
+Task:     title
+Done:     checkbox  ← write-back target
+Date:     date      ← filter by today
+Area:     select → ["🎓 Learning", "💼 Work", "🌿 Life", "💪 Health", "🧠 Mental", "🤝 Relationships"]
+Priority: select → ["🔴 High", "🟡 Medium", "🟢 Low"]
+Notes:    rich_text
+```
+
+### Habits schema (new)
+```
+Habit:    title
+Done:     checkbox  ← write-back target
+Date:     date      ← filter by today
+Category: select → ["🧠 Mind", "💪 Body", "📚 Learning", "🌿 Life", "😴 Rest"]
+Streak:   number
+Notes:    rich_text
+```
 
 ---
 
-## 6. Next Phase Roadmap
+## 6. Cloudflare Worker v2 API
 
-### Phase A — Visual Redesign
-- [ ] Upgrade hero section with AI-generated or curated atmospheric image
-- [ ] Add image cards for nav (gallery style like the original inspiration)
-- [ ] Improve mobile typography and spacing
-- [ ] Add subtle animations (fade-in on load, bar fill animation)
-- [ ] Add avatar / profile element in hero
+### GET /
+Returns all dashboard data in one call.
 
-### Phase B — Feature Additions
-- [ ] **Spotify widget** — show currently playing track (requires Spotify API)
-- [ ] **Calendar view** — upcoming events for the week
-- [ ] **Habit tracker** — daily checkboxes that persist across sessions
-- [ ] **Countdown** — days until Brisbane departure / MDS start
-- [ ] **Task persistence** — checked tasks stay checked until midnight (localStorage or Notion write-back)
+```json
+{
+  "today":  { "date": "2026-05-25", "mood": "😊 Good", "energy": "🔋 Medium", "dailyId": "abc123" },
+  "tasks":  [{ "id": "...", "task": "...", "done": false, "area": "🎓 Learning", "priority": "🔴 High" }],
+  "habits": [{ "id": "...", "habit": "...", "done": false, "category": "🧠 Mind", "streak": 3 }],
+  "week":   { "name": "W21", "priorities": ["...", "...", "..."] },
+  "month":  { "name": "May 2026", "theme": "...", "focus": "..." },
+  "goals":  [{ "id": "...", "name": "...", "area": "...", "progress": 40, "status": "In Progress", "quarter": "Q2" }]
+}
+```
 
-### Phase C — Framework Rebuild
-- [ ] Migrate from vanilla HTML to **React** (Vite + GitHub Pages deploy)
-- [ ] Component-based architecture: `HeroSection`, `NavGrid`, `TimeTracker`, `TaskList`, `GoalCard`, etc.
-- [ ] Proper state management for task completion
-- [ ] PWA support — installable as app, offline fallback
-- [ ] Dark/light theme toggle (default dark)
+### POST / (write-back)
+Body schema — `type` determines what's written:
 
-### Phase D — Data Expansion
-- [ ] Write-back to Notion — mark tasks done from dashboard
-- [ ] Pull energy/mood from Daily Journal and display as status indicator
-- [ ] Weekly review prompt on Sundays
-- [ ] Study session tracker (relevant for MDS phase)
+```json
+// Toggle task done
+{ "type": "task-done",  "pageId": "notion-page-id", "value": true }
+
+// Toggle habit done
+{ "type": "habit-done", "pageId": "notion-page-id", "value": true }
+
+// Set mood on today's Daily Journal
+{ "type": "mood",   "pageId": "daily-journal-page-id", "value": "😊 Good" }
+
+// Set energy on today's Daily Journal
+{ "type": "energy", "pageId": "daily-journal-page-id", "value": "⚡ High" }
+```
+
+Response: `{ "ok": true, "type": "...", "pageId": "..." }`
 
 ---
 
-## 7. File Structure (current)
+## 7. Current Dashboard Sections
 
+Top to bottom:
+1. **Hero** — title + live date (auto-calculated)
+2. **Quick nav** — 6 cards linking to Notion databases
+3. **Time remaining** — week / month / year progress bars (live JS)
+4. **Today's focus** — tasks from Tasks DB, tappable with write-back
+5. **This week's priorities** — from Weekly Plans (read only)
+6. **Monthly focus** — theme + focus areas from Monthly Plans (read only)
+7. **Active goals** — from Goals DB with progress bars (read only)
+8. **Quote** — 2026 theme
+
+### Not yet implemented
+- Habit tracker section (Habits DB is ready)
+- Mood + Energy selector (Daily Journal fields ready)
+- Spotify "Now Playing" widget
+- Brisbane/MDS departure countdown
+- Calendar view
+
+---
+
+## 8. Design System
+
+| Token | Value |
+|---|---|
+| Background | `#0d0d14` |
+| Card background | `#16152a` |
+| Card hover | `#1e1c38` |
+| Primary accent (purple) | `#9b87f5` |
+| Secondary accent (green) | `#6dd5a8` |
+| Tertiary accent (orange) | `#f0a070` |
+| Text primary | `rgba(230,225,255,0.85)` |
+| Text muted | `rgba(180,170,255,0.5)` |
+| Border | `0.5px solid rgba(255,255,255,0.07)` |
+| Border radius (cards) | `12–14px` |
+| Border radius (bars) | `4px` |
+| Heading font | Syne (600/700) |
+| Body font | DM Sans (300/400/500) |
+
+**Dark theme is non-negotiable.** It's core to why this feels good to open.
+
+---
+
+## 9. Roadmap
+
+### ✅ Done
+- Dark atmospheric dashboard (HTML/CSS/JS)
+- GitHub Pages hosting
+- Cloudflare Worker proxy (v1 → read only)
+- Live Notion data: tasks, weekly priorities, monthly focus, goals
+- Time progress bars (week/month/year)
+- Quick nav cards
+- New Tasks database (replaces text field)
+- New Habits database
+- Worker v2 (read + write-back: tasks, habits, mood, energy)
+
+### 🔲 Phase A — Connect write-back in frontend
+- Wire task checkboxes → POST worker (task-done)
+- Wire habit checkboxes → POST worker (habit-done)
+- Add Mood selector → POST worker (mood)
+- Add Energy selector → POST worker (energy)
+- Optimistic UI with revert on failure
+
+### 🔲 Phase B — New sections
+- Habit tracker section (reads from Habits DB)
+- Mood + Energy display/picker in hero or daily section
+- Brisbane departure countdown (days until 7 June 2026)
+- MDS start countdown (days until July 2026)
+- Spotify "Now Playing" widget
+
+### 🔲 Phase C — React rebuild (Claude Code)
+- Migrate from vanilla HTML to React (Vite + GitHub Pages)
+- Component architecture: HeroSection, NavGrid, TimeTracker,
+  TaskList, HabitTracker, MoodPicker, GoalCard, SpotifyWidget
+- `useNotionData.js` hook for data fetching + write-back
+- PWA support — installable, offline fallback
+- Use Claude Design output (app.jsx, sections.jsx, tokens.jsx) as base
+
+### 🔲 Phase D — Intelligence layer
+- Weekly review prompt on Sundays
+- Study session tracker (MDS-specific)
+- Mood/energy trend display (7-day rolling)
+
+---
+
+## 10. Instructions for Claude Sessions
+
+1. **Read this file first** — don't assume current state
+2. **Check live URL** before changes: https://chatouphon05.github.io/life-planner-dashboard/
+3. **Never hardcode Notion token** — Worker env only
+4. **Mobile-first always** — primary use is phone
+5. **Dark theme non-negotiable**
+6. **Design must survive low-energy days** — if it adds friction, reconsider
+7. **Ask before assuming scope** — confirm which phase/task is active
+
+### Starting a Phase A/B session
+Provide: this file + current index.html from GitHub repo
+
+### Starting a Phase C session (React rebuild)
+Provide: this file + Claude Design files (app.jsx, sections.jsx, tokens.jsx, Life Planner.html)
+
+---
+
+## 11. File Structure
+
+### Current (vanilla)
 ```
-life-planner-dashboard/
-├── index.html          # Single-file dashboard (HTML + CSS + JS)
-worker.js               # Cloudflare Worker source (deploy separately)
-life-planner-dashboard-reference.md  # This file
+GitHub repo: chatouphon05/life-planner-dashboard
+├── index.html                          # Single-file dashboard
+└── life-planner-dashboard-reference.md # This file
+
+Cloudflare Worker (separate deploy):
+└── worker-v2.js                        # v2 with write-back support
 ```
 
-### Phase C target structure (React)
+### Phase C target (React)
 ```
-life-planner-dashboard/
-├── public/
-│   └── index.html
+├── public/index.html
 ├── src/
 │   ├── components/
 │   │   ├── HeroSection.jsx
 │   │   ├── NavGrid.jsx
 │   │   ├── TimeTracker.jsx
 │   │   ├── TaskList.jsx
+│   │   ├── HabitTracker.jsx
+│   │   ├── MoodPicker.jsx
 │   │   ├── WeekPriorities.jsx
 │   │   ├── MonthlyFocus.jsx
 │   │   ├── GoalCard.jsx
@@ -185,46 +280,12 @@ life-planner-dashboard/
 │   │   └── useNotionData.js
 │   ├── App.jsx
 │   └── main.jsx
-├── worker.js
+├── worker-v2.js
 └── vite.config.js
 ```
 
 ---
 
-## 8. Instructions for Claude Sessions
-
-When a new Claude session picks up this project:
-
-1. **Read this file first** — don't assume, verify current state here
-2. **Check the live URL** before making changes: `https://chatouphon05.github.io/life-planner-dashboard/`
-3. **Never hardcode the Notion token** — it lives only in the Cloudflare Worker
-4. **Design decisions** must survive low-energy days — if it adds friction, reconsider
-5. **Mobile-first always** — Lunk uses this primarily on his phone
-6. **Dark theme is non-negotiable** — it's core to why this feels good to open
-7. **Ask before assuming scope** — Lunk works in deep single focus; confirm what phase/task is active before building
-
-### Key constraints
-- Notion API token: stored in Cloudflare Worker only (never in frontend code)
-- GitHub Pages: static hosting only — no server-side logic
-- Cloudflare Worker: free tier — keep API calls minimal and batched
-- Notion embed: does NOT work (iframe sandbox blocks external fetch) — use standalone URL only
-
----
-
-## 9. Useful Links
-
-| Resource | URL |
-|---|---|
-| Live dashboard | https://chatouphon05.github.io/life-planner-dashboard/ |
-| GitHub repo | https://github.com/chatouphon05/life-planner-dashboard |
-| Cloudflare Worker | https://dash.cloudflare.com (Workers & Pages → life-planner-proxy) |
-| Notion workspace | https://www.notion.so/3311e53d8332812bb12de15882223821 |
-| Notion integrations | https://www.notion.so/my-integrations |
-| Notion API docs | https://developers.notion.com |
-| Cloudflare Workers docs | https://developers.cloudflare.com/workers |
-
----
-
 *Last updated: May 25, 2026*
-*Built with: HTML/CSS/JS → Cloudflare Worker → Notion API*
-*Next milestone: Phase A visual redesign + Phase B feature additions*
+*Worker version: v2 (read + write-back)*
+*Next milestone: Phase A — wire write-back in frontend*
