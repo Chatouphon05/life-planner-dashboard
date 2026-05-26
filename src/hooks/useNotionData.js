@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const WORKER_URL = 'https://life-planner-dashboard.vercel.app/api';
+export const WORKER_URL = 'https://life-planner-dashboard.vercel.app/api';
 
 const BRISBANE_DATE      = new Date(2026, 5, 7); // June 7, 2026
 const BRISBANE_TOTAL_DAYS = 158;                 // Jan 1 → Jun 7
@@ -161,6 +161,13 @@ export function useNotionData() {
     return EMPTY_STATE;
   });
 
+  // Drilldown fetch: GET /api?weeklyTask=<id> or ?monthlyTask=<id>
+  const fetchExpand = useCallback(async (type, id) => {
+    const res = await fetch(`${WORKER_URL}?${type}=${id}`);
+    if (!res.ok) throw new Error(`Expand fetch failed: ${res.status}`);
+    return res.json();
+  }, []);
+
   // Central write-back: POST { type, pageId, value } to Worker
   const writeback = useCallback(async (type, pageId, value) => {
     const res = await fetch(WORKER_URL, {
@@ -200,6 +207,6 @@ export function useNotionData() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  return { ...state, liveDate: getLiveDate(), refetch: fetchData, writeback };
+  return { ...state, liveDate: getLiveDate(), refetch: fetchData, writeback, fetchExpand };
 
 }

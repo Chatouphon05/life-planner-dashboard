@@ -22,6 +22,12 @@ const DB = {
 
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
+// Format 32-char hex ID back to UUID with dashes (required for Notion relation filters)
+const fmtId = id => {
+  const s = id.replace(/-/g, '');
+  return `${s.slice(0,8)}-${s.slice(8,12)}-${s.slice(12,16)}-${s.slice(16,20)}-${s.slice(20)}`;
+};
+
 function getISOWeekStr() {
   const now = new Date();
   const d   = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
@@ -90,6 +96,57 @@ function buildDateAxis(today) {
     axis.push(d.toISOString().split("T")[0]);
   }
   return axis;
+}
+
+// ── Drilldown queries ─────────────────────────────────────────────────────────
+
+async function getWeeklyTaskDrilldown(weeklyTaskId, token) {
+  const res = await notionQuery(DB.daily_tasks, {
+    property: "Weekly Task",
+    relation: { contains: fmtId(weeklyTaskId) },
+  }, [{ property: "Date", direction: "ascending" }], token);
+
+  return res.results.map(p => ({
+    id:       getId(p),
+    task:     getText(p.properties["Task"]),
+    done:     getBool(p.properties["Done"]),
+    date:     getDate(p.properties["Date"]),
+    priority: getSelect(p.properties["Priority"]),
+  })).filter(t => t.task);
+}
+
+async function getMonthlyTaskDrilldown(monthlyTaskId, token) {
+  const weeklyRes = await notionQuery(DB.weekly_tasks, {
+    property: "Monthly Task",
+    relation: { contains: fmtId(monthlyTaskId) },
+  }, null, token);
+
+  const weeklyTasks = weeklyRes.results.map(p => ({
+    id:       getId(p),
+    task:     getText(p.properties["Task"]),
+    status:   getSelect(p.properties["Status"]),
+    priority: getSelect(p.properties["Priority"]),
+    week:     getSelect(p.properties["Week"]),
+  })).filter(t => t.task);
+
+  const dailyResults = await Promise.all(
+    weeklyTasks.map(wt =>
+      notionQuery(DB.daily_tasks, {
+        property: "Weekly Task",
+        relation: { contains: fmtId(wt.id) },
+      }, [{ property: "Date", direction: "ascending" }], token)
+    )
+  );
+
+  return weeklyTasks.map((wt, i) => ({
+    ...wt,
+    dailyTasks: dailyResults[i].results.map(p => ({
+      id:   getId(p),
+      task: getText(p.properties["Task"]),
+      done: getBool(p.properties["Done"]),
+      date: getDate(p.properties["Date"]),
+    })).filter(t => t.task),
+  }));
 }
 
 // ── GET handler ───────────────────────────────────────────────────────────────
@@ -292,7 +349,15 @@ export default async function handler(request) {
 
   try {
     if (request.method === "GET") {
-      const data = await getData(token);
+      const url           = new URL(request.url);
+      const weeklyTaskId  = url.searchParams.get("weeklyTask");
+      const monthlyTaskId = url.searchParams.get("monthlyTask");
+
+      let data;
+      if (weeklyTaskId)       data = await getWeeklyTaskDrilldown(weeklyTaskId, token);
+      else if (monthlyTaskId) data = await getMonthlyTaskDrilldown(monthlyTaskId, token);
+      else                    data = await getData(token);
+
       return new Response(JSON.stringify(data), {
         headers: { ...CORS, "Content-Type": "application/json" },
       });

@@ -1,3 +1,4 @@
+import { useState, useRef, useCallback } from 'react';
 import { Eyebrow, Skeleton } from './Primitives.jsx';
 
 const STATUS_GLYPH = {
@@ -15,44 +16,94 @@ const STATUS_COLOR = {
 };
 
 const TEXT_STYLE = {
-  'Not Started': {},
-  'In Progress': {},
-  'Done':        { textDecoration: 'line-through', textDecorationColor: 'var(--muted)', textDecorationThickness: '0.5px' },
-  'Dropped':     { textDecoration: 'line-through', textDecorationColor: 'var(--faint)', textDecorationThickness: '0.5px', opacity: 0.5 },
+  'Done':    { textDecoration: 'line-through', textDecorationColor: 'var(--muted)', textDecorationThickness: '0.5px' },
+  'Dropped': { textDecoration: 'line-through', textDecorationColor: 'var(--faint)', textDecorationThickness: '0.5px', opacity: 0.5 },
 };
 
-function TaskItem({ task, status, priority }) {
-  const s      = status || 'Not Started';
-  const glyph  = STATUS_GLYPH[s] || '·';
-  const color  = STATUS_COLOR[s] || 'var(--faint)';
-  const tStyle = TEXT_STYLE[s]   || {};
-  const isHigh = priority === 'High';
-
+function DailyTaskRow({ task, done, date }) {
   return (
-    <div style={{
-      display: 'flex', alignItems: 'flex-start', gap: 10,
-      padding: '9px 0',
-      borderBottom: '0.5px dashed var(--hair)',
-    }}>
-      <span className="lp-display-i" style={{
-        fontSize: 14, color, lineHeight: 1.6, flexShrink: 0, width: 14, textAlign: 'center',
-      }}>
-        {glyph}
+    <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', padding: '4px 0' }}>
+      <span className="lp-display-i" style={{ fontSize: 12, color: done ? 'var(--accent2)' : 'var(--faint)', flexShrink: 0, width: 12, textAlign: 'center' }}>
+        {done ? '✕' : '○'}
       </span>
       <span style={{
-        fontSize: 13, color: s === 'Not Started' || s === 'In Progress' ? 'var(--text)' : 'var(--muted)',
-        lineHeight: 1.4, flex: 1, ...tStyle,
+        fontSize: 12, flex: 1,
+        color: done ? 'var(--muted)' : 'var(--text)',
+        ...(done ? { textDecoration: 'line-through', textDecorationColor: 'var(--muted)', textDecorationThickness: '0.5px' } : {}),
       }}>
-        {isHigh && s !== 'Done' && s !== 'Dropped' && (
-          <span style={{ color: 'var(--accent)', marginRight: 5, fontSize: 10 }}>★</span>
-        )}
         {task}
       </span>
+      {date && (
+        <span className="lp-mono" style={{ fontSize: 9, color: 'var(--faint)', flexShrink: 0 }}>
+          {date.slice(5).replace('-', '/')}
+        </span>
+      )}
     </div>
   );
 }
 
-export default function WeeklyTasks({ weeklyTasks, currentWeek, loading }) {
+function ExpandBody({ state }) {
+  if (state.loading) return (
+    <div style={{ paddingTop: 8, paddingBottom: 4 }}>
+      {[80, 60, 90].map((w, i) => (
+        <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '5px 0' }}>
+          <Skeleton width={12} height={12} radius={99} />
+          <Skeleton width={`${w}%`} height={11} />
+        </div>
+      ))}
+    </div>
+  );
+  if (state.error) return (
+    <p className="lp-mono" style={{ fontSize: 10, color: 'var(--faint)', padding: '8px 0' }}>
+      Failed to load · pull to retry
+    </p>
+  );
+  if (!state.tasks?.length) return (
+    <p className="lp-mono" style={{ fontSize: 10, color: 'var(--faint)', padding: '8px 0' }}>
+      No daily tasks linked
+    </p>
+  );
+
+  const done  = state.tasks.filter(t => t.done).length;
+  const total = state.tasks.length;
+  return (
+    <div style={{ paddingTop: 4, paddingBottom: 4 }}>
+      <div style={{ marginBottom: 6 }}>
+        <span className="lp-mono" style={{ fontSize: 9, color: 'var(--faint)' }}>
+          {done}/{total} done this week
+        </span>
+      </div>
+      {state.tasks.map(t => (
+        <DailyTaskRow key={t.id} task={t.task} done={t.done} date={t.date} />
+      ))}
+    </div>
+  );
+}
+
+export default function WeeklyTasks({ weeklyTasks, currentWeek, loading, fetchExpand }) {
+  const [expanded, setExpanded]   = useState(new Set());
+  const [expandData, setExpandData] = useState({});
+  const fetchCache = useRef({});
+
+  const toggleExpand = useCallback(async (taskId) => {
+    setExpanded(prev => {
+      const next = new Set(prev);
+      next.has(taskId) ? next.delete(taskId) : next.add(taskId);
+      return next;
+    });
+
+    if (fetchCache.current[taskId]) return;
+    fetchCache.current[taskId] = true;
+    setExpandData(prev => ({ ...prev, [taskId]: { loading: true, tasks: null, error: null } }));
+    try {
+      const tasks = await fetchExpand('weeklyTask', taskId);
+      setExpandData(prev => ({ ...prev, [taskId]: { loading: false, tasks, error: null } }));
+    } catch (err) {
+      setExpandData(prev => ({ ...prev, [taskId]: { loading: false, tasks: [], error: err.message } }));
+      delete fetchCache.current[taskId];
+    }
+  }, [fetchExpand]);
+
   if (loading) return (
     <div>
       <Eyebrow>Weekly · tasks</Eyebrow>
@@ -91,9 +142,75 @@ export default function WeeklyTasks({ weeklyTasks, currentWeek, loading }) {
         </p>
       ) : (
         <div>
-          {weeklyTasks.map(t => (
-            <TaskItem key={t.id} task={t.task} status={t.status} priority={t.priority} />
-          ))}
+          {weeklyTasks.map(t => {
+            const s       = t.status || 'Not Started';
+            const isOpen  = expanded.has(t.id);
+            const expState = expandData[t.id];
+            const isHigh  = t.priority === 'High';
+
+            return (
+              <div key={t.id}>
+                {/* Row — tappable to expand */}
+                <div
+                  className="lp-tap"
+                  onClick={() => toggleExpand(t.id)}
+                  style={{
+                    display: 'flex', alignItems: 'flex-start', gap: 10,
+                    padding: '9px 0',
+                    borderBottom: isOpen ? 'none' : '0.5px dashed var(--hair)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <span className="lp-display-i" style={{
+                    fontSize: 14, color: STATUS_COLOR[s] || 'var(--faint)',
+                    lineHeight: 1.6, flexShrink: 0, width: 14, textAlign: 'center',
+                  }}>
+                    {STATUS_GLYPH[s] || '·'}
+                  </span>
+                  <span style={{
+                    fontSize: 13, flex: 1,
+                    color: s === 'Done' || s === 'Dropped' ? 'var(--muted)' : 'var(--text)',
+                    lineHeight: 1.4,
+                    ...(TEXT_STYLE[s] || {}),
+                  }}>
+                    {isHigh && s !== 'Done' && s !== 'Dropped' && (
+                      <span style={{ color: 'var(--accent)', marginRight: 5, fontSize: 10 }}>★</span>
+                    )}
+                    {t.task}
+                  </span>
+                  <span style={{
+                    fontSize: 11, color: 'var(--faint)', flexShrink: 0,
+                    transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s ease',
+                    display: 'inline-block', lineHeight: 1.6,
+                  }}>›</span>
+                </div>
+
+                {/* Accordion */}
+                <div style={{
+                  maxHeight: isOpen ? '600px' : '0',
+                  overflow: 'hidden',
+                  transition: 'max-height 0.28s ease',
+                  borderBottom: isOpen ? '0.5px dashed var(--hair)' : 'none',
+                }}>
+                  <div style={{ paddingLeft: 24 }}>
+                    {expState ? (
+                      <ExpandBody state={expState} />
+                    ) : (
+                      <div style={{ paddingTop: 8, paddingBottom: 4 }}>
+                        {[80, 60, 90].map((w, i) => (
+                          <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '5px 0' }}>
+                            <Skeleton width={12} height={12} radius={99} />
+                            <Skeleton width={`${w}%`} height={11} />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 

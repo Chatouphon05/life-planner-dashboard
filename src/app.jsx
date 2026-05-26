@@ -70,7 +70,7 @@ export default function App() {
     tasks, habits, today, taskHistory, habitHistory,
     priorities, monthly, goals,
     weeklyTasks, monthlyTasks, currentWeek, currentMonth,
-    liveDate, loading, stale, error, refetch, writeback,
+    liveDate, loading, stale, error, refetch, writeback, fetchExpand,
   } = useNotionData();
 
   // Pull-to-refresh gesture
@@ -157,7 +157,7 @@ export default function App() {
           {tab === 'Weekly' && (
             <>
               <WeekPriorities priorities={priorities} loading={loading} />
-              <WeeklyTasks weeklyTasks={weeklyTasks} currentWeek={currentWeek} loading={loading} />
+              <WeeklyTasks weeklyTasks={weeklyTasks} currentWeek={currentWeek} loading={loading} fetchExpand={fetchExpand} />
               <TimeRemaining time={liveDate.time} />
             </>
           )}
@@ -169,7 +169,7 @@ export default function App() {
                 loading={loading}
                 monthName={liveDate.date.m}
               />
-              <MonthlyTasks monthlyTasks={monthlyTasks} currentMonth={currentMonth} loading={loading} />
+              <MonthlyTasks monthlyTasks={monthlyTasks} currentMonth={currentMonth} loading={loading} fetchExpand={fetchExpand} />
               <Goals goals={goals} loading={loading} />
             </>
           )}
