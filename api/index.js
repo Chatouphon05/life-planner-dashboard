@@ -28,9 +28,15 @@ const fmtId = id => {
   return `${s.slice(0,8)}-${s.slice(8,12)}-${s.slice(12,16)}-${s.slice(16,20)}-${s.slice(20)}`;
 };
 
-function getISOWeekStr() {
-  const now = new Date();
-  const d   = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+// Returns YYYY-MM-DD in Laos time (UTC+7)
+function laosDateStr(offsetDays = 0) {
+  const ms = Date.now() + 7 * 3600 * 1000 + offsetDays * 86400 * 1000;
+  return new Date(ms).toISOString().split("T")[0];
+}
+
+function getISOWeekStr(dateStr) {
+  const [y, m, day] = dateStr.split('-').map(Number);
+  const d = new Date(Date.UTC(y, m - 1, day));
   d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
   const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
   const weekNo    = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
@@ -151,13 +157,13 @@ async function getMonthlyTaskDrilldown(monthlyTaskId, token) {
 
 // ── GET handler ───────────────────────────────────────────────────────────────
 async function getData(token) {
-  const today          = new Date().toISOString().split("T")[0];
+  const today          = laosDateStr();
   const historyStart   = new Date(today + "T12:00:00Z");
   historyStart.setUTCDate(historyStart.getUTCDate() - 13);
   const historyStartStr  = historyStart.toISOString().split("T")[0];
   const dateAxis         = buildDateAxis(today);
-  const weekStr          = getISOWeekStr();
-  const currentMonthName = MONTH_NAMES[new Date().getMonth()];
+  const weekStr          = getISOWeekStr(today);
+  const currentMonthName = MONTH_NAMES[new Date(today + "T12:00:00Z").getUTCMonth()];
 
   const q = (dbId, filter, sorts) => notionQuery(dbId, filter, sorts, token);
 
