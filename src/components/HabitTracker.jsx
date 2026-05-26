@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { SectionHeader, Skeleton } from './Primitives.jsx';
 
-const DOT = 18;
+const DOT = 20;
 const GAP = 2;
 
 function buildAxis() {
@@ -95,7 +95,7 @@ export default function HabitTracker({ habits, habitHistory, loading, writeback 
   if (!habits.length) return (
     <div>
       <SectionHeader label="Habits" />
-      <p className="lp-mono" style={{ fontSize: 11, color: 'var(--faint)', marginTop: 12 }}>
+      <p className="lp-mono" style={{ fontSize: 13, color: 'var(--faint)', marginTop: 12 }}>
         No habits today — add them in Notion.
       </p>
     </div>
@@ -121,7 +121,7 @@ export default function HabitTracker({ habits, habitHistory, loading, writeback 
             textAlign: 'center',
           }}>
             <span className="lp-mono" style={{
-              fontSize: 8,
+              fontSize: 9,
               color: i === 13 ? 'var(--accent)' : 'var(--faint)',
               lineHeight: 1,
             }}>
@@ -147,7 +147,7 @@ export default function HabitTracker({ habits, habitHistory, loading, writeback 
                 alignItems: 'baseline', marginBottom: 5,
               }}>
                 <span style={{
-                  fontSize: 13, color: isFailed ? 'var(--faint)' : 'var(--text)',
+                  fontSize: 15, color: isFailed ? 'var(--faint)' : 'var(--text)',
                   lineHeight: 1.2,
                   flex: 1, minWidth: 0, overflow: 'hidden',
                   textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -158,7 +158,7 @@ export default function HabitTracker({ habits, habitHistory, loading, writeback 
                   {habit.habit}
                 </span>
                 <span className="lp-mono" style={{
-                  fontSize: 10, color: 'var(--accent)', marginLeft: 8, flexShrink: 0,
+                  fontSize: 11, color: 'var(--accent)', marginLeft: 8, flexShrink: 0,
                 }}>
                   {habit.streak > 0 ? `${habit.streak}d` : ''}
                 </span>

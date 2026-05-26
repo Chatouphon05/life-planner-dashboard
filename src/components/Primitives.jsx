@@ -4,7 +4,7 @@ export function Skeleton({ width = '100%', height = 12, radius = 4, style: s = {
   );
 }
 
-export function Bullet({ kind = 'task', color, size = 14, style: s = {} }) {
+export function Bullet({ kind = 'task', color, size = 16, style: s = {} }) {
   const glyphs = { task: '·', done: '✕', event: '○', note: '–', priority: '★', irrelevant: '⊘' };
   return (
     <span className="lp-mono" style={{
@@ -23,13 +23,13 @@ export function SectionHeader({ label, stat }) {
       paddingBottom: 9, borderBottom: '1.5px solid var(--text)', marginBottom: 14,
     }}>
       <span className="lp-mono" style={{
-        fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase',
+        fontSize: 13, letterSpacing: '0.12em', textTransform: 'uppercase',
         color: 'var(--text)',
       }}>
         {label}
       </span>
       {stat !== undefined && (
-        <span className="lp-mono" style={{ fontSize: 11, color: 'var(--muted)' }}>
+        <span className="lp-mono" style={{ fontSize: 13, color: 'var(--muted)' }}>
           {stat}
         </span>
       )}
@@ -72,11 +72,11 @@ export function MetricRow({ label, value, pct, color, sub }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '6px 0' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-        <span style={{ color: 'var(--text)', fontSize: 13 }}>{label}</span>
-        <span className="lp-mono" style={{ color: 'var(--muted)', fontSize: 11 }}>{value}</span>
+        <span style={{ color: 'var(--text)', fontSize: 15 }}>{label}</span>
+        <span className="lp-mono" style={{ color: 'var(--muted)', fontSize: 12 }}>{value}</span>
       </div>
       {pct !== undefined && <ProgressBar pct={pct} color={color} />}
-      {sub && <span className="lp-mono" style={{ color: 'var(--faint)', fontSize: 10 }}>{sub}</span>}
+      {sub && <span className="lp-mono" style={{ color: 'var(--faint)', fontSize: 11 }}>{sub}</span>}
     </div>
   );
 }
@@ -87,7 +87,7 @@ export function TaskRow({ task, done, onToggle, priority, meta, failed }) {
     : done     ? 'var(--accent2)'
     : priority ? 'var(--accent)'
     :            'var(--muted)';
-  const bulletSize  = priority && !done && !failed ? 11 : 13;
+  const bulletSize  = priority && !done && !failed ? 13 : 15;
 
   return (
     <div
@@ -103,18 +103,18 @@ export function TaskRow({ task, done, onToggle, priority, meta, failed }) {
       <Bullet kind={bulletKind} color={bulletColor} size={bulletSize} />
       <div style={{ flex: 1, minWidth: 0, paddingTop: 4 }}>
         <div style={{
-          fontSize: 14, lineHeight: 1.4,
+          fontSize: 16, lineHeight: 1.4,
           color: failed ? 'var(--faint)' : 'var(--text)',
           textDecoration: done ? 'line-through' : 'none',
           textDecorationColor: 'var(--muted)', textDecorationThickness: '0.5px',
         }}>{task}</div>
         {meta && !failed && (
-          <div className="lp-mono" style={{ fontSize: 10, color: 'var(--faint)', marginTop: 3 }}>
+          <div className="lp-mono" style={{ fontSize: 11, color: 'var(--faint)', marginTop: 3 }}>
             {meta}
           </div>
         )}
         {failed && (
-          <div className="lp-mono" style={{ fontSize: 10, color: 'var(--faint)', marginTop: 3 }}>
+          <div className="lp-mono" style={{ fontSize: 11, color: 'var(--faint)', marginTop: 3 }}>
             sync failed · pull to retry
           </div>
         )}

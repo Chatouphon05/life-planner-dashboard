@@ -80,7 +80,7 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
     <div>
       <SectionHeader label="Tasks" />
       {taskHistory?.length > 0 && <TaskHeatmap taskHistory={taskHistory} />}
-      <p className="lp-mono" style={{ fontSize: 11, color: 'var(--faint)', marginTop: 12 }}>
+      <p className="lp-mono" style={{ fontSize: 13, color: 'var(--faint)', marginTop: 12 }}>
         Could not reach Notion — pull down to retry.
       </p>
     </div>
@@ -91,7 +91,7 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
       <SectionHeader label={`Tasks · ${dayLabel}`} stat={`${completed}/${tasks.length}`} />
       <TaskHeatmap taskHistory={taskHistory} />
       {tasks.length === 0 ? (
-        <p className="lp-mono" style={{ fontSize: 11, color: 'var(--faint)', marginTop: 12 }}>
+        <p className="lp-mono" style={{ fontSize: 13, color: 'var(--faint)', marginTop: 12 }}>
           No tasks today — add them in Notion.
         </p>
       ) : (
@@ -118,12 +118,14 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
         rel="noopener noreferrer"
         className="lp-tap"
         style={{
-          display: 'flex', alignItems: 'center', gap: 6,
-          marginTop: 12, textDecoration: 'none',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          marginTop: 16, textDecoration: 'none', padding: '12px 0', borderRadius: 10,
+          border: '1px solid color-mix(in oklch, var(--accent) 45%, transparent)',
+          background: 'color-mix(in oklch, var(--accent) 8%, var(--bg-2))',
         }}
       >
-        <span className="lp-mono" style={{ fontSize: 10, color: 'var(--accent)' }}>+</span>
-        <span className="lp-mono" style={{ fontSize: 10, color: 'var(--muted)', letterSpacing: '0.08em' }}>
+        <span className="lp-mono" style={{ fontSize: 14, color: 'var(--accent)' }}>+</span>
+        <span className="lp-mono" style={{ fontSize: 12, color: 'var(--accent)', letterSpacing: '0.10em' }}>
           ADD TASK
         </span>
       </a>

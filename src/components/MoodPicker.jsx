@@ -19,7 +19,7 @@ function Chip({ label, selected, onSelect, disabled }) {
           ? 'color-mix(in oklch, var(--accent) 18%, var(--bg-2))'
           : 'var(--bg-2)',
         color: selected ? 'var(--accent)' : 'var(--muted)',
-        fontSize: 12,
+        fontSize: 14,
         transition: 'background .15s, border .15s, color .15s',
         whiteSpace: 'nowrap',
         opacity: disabled ? 0.4 : 1,
@@ -87,7 +87,7 @@ export default function MoodPicker({ today, writeback, loading }) {
         {/* Mood row */}
         <div>
           <div className="lp-mono" style={{
-            fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase',
+            fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase',
             color: moodErr ? 'var(--faint)' : 'var(--muted)', marginBottom: 6,
           }}>
             {moodErr ? 'sync failed · pull to retry' : 'Mood'}
@@ -108,7 +108,7 @@ export default function MoodPicker({ today, writeback, loading }) {
         {/* Energy row */}
         <div>
           <div className="lp-mono" style={{
-            fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase',
+            fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase',
             color: energyErr ? 'var(--faint)' : 'var(--muted)', marginBottom: 6,
           }}>
             {energyErr ? 'sync failed · pull to retry' : 'Energy'}
@@ -127,7 +127,7 @@ export default function MoodPicker({ today, writeback, loading }) {
         </div>
 
         {disabled && (
-          <p className="lp-mono" style={{ fontSize: 10, color: 'var(--faint)', margin: 0 }}>
+          <p className="lp-mono" style={{ fontSize: 11, color: 'var(--faint)', margin: 0 }}>
             No daily entry found — create today's page in Notion first.
           </p>
         )}

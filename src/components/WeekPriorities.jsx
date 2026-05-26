@@ -21,7 +21,7 @@ export default function WeekPriorities({ priorities, loading }) {
   if (!priorities.length) return (
     <div>
       <SectionHeader label="This Week" />
-      <p className="lp-mono" style={{ fontSize: 11, color: 'var(--faint)', marginTop: 16 }}>
+      <p className="lp-mono" style={{ fontSize: 13, color: 'var(--faint)', marginTop: 16 }}>
         No priorities set — update your Weekly Plan in Notion.
       </p>
     </div>
@@ -40,11 +40,11 @@ export default function WeekPriorities({ priorities, loading }) {
               fontSize: 28, color: 'var(--accent)', lineHeight: 1, width: 24, flexShrink: 0,
             }}>{p.n}</span>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.35, fontWeight: 500 }}>
+              <div style={{ fontSize: 16, color: 'var(--text)', lineHeight: 1.35, fontWeight: 500 }}>
                 {p.task}
               </div>
               {p.detail && (
-                <div className="lp-mono" style={{ fontSize: 10, color: 'var(--faint)', marginTop: 4, lineHeight: 1.4 }}>
+                <div className="lp-mono" style={{ fontSize: 11, color: 'var(--faint)', marginTop: 4, lineHeight: 1.4 }}>
                   {p.detail}
                 </div>
               )}

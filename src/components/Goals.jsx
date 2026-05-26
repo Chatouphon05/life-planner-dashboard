@@ -14,7 +14,7 @@ export default function Goals({ goals, loading }) {
 
   if (loading) return (
     <div>
-      <Eyebrow>Active goals · 2026</Eyebrow>
+      <SectionHeader label="Goals · 2026" />
       <div style={{ marginTop: 8 }}>
         {[null, null].map((_, i) => (
           <div key={i} style={{ borderBottom: '0.5px solid var(--hair)', padding: '14px 0' }}>
@@ -36,8 +36,8 @@ export default function Goals({ goals, loading }) {
 
   if (!goals.length) return (
     <div>
-      <Eyebrow>Active goals · 2026</Eyebrow>
-      <p className="lp-mono" style={{ fontSize: 11, color: 'var(--faint)', marginTop: 16 }}>
+      <SectionHeader label="Goals · 2026" />
+      <p className="lp-mono" style={{ fontSize: 13, color: 'var(--faint)', marginTop: 16 }}>
         No active goals found.
       </p>
     </div>
@@ -62,13 +62,13 @@ export default function Goals({ goals, loading }) {
                 onClick={() => setOpenAreas(s => ({ ...s, [area]: !open }))}
                 style={{ display: 'flex', alignItems: 'center', gap: 10 }}
               >
-                <span className="lp-display" style={{ fontSize: 18, color: 'var(--accent)', lineHeight: 1 }}>
+                <span className="lp-display" style={{ fontSize: 20, color: 'var(--accent)', lineHeight: 1 }}>
                   {AREA_GLYPH[area]}
                 </span>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                    <span style={{ fontSize: 13, color: 'var(--text)', fontWeight: 500 }}>{area}</span>
-                    <span className="lp-mono" style={{ fontSize: 10, color: 'var(--faint)' }}>
+                    <span style={{ fontSize: 15, color: 'var(--text)', fontWeight: 500 }}>{area}</span>
+                    <span className="lp-mono" style={{ fontSize: 11, color: 'var(--faint)' }}>
                       {items.length} · avg {avg}%
                     </span>
                   </div>
@@ -77,7 +77,7 @@ export default function Goals({ goals, loading }) {
                   </div>
                 </div>
                 <span className="lp-mono" style={{
-                  fontSize: 12, color: 'var(--faint)',
+                  fontSize: 14, color: 'var(--faint)',
                   transform: open ? 'rotate(90deg)' : 'rotate(0deg)',
                   transition: 'transform .18s',
                 }}>›</span>
@@ -95,9 +95,9 @@ export default function Goals({ goals, loading }) {
                         display: 'flex', justifyContent: 'space-between',
                         alignItems: 'baseline', gap: 12,
                       }}>
-                        <span style={{ fontSize: 12.5, color: 'var(--text)', lineHeight: 1.35 }}>{g.name}</span>
+                        <span style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.35 }}>{g.name}</span>
                         <span className="lp-mono lp-num" style={{
-                          fontSize: 11, flexShrink: 0,
+                          fontSize: 12, flexShrink: 0,
                           color: g.pct === 0 ? 'var(--faint)' : 'var(--text)',
                         }}>{g.pct}%</span>
                       </div>
@@ -107,7 +107,7 @@ export default function Goals({ goals, loading }) {
                       {(g.period || g.sub) && (
                         <div className="lp-mono" style={{
                           marginTop: 5, display: 'flex', gap: 8,
-                          fontSize: 10, color: 'var(--faint)',
+                          fontSize: 11, color: 'var(--faint)',
                         }}>
                           {g.period && <span>{g.period}</span>}
                           {g.period && g.sub && <span>·</span>}

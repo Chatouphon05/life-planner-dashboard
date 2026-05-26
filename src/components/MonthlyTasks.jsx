@@ -29,25 +29,25 @@ function WeeklyGroup({ wt, onToggleDailyTask }) {
     <div style={{ marginBottom: 10 }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
         <span className="lp-display-i" style={{
-          fontSize: 12, color: STATUS_COLOR[s] || 'var(--faint)',
+          fontSize: 14, color: STATUS_COLOR[s] || 'var(--faint)',
           flexShrink: 0, width: 12, textAlign: 'center',
         }}>
           {STATUS_GLYPH[s] || '·'}
         </span>
         <span style={{
-          fontSize: 12, flex: 1,
+          fontSize: 13, flex: 1,
           color: s === 'Done' || s === 'Dropped' ? 'var(--muted)' : 'var(--text)',
           ...(TEXT_STYLE[s] || {}),
         }}>
           {wt.task}
         </span>
         {wt.week && (
-          <span className="lp-mono" style={{ fontSize: 9, color: 'var(--faint)', flexShrink: 0 }}>
+          <span className="lp-mono" style={{ fontSize: 10, color: 'var(--faint)', flexShrink: 0 }}>
             {wt.week}
           </span>
         )}
         {daily.length > 0 && (
-          <span className="lp-mono" style={{ fontSize: 9, color: 'var(--faint)', flexShrink: 0 }}>
+          <span className="lp-mono" style={{ fontSize: 10, color: 'var(--faint)', flexShrink: 0 }}>
             {doneCount}/{daily.length}
           </span>
         )}
@@ -63,20 +63,20 @@ function WeeklyGroup({ wt, onToggleDailyTask }) {
               style={{ display: 'flex', gap: 8, alignItems: 'baseline', padding: '4px 0', cursor: 'pointer' }}
             >
               <span className="lp-display-i" style={{
-                fontSize: 11, color: dt.done ? 'var(--accent2)' : 'var(--faint)',
+                fontSize: 13, color: dt.done ? 'var(--accent2)' : 'var(--faint)',
                 flexShrink: 0, width: 10, textAlign: 'center',
               }}>
                 {dt.done ? '✕' : '○'}
               </span>
               <span style={{
-                fontSize: 11, flex: 1,
+                fontSize: 12, flex: 1,
                 color: dt.done ? 'var(--muted)' : 'var(--text)',
                 ...(dt.done ? { textDecoration: 'line-through', textDecorationColor: 'var(--muted)', textDecorationThickness: '0.5px' } : {}),
               }}>
                 {dt.task}
               </span>
               {dt.date && (
-                <span className="lp-mono" style={{ fontSize: 9, color: 'var(--faint)', flexShrink: 0 }}>
+                <span className="lp-mono" style={{ fontSize: 10, color: 'var(--faint)', flexShrink: 0 }}>
                   {dt.date.slice(5).replace('-', '/')}
                 </span>
               )}
@@ -84,7 +84,7 @@ function WeeklyGroup({ wt, onToggleDailyTask }) {
           ))}
         </div>
       ) : (
-        <span className="lp-mono" style={{ fontSize: 10, color: 'var(--faint)', paddingLeft: 20 }}>
+        <span className="lp-mono" style={{ fontSize: 11, color: 'var(--faint)', paddingLeft: 20 }}>
           No daily tasks
         </span>
       )}
@@ -114,12 +114,12 @@ function ExpandBody({ state, monthlyTaskId, onToggleDailyTask }) {
     </div>
   );
   if (state.error) return (
-    <p className="lp-mono" style={{ fontSize: 10, color: 'var(--faint)', padding: '8px 0' }}>
+    <p className="lp-mono" style={{ fontSize: 11, color: 'var(--faint)', padding: '8px 0' }}>
       Failed to load · pull to retry
     </p>
   );
   if (!state.tasks?.length) return (
-    <p className="lp-mono" style={{ fontSize: 10, color: 'var(--faint)', padding: '8px 0' }}>
+    <p className="lp-mono" style={{ fontSize: 11, color: 'var(--faint)', padding: '8px 0' }}>
       No weekly tasks linked
     </p>
   );
@@ -232,7 +232,7 @@ export default function MonthlyTasks({ monthlyTasks, currentMonth, loading, fetc
       <SectionHeader label={label} stat={total > 0 ? `${doneCount}/${total}` : undefined} />
 
       {total === 0 ? (
-        <p className="lp-mono" style={{ fontSize: 11, color: 'var(--faint)', marginTop: 12 }}>
+        <p className="lp-mono" style={{ fontSize: 13, color: 'var(--faint)', marginTop: 12 }}>
           No monthly tasks — add them in Notion.
         </p>
       ) : (
@@ -262,7 +262,7 @@ export default function MonthlyTasks({ monthlyTasks, currentMonth, loading, fetc
                     }}
                   >
                     <span className="lp-display-i" style={{
-                      fontSize: 14, color: isFailed ? 'var(--faint)' : (STATUS_COLOR[s] || 'var(--faint)'),
+                      fontSize: 16, color: isFailed ? 'var(--faint)' : (STATUS_COLOR[s] || 'var(--faint)'),
                       lineHeight: 1,
                     }}>
                       {STATUS_GLYPH[s] || '·'}
@@ -279,18 +279,18 @@ export default function MonthlyTasks({ monthlyTasks, currentMonth, loading, fetc
                     }}
                   >
                     <span style={{
-                      fontSize: 13, flex: 1,
+                      fontSize: 15, flex: 1,
                       color: isFailed ? 'var(--faint)' : (s === 'Done' || s === 'Dropped' ? 'var(--muted)' : 'var(--text)'),
                       lineHeight: 1.4,
                       ...(TEXT_STYLE[s] || {}),
                     }}>
                       {isHigh && s !== 'Done' && s !== 'Dropped' && (
-                        <span style={{ color: 'var(--accent)', marginRight: 5, fontSize: 10 }}>★</span>
+                        <span style={{ color: 'var(--accent)', marginRight: 5, fontSize: 12 }}>★</span>
                       )}
                       {t.task}
                     </span>
                     <span style={{
-                      fontSize: 11, color: 'var(--faint)', flexShrink: 0,
+                      fontSize: 13, color: 'var(--faint)', flexShrink: 0,
                       transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
                       transition: 'transform 0.2s ease',
                       display: 'inline-block', lineHeight: 1.6,
@@ -299,7 +299,7 @@ export default function MonthlyTasks({ monthlyTasks, currentMonth, loading, fetc
                 </div>
 
                 {isFailed && (
-                  <div className="lp-mono" style={{ fontSize: 10, color: 'var(--faint)', paddingLeft: 24, marginTop: -4, marginBottom: 4 }}>
+                  <div className="lp-mono" style={{ fontSize: 11, color: 'var(--faint)', paddingLeft: 24, marginTop: -4, marginBottom: 4 }}>
                     sync failed · pull to retry
                   </div>
                 )}
@@ -343,10 +343,15 @@ export default function MonthlyTasks({ monthlyTasks, currentMonth, loading, fetc
         target="_blank"
         rel="noopener noreferrer"
         className="lp-tap"
-        style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 12, textDecoration: 'none' }}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          marginTop: 16, textDecoration: 'none', padding: '12px 0', borderRadius: 10,
+          border: '1px solid color-mix(in oklch, var(--accent) 45%, transparent)',
+          background: 'color-mix(in oklch, var(--accent) 8%, var(--bg-2))',
+        }}
       >
-        <span className="lp-mono" style={{ fontSize: 10, color: 'var(--accent)' }}>+</span>
-        <span className="lp-mono" style={{ fontSize: 10, color: 'var(--muted)', letterSpacing: '0.08em' }}>
+        <span className="lp-mono" style={{ fontSize: 14, color: 'var(--accent)' }}>↗</span>
+        <span className="lp-mono" style={{ fontSize: 12, color: 'var(--accent)', letterSpacing: '0.10em' }}>
           OPEN MONTHLY TASKS
         </span>
       </a>

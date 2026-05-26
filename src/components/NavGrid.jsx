@@ -26,11 +26,11 @@ export default function NavGrid() {
             textDecoration: 'none',
           }}
         >
-          <span className="lp-display-i" style={{ fontSize: 20, color: item.color, lineHeight: 1 }}>
+          <span className="lp-display-i" style={{ fontSize: 22, color: item.color, lineHeight: 1 }}>
             {item.sym}
           </span>
           <span className="lp-mono" style={{
-            fontSize: 9, letterSpacing: '0.10em', textTransform: 'uppercase',
+            fontSize: 10, letterSpacing: '0.10em', textTransform: 'uppercase',
             color: 'var(--muted)',
           }}>
             {item.label}

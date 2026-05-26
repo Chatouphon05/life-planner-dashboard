@@ -20,7 +20,7 @@ export default function TabBar({ tab, onChange }) {
             padding: '14px 0 12px', position: 'relative',
           }}>
             <span className="lp-mono" style={{
-              fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
+              fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase',
               color: active ? 'var(--text)' : 'var(--faint)',
               fontWeight: active ? 500 : 400,
             }}>{t}</span>
