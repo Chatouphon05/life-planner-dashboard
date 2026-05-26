@@ -20,7 +20,7 @@ const TEXT_STYLE = {
   'Dropped': { textDecoration: 'line-through', textDecorationColor: 'var(--faint)', textDecorationThickness: '0.5px', opacity: 0.5 },
 };
 
-function WeeklyGroup({ wt }) {
+function WeeklyGroup({ wt, onToggleDailyTask }) {
   const s         = wt.status || 'Not Started';
   const daily     = wt.dailyTasks || [];
   const doneCount = daily.filter(d => d.done).length;
@@ -28,7 +28,10 @@ function WeeklyGroup({ wt }) {
   return (
     <div style={{ marginBottom: 10 }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
-        <span className="lp-display-i" style={{ fontSize: 12, color: STATUS_COLOR[s] || 'var(--faint)', flexShrink: 0, width: 12, textAlign: 'center' }}>
+        <span className="lp-display-i" style={{
+          fontSize: 12, color: STATUS_COLOR[s] || 'var(--faint)',
+          flexShrink: 0, width: 12, textAlign: 'center',
+        }}>
           {STATUS_GLYPH[s] || '·'}
         </span>
         <span style={{
@@ -53,8 +56,16 @@ function WeeklyGroup({ wt }) {
       {daily.length > 0 ? (
         <div style={{ paddingLeft: 20, borderLeft: '0.5px solid var(--hair)', marginLeft: 6 }}>
           {daily.map(dt => (
-            <div key={dt.id} style={{ display: 'flex', gap: 8, alignItems: 'baseline', padding: '3px 0' }}>
-              <span className="lp-display-i" style={{ fontSize: 11, color: dt.done ? 'var(--accent2)' : 'var(--faint)', flexShrink: 0, width: 10, textAlign: 'center' }}>
+            <div
+              key={dt.id}
+              className="lp-tap"
+              onClick={() => onToggleDailyTask(wt.id, dt)}
+              style={{ display: 'flex', gap: 8, alignItems: 'baseline', padding: '4px 0', cursor: 'pointer' }}
+            >
+              <span className="lp-display-i" style={{
+                fontSize: 11, color: dt.done ? 'var(--accent2)' : 'var(--faint)',
+                flexShrink: 0, width: 10, textAlign: 'center',
+              }}>
                 {dt.done ? '✕' : '○'}
               </span>
               <span style={{
@@ -81,7 +92,7 @@ function WeeklyGroup({ wt }) {
   );
 }
 
-function ExpandBody({ state }) {
+function ExpandBody({ state, monthlyTaskId, onToggleDailyTask }) {
   if (state.loading) return (
     <div style={{ paddingTop: 8, paddingBottom: 4 }}>
       {[90, 70, 85].map((w, i) => (
@@ -115,18 +126,22 @@ function ExpandBody({ state }) {
 
   return (
     <div style={{ paddingTop: 4, paddingBottom: 4 }}>
-      {state.tasks.map(wt => <WeeklyGroup key={wt.id} wt={wt} />)}
+      {state.tasks.map(wt => (
+        <WeeklyGroup
+          key={wt.id}
+          wt={wt}
+          onToggleDailyTask={(weeklyTaskId, dt) => onToggleDailyTask(monthlyTaskId, weeklyTaskId, dt)}
+        />
+      ))}
     </div>
   );
 }
 
 export default function MonthlyTasks({ monthlyTasks, currentMonth, loading, fetchExpand, writeback }) {
-  // Expand accordion state
   const [expanded,   setExpanded]   = useState(new Set());
   const [expandData, setExpandData] = useState({});
   const fetchCache = useRef({});
 
-  // Optimistic status overrides
   const [overrides, setOverrides] = useState({});
   const [failed,    setFailed]    = useState({});
 
@@ -162,6 +177,38 @@ export default function MonthlyTasks({ monthlyTasks, currentMonth, loading, fetc
       setTimeout(() => setFailed(f => { const n = { ...f }; delete n[task.id]; return n; }), 2500);
     }
   }, [overrides, failed, writeback]);
+
+  // Toggle a daily task inside the monthly→weekly→daily tree
+  const toggleDailyTask = useCallback(async (monthlyTaskId, weeklyTaskId, dailyTask) => {
+    const next = !dailyTask.done;
+    setExpandData(prev => ({
+      ...prev,
+      [monthlyTaskId]: {
+        ...prev[monthlyTaskId],
+        tasks: prev[monthlyTaskId].tasks.map(wt =>
+          wt.id === weeklyTaskId
+            ? { ...wt, dailyTasks: wt.dailyTasks.map(dt => dt.id === dailyTask.id ? { ...dt, done: next } : dt) }
+            : wt
+        ),
+      },
+    }));
+    try {
+      await writeback('daily-task-done', dailyTask.id, next);
+    } catch {
+      // Revert
+      setExpandData(prev => ({
+        ...prev,
+        [monthlyTaskId]: {
+          ...prev[monthlyTaskId],
+          tasks: prev[monthlyTaskId].tasks.map(wt =>
+            wt.id === weeklyTaskId
+              ? { ...wt, dailyTasks: wt.dailyTasks.map(dt => dt.id === dailyTask.id ? { ...dt, done: !next } : dt) }
+              : wt
+          ),
+        },
+      }));
+    }
+  }, [writeback]);
 
   if (loading) return (
     <div>
@@ -278,7 +325,11 @@ export default function MonthlyTasks({ monthlyTasks, currentMonth, loading, fetc
                 }}>
                   <div style={{ paddingLeft: 24, paddingBottom: 4 }}>
                     {expState ? (
-                      <ExpandBody state={expState} />
+                      <ExpandBody
+                        state={expState}
+                        monthlyTaskId={t.id}
+                        onToggleDailyTask={toggleDailyTask}
+                      />
                     ) : (
                       <div style={{ paddingTop: 8, paddingBottom: 4 }}>
                         {[90, 70].map((w, i) => (

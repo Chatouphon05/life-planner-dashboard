@@ -20,10 +20,17 @@ const TEXT_STYLE = {
   'Dropped': { textDecoration: 'line-through', textDecorationColor: 'var(--faint)', textDecorationThickness: '0.5px', opacity: 0.5 },
 };
 
-function DailyTaskRow({ task, done, date }) {
+function DailyTaskRow({ task, done, date, onToggle }) {
   return (
-    <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', padding: '4px 0' }}>
-      <span className="lp-display-i" style={{ fontSize: 12, color: done ? 'var(--accent2)' : 'var(--faint)', flexShrink: 0, width: 12, textAlign: 'center' }}>
+    <div
+      className="lp-tap"
+      onClick={onToggle}
+      style={{ display: 'flex', gap: 8, alignItems: 'baseline', padding: '5px 0', cursor: 'pointer' }}
+    >
+      <span className="lp-display-i" style={{
+        fontSize: 12, color: done ? 'var(--accent2)' : 'var(--faint)',
+        flexShrink: 0, width: 12, textAlign: 'center',
+      }}>
         {done ? '✕' : '○'}
       </span>
       <span style={{
@@ -42,7 +49,7 @@ function DailyTaskRow({ task, done, date }) {
   );
 }
 
-function ExpandBody({ state }) {
+function ExpandBody({ state, weeklyTaskId, onToggleDailyTask }) {
   if (state.loading) return (
     <div style={{ paddingTop: 8, paddingBottom: 4 }}>
       {[80, 60, 90].map((w, i) => (
@@ -74,19 +81,23 @@ function ExpandBody({ state }) {
         </span>
       </div>
       {state.tasks.map(t => (
-        <DailyTaskRow key={t.id} task={t.task} done={t.done} date={t.date} />
+        <DailyTaskRow
+          key={t.id}
+          task={t.task}
+          done={t.done}
+          date={t.date}
+          onToggle={() => onToggleDailyTask(weeklyTaskId, t)}
+        />
       ))}
     </div>
   );
 }
 
 export default function WeeklyTasks({ weeklyTasks, currentWeek, loading, fetchExpand, writeback }) {
-  // Expand accordion state
   const [expanded,   setExpanded]   = useState(new Set());
   const [expandData, setExpandData] = useState({});
   const fetchCache = useRef({});
 
-  // Optimistic status overrides
   const [overrides, setOverrides] = useState({});
   const [failed,    setFailed]    = useState({});
 
@@ -122,6 +133,34 @@ export default function WeeklyTasks({ weeklyTasks, currentWeek, loading, fetchEx
       setTimeout(() => setFailed(f => { const n = { ...f }; delete n[task.id]; return n; }), 2500);
     }
   }, [overrides, failed, writeback]);
+
+  const toggleDailyTask = useCallback(async (weeklyTaskId, dailyTask) => {
+    const next = !dailyTask.done;
+    // Optimistic update inside expandData
+    setExpandData(prev => ({
+      ...prev,
+      [weeklyTaskId]: {
+        ...prev[weeklyTaskId],
+        tasks: prev[weeklyTaskId].tasks.map(t =>
+          t.id === dailyTask.id ? { ...t, done: next } : t
+        ),
+      },
+    }));
+    try {
+      await writeback('daily-task-done', dailyTask.id, next);
+    } catch {
+      // Revert
+      setExpandData(prev => ({
+        ...prev,
+        [weeklyTaskId]: {
+          ...prev[weeklyTaskId],
+          tasks: prev[weeklyTaskId].tasks.map(t =>
+            t.id === dailyTask.id ? { ...t, done: !next } : t
+          ),
+        },
+      }));
+    }
+  }, [writeback]);
 
   if (loading) return (
     <div>
@@ -238,7 +277,11 @@ export default function WeeklyTasks({ weeklyTasks, currentWeek, loading, fetchEx
                 }}>
                   <div style={{ paddingLeft: 24 }}>
                     {expState ? (
-                      <ExpandBody state={expState} />
+                      <ExpandBody
+                        state={expState}
+                        weeklyTaskId={t.id}
+                        onToggleDailyTask={toggleDailyTask}
+                      />
                     ) : (
                       <div style={{ paddingTop: 8, paddingBottom: 4 }}>
                         {[80, 60, 90].map((w, i) => (
