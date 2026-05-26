@@ -126,6 +126,21 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
           </div>
         </>
       )}
+      <a
+        href="https://www.notion.so/972a5ee5fce3470796efa210a62ffdcb"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="lp-tap"
+        style={{
+          display: 'flex', alignItems: 'center', gap: 6,
+          marginTop: 12, textDecoration: 'none',
+        }}
+      >
+        <span className="lp-mono" style={{ fontSize: 10, color: 'var(--accent)' }}>+</span>
+        <span className="lp-mono" style={{ fontSize: 10, color: 'var(--muted)', letterSpacing: '0.08em' }}>
+          ADD TASK
+        </span>
+      </a>
     </div>
   );
 }

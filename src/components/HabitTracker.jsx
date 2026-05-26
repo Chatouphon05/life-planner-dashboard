@@ -40,11 +40,10 @@ function Dot({ value, isToday, done: localDone, onToggle, pending }) {
       className={isToday ? 'lp-tap' : ''}
       onClick={isToday ? onToggle : undefined}
       style={{
-        width: DOT, height: DOT,
+        flex: 1, aspectRatio: '1 / 1',
         borderRadius: '50%',
         background: bg,
         border,
-        flexShrink: 0,
         opacity: pending ? 0.6 : 1,
         transition: 'background .15s, border .15s',
         boxShadow: isToday_done ? `0 0 6px color-mix(in oklch, var(--accent) 50%, transparent)` : 'none',
@@ -118,7 +117,7 @@ export default function HabitTracker({ habits, habitHistory, loading, writeback 
         {/* spacer for habit name column — we stack vertically so no offset needed */}
         {axis.map((d, i) => (
           <div key={i} style={{
-            width: DOT, flexShrink: 0,
+            flex: 1,
             textAlign: 'center',
           }}>
             <span className="lp-mono" style={{

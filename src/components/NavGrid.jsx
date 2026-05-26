@@ -4,7 +4,7 @@ const NAV_ITEMS = [
   { sym: '◑',  label: 'Monthly',   href: 'https://www.notion.so/a24a10e0ad52408ab4fdd70e2768b979', color: 'var(--text)' },
   { sym: '◎',  label: 'Quarterly', href: 'https://www.notion.so/2ac4ae462b4d436baa485b4dd14a75ea', color: 'var(--accent2)' },
   { sym: '◆',  label: 'Goals',     href: 'https://www.notion.so/bde57e266a3f43438d5913bf205c10f3', color: 'var(--accent2)' },
-  { sym: '●',  label: 'Habits',    href: 'https://www.notion.so/4194de42a76d41088a0681d348d39aa7', color: 'var(--muted)' },
+  { sym: '●',  label: 'Habits',    href: 'https://www.notion.so/e00177c934234bbebbcffed9cd847b98', color: 'var(--muted)' },
 ];
 
 export default function NavGrid() {
