@@ -157,7 +157,7 @@ export default function App() {
           {tab === 'Weekly' && (
             <>
               <WeekPriorities priorities={priorities} loading={loading} />
-              <WeeklyTasks weeklyTasks={weeklyTasks} currentWeek={currentWeek} loading={loading} fetchExpand={fetchExpand} />
+              <WeeklyTasks weeklyTasks={weeklyTasks} currentWeek={currentWeek} loading={loading} fetchExpand={fetchExpand} writeback={writeback} />
               <TimeRemaining time={liveDate.time} />
             </>
           )}
@@ -169,7 +169,7 @@ export default function App() {
                 loading={loading}
                 monthName={liveDate.date.m}
               />
-              <MonthlyTasks monthlyTasks={monthlyTasks} currentMonth={currentMonth} loading={loading} fetchExpand={fetchExpand} />
+              <MonthlyTasks monthlyTasks={monthlyTasks} currentMonth={currentMonth} loading={loading} fetchExpand={fetchExpand} writeback={writeback} />
               <Goals goals={goals} loading={loading} />
             </>
           )}

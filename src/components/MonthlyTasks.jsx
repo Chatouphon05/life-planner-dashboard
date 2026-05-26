@@ -27,7 +27,6 @@ function WeeklyGroup({ wt }) {
 
   return (
     <div style={{ marginBottom: 10 }}>
-      {/* Weekly task header */}
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
         <span className="lp-display-i" style={{ fontSize: 12, color: STATUS_COLOR[s] || 'var(--faint)', flexShrink: 0, width: 12, textAlign: 'center' }}>
           {STATUS_GLYPH[s] || '·'}
@@ -51,7 +50,6 @@ function WeeklyGroup({ wt }) {
         )}
       </div>
 
-      {/* Daily tasks nested */}
       {daily.length > 0 ? (
         <div style={{ paddingLeft: 20, borderLeft: '0.5px solid var(--hair)', marginLeft: 6 }}>
           {daily.map(dt => (
@@ -122,10 +120,15 @@ function ExpandBody({ state }) {
   );
 }
 
-export default function MonthlyTasks({ monthlyTasks, currentMonth, loading, fetchExpand }) {
-  const [expanded, setExpanded]     = useState(new Set());
+export default function MonthlyTasks({ monthlyTasks, currentMonth, loading, fetchExpand, writeback }) {
+  // Expand accordion state
+  const [expanded,   setExpanded]   = useState(new Set());
   const [expandData, setExpandData] = useState({});
   const fetchCache = useRef({});
+
+  // Optimistic status overrides
+  const [overrides, setOverrides] = useState({});
+  const [failed,    setFailed]    = useState({});
 
   const toggleExpand = useCallback(async (taskId) => {
     setExpanded(prev => {
@@ -146,6 +149,20 @@ export default function MonthlyTasks({ monthlyTasks, currentMonth, loading, fetc
     }
   }, [fetchExpand]);
 
+  const toggleDone = useCallback(async (task) => {
+    if (failed[task.id]) return;
+    const current = overrides.hasOwnProperty(task.id) ? overrides[task.id] : task.status;
+    const next    = current === 'Done' ? 'In Progress' : 'Done';
+    setOverrides(o => ({ ...o, [task.id]: next }));
+    try {
+      await writeback('task-status', task.id, next);
+    } catch {
+      setOverrides(o => { const n = { ...o }; delete n[task.id]; return n; });
+      setFailed(f => ({ ...f, [task.id]: true }));
+      setTimeout(() => setFailed(f => { const n = { ...f }; delete n[task.id]; return n; }), 2500);
+    }
+  }, [overrides, failed, writeback]);
+
   if (loading) return (
     <div>
       <Eyebrow>Monthly · tasks</Eyebrow>
@@ -158,9 +175,10 @@ export default function MonthlyTasks({ monthlyTasks, currentMonth, loading, fetc
     </div>
   );
 
-  const done  = monthlyTasks.filter(t => t.status === 'Done').length;
-  const total = monthlyTasks.length;
-  const label = currentMonth ? `Monthly · ${currentMonth}` : 'Monthly · tasks';
+  const effectiveStatus = (t) => overrides.hasOwnProperty(t.id) ? overrides[t.id] : t.status;
+  const doneCount = monthlyTasks.filter(t => effectiveStatus(t) === 'Done').length;
+  const total     = monthlyTasks.length;
+  const label     = currentMonth ? `Monthly · ${currentMonth}` : 'Monthly · tasks';
 
   return (
     <div>
@@ -169,11 +187,11 @@ export default function MonthlyTasks({ monthlyTasks, currentMonth, loading, fetc
       {total > 0 && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 8, marginBottom: 2 }}>
           <span className="lp-display-i" style={{ fontSize: 22, color: 'var(--text)' }}>
-            {total - done}
+            {total - doneCount}
             {' '}<span style={{ color: 'var(--muted)', fontSize: 14 }}>open</span>
           </span>
           <span className="lp-mono" style={{ fontSize: 11, color: 'var(--faint)' }}>
-            {done}/{total} done
+            {doneCount}/{total} done
           </span>
         </div>
       )}
@@ -185,48 +203,71 @@ export default function MonthlyTasks({ monthlyTasks, currentMonth, loading, fetc
       ) : (
         <div>
           {monthlyTasks.map(t => {
-            const s        = t.status || 'Not Started';
+            const s        = effectiveStatus(t) || 'Not Started';
+            const isFailed = !!failed[t.id];
             const isOpen   = expanded.has(t.id);
             const expState = expandData[t.id];
             const isHigh   = t.priority === 'High';
 
             return (
               <div key={t.id}>
-                {/* Row — tappable to expand */}
-                <div
-                  className="lp-tap"
-                  onClick={() => toggleExpand(t.id)}
-                  style={{
-                    display: 'flex', alignItems: 'flex-start', gap: 10,
-                    padding: '9px 0',
-                    borderBottom: isOpen ? 'none' : '0.5px dashed var(--hair)',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <span className="lp-display-i" style={{
-                    fontSize: 14, color: STATUS_COLOR[s] || 'var(--faint)',
-                    lineHeight: 1.6, flexShrink: 0, width: 14, textAlign: 'center',
-                  }}>
-                    {STATUS_GLYPH[s] || '·'}
-                  </span>
-                  <span style={{
-                    fontSize: 13, flex: 1,
-                    color: s === 'Done' || s === 'Dropped' ? 'var(--muted)' : 'var(--text)',
-                    lineHeight: 1.4,
-                    ...(TEXT_STYLE[s] || {}),
-                  }}>
-                    {isHigh && s !== 'Done' && s !== 'Dropped' && (
-                      <span style={{ color: 'var(--accent)', marginRight: 5, fontSize: 10 }}>★</span>
-                    )}
-                    {t.task}
-                  </span>
-                  <span style={{
-                    fontSize: 11, color: 'var(--faint)', flexShrink: 0,
-                    transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
-                    transition: 'transform 0.2s ease',
-                    display: 'inline-block', lineHeight: 1.6,
-                  }}>›</span>
+                <div style={{
+                  display: 'flex', alignItems: 'flex-start', gap: 0,
+                  borderBottom: isOpen ? 'none' : '0.5px dashed var(--hair)',
+                }}>
+                  {/* Glyph — taps toggle done */}
+                  <div
+                    className="lp-tap"
+                    onClick={() => toggleDone(t)}
+                    style={{
+                      padding: '9px 10px 9px 0',
+                      flexShrink: 0, width: 24,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      opacity: isFailed ? 0.4 : 1,
+                    }}
+                  >
+                    <span className="lp-display-i" style={{
+                      fontSize: 14, color: isFailed ? 'var(--faint)' : (STATUS_COLOR[s] || 'var(--faint)'),
+                      lineHeight: 1,
+                    }}>
+                      {STATUS_GLYPH[s] || '·'}
+                    </span>
+                  </div>
+
+                  {/* Task name + chevron — taps expand */}
+                  <div
+                    className="lp-tap"
+                    onClick={() => toggleExpand(t.id)}
+                    style={{
+                      flex: 1, display: 'flex', alignItems: 'flex-start',
+                      padding: '9px 0', gap: 8, cursor: 'pointer',
+                    }}
+                  >
+                    <span style={{
+                      fontSize: 13, flex: 1,
+                      color: isFailed ? 'var(--faint)' : (s === 'Done' || s === 'Dropped' ? 'var(--muted)' : 'var(--text)'),
+                      lineHeight: 1.4,
+                      ...(TEXT_STYLE[s] || {}),
+                    }}>
+                      {isHigh && s !== 'Done' && s !== 'Dropped' && (
+                        <span style={{ color: 'var(--accent)', marginRight: 5, fontSize: 10 }}>★</span>
+                      )}
+                      {t.task}
+                    </span>
+                    <span style={{
+                      fontSize: 11, color: 'var(--faint)', flexShrink: 0,
+                      transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.2s ease',
+                      display: 'inline-block', lineHeight: 1.6,
+                    }}>›</span>
+                  </div>
                 </div>
+
+                {isFailed && (
+                  <div className="lp-mono" style={{ fontSize: 10, color: 'var(--faint)', paddingLeft: 24, marginTop: -4, marginBottom: 4 }}>
+                    sync failed · pull to retry
+                  </div>
+                )}
 
                 {/* Accordion */}
                 <div style={{

@@ -314,10 +314,11 @@ async function handlePatch(body, token) {
 
   switch (type) {
     case "daily-task-done":
-    case "task-done":  await patch({ "Done":   { checkbox: value === true } }); break;
-    case "habit-done": await patch({ "Done":   { checkbox: value === true } }); break;
-    case "mood":       await patch({ "Mood":   value ? { select: { name: value } } : { select: null } }); break;
-    case "energy":     await patch({ "Energy": value ? { select: { name: value } } : { select: null } }); break;
+    case "task-done":    await patch({ "Done":   { checkbox: value === true } }); break;
+    case "habit-done":   await patch({ "Done":   { checkbox: value === true } }); break;
+    case "task-status":  await patch({ "Status": value ? { select: { name: value } } : { select: null } }); break;
+    case "mood":         await patch({ "Mood":   value ? { select: { name: value } } : { select: null } }); break;
+    case "energy":       await patch({ "Energy": value ? { select: { name: value } } : { select: null } }); break;
     default: throw new Error(`Unknown patch type: ${type}`);
   }
   return { ok: true, type, pageId };
