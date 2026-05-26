@@ -64,17 +64,11 @@ export default async function handler(request) {
   const today     = laosDate(0);
   const yesterday = laosDate(-1);
 
-  // Idempotent — skip if today's habits already exist
-  const todayHabits = await queryHabits(today, token);
-  if (todayHabits.length > 0) {
-    return new Response(JSON.stringify({
-      ok: true, skipped: true,
-      message: `${todayHabits.length} habits already exist for ${today}`,
-    }));
-  }
-
-  // Use yesterday's habits as the template
-  const yesterdayHabits = await queryHabits(yesterday, token);
+  // Get both today and yesterday in parallel
+  const [todayHabits, yesterdayHabits] = await Promise.all([
+    queryHabits(today, token),
+    queryHabits(yesterday, token),
+  ]);
   if (!yesterdayHabits.length) {
     return new Response(JSON.stringify({
       ok: false,
@@ -87,9 +81,22 @@ export default async function handler(request) {
   const getNum    = p => p?.number ?? 0;
   const getBool   = p => p?.checkbox ?? false;
 
-  // Create today's habits in parallel, streak = yesterday streak + 1 if done, else 0
+  // Only create habits that don't already exist today (match by name)
+  const existingNames = new Set(todayHabits.map(p => getText(p.properties["Habit"])));
+
+  const missing = yesterdayHabits.filter(page =>
+    !existingNames.has(getText(page.properties["Habit"]))
+  );
+
+  if (!missing.length) {
+    return new Response(JSON.stringify({
+      ok: true, skipped: true,
+      message: `All ${todayHabits.length} habits already exist for ${today}`,
+    }));
+  }
+
   const created = await Promise.all(
-    yesterdayHabits.map(page => {
+    missing.map(page => {
       const name     = getText(page.properties["Habit"]);
       const category = getSelect(page.properties["Category"]);
       const done     = getBool(page.properties["Done"]);
@@ -99,6 +106,6 @@ export default async function handler(request) {
   );
 
   return new Response(JSON.stringify({
-    ok: true, created: created.length, date: today,
+    ok: true, created: created.length, skipped: existingNames.size, date: today,
   }));
 }
