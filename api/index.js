@@ -9,13 +9,27 @@ const ALLOWED_ORIGINS = [
 ];
 
 const DB = {
-  tasks:   "972a5ee5fce3470796efa210a62ffdcb",
-  habits:  "e00177c934234bbebbcffed9cd847b98",
-  daily:   "f35023fab2344a4a8a71f87f6e7d9610",
-  weekly:  "2682d573db944fcf84c08dac4acc1a02",
-  monthly: "a24a10e0ad52408ab4fdd70e2768b979",
-  goals:   "bde57e266a3f43438d5913bf205c10f3",
+  tasks:          "972a5ee5fce3470796efa210a62ffdcb",  // ✅ legacy standalone Tasks
+  daily_tasks:    "c88c5452b1224fc3a8e421c77447e063",  // ☀️ Daily Tasks (hierarchy)
+  weekly_tasks:   "5e77a48652b247ca99a86710e12094bb",  // 📋 Weekly Tasks
+  monthly_tasks:  "0eaa802009e147e1ac04425330958f06",  // 🗓️ Monthly Tasks
+  habits:         "e00177c934234bbebbcffed9cd847b98",
+  daily:          "f35023fab2344a4a8a71f87f6e7d9610",
+  weekly:         "2682d573db944fcf84c08dac4acc1a02",
+  monthly:        "a24a10e0ad52408ab4fdd70e2768b979",
+  goals:          "bde57e266a3f43438d5913bf205c10f3",
 };
+
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function getISOWeekStr() {
+  const now = new Date();
+  const d   = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNo    = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  return `W${String(weekNo).padStart(2, '0')}`;
+}
 
 const getAllowedOrigin = (origin) =>
   ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
@@ -80,11 +94,13 @@ function buildDateAxis(today) {
 
 // ── GET handler ───────────────────────────────────────────────────────────────
 async function getData(token) {
-  const today = new Date().toISOString().split("T")[0];
-  const historyStart = new Date(today + "T12:00:00Z");
+  const today          = new Date().toISOString().split("T")[0];
+  const historyStart   = new Date(today + "T12:00:00Z");
   historyStart.setUTCDate(historyStart.getUTCDate() - 13);
-  const historyStartStr = historyStart.toISOString().split("T")[0];
-  const dateAxis = buildDateAxis(today);
+  const historyStartStr  = historyStart.toISOString().split("T")[0];
+  const dateAxis         = buildDateAxis(today);
+  const weekStr          = getISOWeekStr();
+  const currentMonthName = MONTH_NAMES[new Date().getMonth()];
 
   const q = (dbId, filter, sorts) => notionQuery(dbId, filter, sorts, token);
 
@@ -92,11 +108,13 @@ async function getData(token) {
     tasksRes, habitsRes, dailyRes,
     weeklyRes, monthlyRes, goalsRes,
     taskHistoryRes, habitHistoryRes,
+    weeklyTasksRes, monthlyTasksRes,
   ] = await Promise.all([
-    q(DB.tasks,   { property: "Date", date: { equals: today } },
-                  [{ property: "Priority", direction: "ascending" }]),
-    q(DB.habits,  { property: "Date", date: { equals: today } }),
-    q(DB.daily,   { property: "Date", date: { equals: today } }),
+    // Daily Tasks filtered by today (replaces standalone Tasks)
+    q(DB.daily_tasks, { property: "Date", date: { equals: today } }),
+    q(DB.habits,      { property: "Date", date: { equals: today } }),
+    q(DB.daily,       { property: "Date", date: { equals: today } }),
+    // Weekly/Monthly Plans for context
     q(DB.weekly,  { property: "Status", select: { equals: "In Progress" } }),
     q(DB.monthly, { or: [
       { property: "Status", select: { equals: "In Progress" } },
@@ -106,21 +124,25 @@ async function getData(token) {
       { property: "Status", select: { equals: "In Progress" } },
       { property: "Status", select: { equals: "On Track" } },
     ]}),
-    q(DB.tasks,  { and: [
-      { property: "Date", date: { on_or_after: historyStartStr } },
+    // History for heatmaps
+    q(DB.daily_tasks, { and: [
+      { property: "Date", date: { on_or_after:  historyStartStr } },
       { property: "Date", date: { on_or_before: today } },
     ]}),
     q(DB.habits, { and: [
-      { property: "Date", date: { on_or_after: historyStartStr } },
+      { property: "Date", date: { on_or_after:  historyStartStr } },
       { property: "Date", date: { on_or_before: today } },
     ]}),
+    // Hierarchical task lists
+    q(DB.weekly_tasks,  { property: "Week",  select: { equals: weekStr          } }),
+    q(DB.monthly_tasks, { property: "Month", select: { equals: currentMonthName } }),
   ]);
 
+  // Daily tasks (today)
   const tasks = tasksRes.results.map(p => ({
     id:       getId(p),
     task:     getText(p.properties["Task"]),
     done:     getBool(p.properties["Done"]),
-    area:     getSelect(p.properties["Area"]),
     priority: getSelect(p.properties["Priority"]),
   })).filter(t => t.task);
 
@@ -145,9 +167,9 @@ async function getData(token) {
     .filter(Boolean);
 
   const monthEntry = monthlyRes.results[0];
-  const monthName  = monthEntry ? getText(monthEntry.properties["Month"])       : "";
-  const monthTheme = monthEntry ? getText(monthEntry.properties["Theme"])        : "";
-  const monthFocus = monthEntry ? getText(monthEntry.properties["Focus Areas"])  : "";
+  const monthName  = monthEntry ? getText(monthEntry.properties["Month"])      : "";
+  const monthTheme = monthEntry ? getText(monthEntry.properties["Theme"])       : "";
+  const monthFocus = monthEntry ? getText(monthEntry.properties["Focus Areas"]) : "";
 
   const goals = goalsRes.results.map(p => ({
     id:       getId(p),
@@ -158,7 +180,25 @@ async function getData(token) {
     quarter:  getSelect(p.properties["Quarter"]),
   })).filter(g => g.name);
 
-  // Task history: { date, done, total } × 14
+  // Weekly tasks for current ISO week
+  const weeklyTasks = weeklyTasksRes.results.map(p => ({
+    id:       getId(p),
+    task:     getText(p.properties["Task"]),
+    status:   getSelect(p.properties["Status"]),
+    priority: getSelect(p.properties["Priority"]),
+    week:     getSelect(p.properties["Week"]),
+  })).filter(t => t.task);
+
+  // Monthly tasks for current month
+  const monthlyTasks = monthlyTasksRes.results.map(p => ({
+    id:       getId(p),
+    task:     getText(p.properties["Task"]),
+    status:   getSelect(p.properties["Status"]),
+    priority: getSelect(p.properties["Priority"]),
+    month:    getSelect(p.properties["Month"]),
+  })).filter(t => t.task);
+
+  // Task history: { date, done, total } × 14 (sourced from Daily Tasks)
   const taskByDate = {};
   for (const p of taskHistoryRes.results) {
     const date = getDate(p.properties["Date"]);
@@ -202,6 +242,10 @@ async function getData(token) {
     week:  { name: weekName, priorities },
     month: { name: monthName, theme: monthTheme, focus: monthFocus },
     goals,
+    weeklyTasks,
+    monthlyTasks,
+    currentWeek:  weekStr,
+    currentMonth: currentMonthName,
   };
 }
 
@@ -212,6 +256,7 @@ async function handlePatch(body, token) {
   const patch = (props) => notionPatch(pageId, props, token);
 
   switch (type) {
+    case "daily-task-done":
     case "task-done":  await patch({ "Done":   { checkbox: value === true } }); break;
     case "habit-done": await patch({ "Done":   { checkbox: value === true } }); break;
     case "mood":       await patch({ "Mood":   value ? { select: { name: value } } : { select: null } }); break;

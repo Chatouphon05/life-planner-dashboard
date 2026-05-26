@@ -127,7 +127,7 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
         </>
       )}
       <a
-        href="https://www.notion.so/972a5ee5fce3470796efa210a62ffdcb"
+        href="https://www.notion.so/c88c5452b1224fc3a8e421c77447e063"
         target="_blank"
         rel="noopener noreferrer"
         className="lp-tap"

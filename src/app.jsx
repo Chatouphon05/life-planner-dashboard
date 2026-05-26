@@ -10,6 +10,8 @@ import MonthlyFocus   from './components/MonthlyFocus.jsx';
 import Goals          from './components/Goals.jsx';
 import HabitTracker   from './components/HabitTracker.jsx';
 import MoodPicker     from './components/MoodPicker.jsx';
+import WeeklyTasks    from './components/WeeklyTasks.jsx';
+import MonthlyTasks   from './components/MonthlyTasks.jsx';
 
 function PullIndicator({ pull, refreshing }) {
   const pct = Math.min(1, pull / 60);
@@ -67,6 +69,7 @@ export default function App() {
   const {
     tasks, habits, today, taskHistory, habitHistory,
     priorities, monthly, goals,
+    weeklyTasks, monthlyTasks, currentWeek, currentMonth,
     liveDate, loading, stale, error, refetch, writeback,
   } = useNotionData();
 
@@ -154,6 +157,7 @@ export default function App() {
           {tab === 'Weekly' && (
             <>
               <WeekPriorities priorities={priorities} loading={loading} />
+              <WeeklyTasks weeklyTasks={weeklyTasks} currentWeek={currentWeek} loading={loading} />
               <TimeRemaining time={liveDate.time} />
             </>
           )}
@@ -165,6 +169,7 @@ export default function App() {
                 loading={loading}
                 monthName={liveDate.date.m}
               />
+              <MonthlyTasks monthlyTasks={monthlyTasks} currentMonth={currentMonth} loading={loading} />
               <Goals goals={goals} loading={loading} />
             </>
           )}

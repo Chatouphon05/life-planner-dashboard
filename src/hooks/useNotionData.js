@@ -103,10 +103,31 @@ function adaptWorkerData(raw) {
     sub:    g.status || '',
   }));
 
-  return { tasks, habits, today, taskHistory, habitHistory, priorities, monthly, goals };
+  // Weekly tasks (hierarchy level 3)
+  const weeklyTasks = (raw.weeklyTasks || []).map(t => ({
+    id:       t.id       || '',
+    task:     t.task     || '',
+    status:   t.status   || 'Not Started',
+    priority: t.priority || null,
+    week:     t.week     || null,
+  }));
+
+  // Monthly tasks (hierarchy level 2)
+  const monthlyTasks = (raw.monthlyTasks || []).map(t => ({
+    id:       t.id       || '',
+    task:     t.task     || '',
+    status:   t.status   || 'Not Started',
+    priority: t.priority || null,
+    month:    t.month    || null,
+  }));
+
+  const currentWeek  = raw.currentWeek  || '';
+  const currentMonth = raw.currentMonth || '';
+
+  return { tasks, habits, today, taskHistory, habitHistory, priorities, monthly, goals, weeklyTasks, monthlyTasks, currentWeek, currentMonth };
 }
 
-const CACHE_KEY = 'lp-data-v1';
+const CACHE_KEY = 'lp-data-v2';
 
 function loadCache() {
   try { return JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); } catch { return null; }
@@ -116,17 +137,21 @@ function saveCache(data) {
 }
 
 const EMPTY_STATE = {
-  loading:      true,
-  stale:        false,
-  error:        null,
-  tasks:        [],
-  habits:       [],
-  today:        { mood: null, energy: null, dailyId: null },
-  taskHistory:  [],
-  habitHistory: {},
-  priorities:   [],
-  monthly:      { theme: null, name: null, focusAreas: [] },
-  goals:        [],
+  loading:       true,
+  stale:         false,
+  error:         null,
+  tasks:         [],
+  habits:        [],
+  today:         { mood: null, energy: null, dailyId: null },
+  taskHistory:   [],
+  habitHistory:  {},
+  priorities:    [],
+  monthly:       { theme: null, name: null, focusAreas: [] },
+  goals:         [],
+  weeklyTasks:   [],
+  monthlyTasks:  [],
+  currentWeek:   '',
+  currentMonth:  '',
 };
 
 export function useNotionData() {
@@ -176,4 +201,5 @@ export function useNotionData() {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   return { ...state, liveDate: getLiveDate(), refetch: fetchData, writeback };
+
 }
