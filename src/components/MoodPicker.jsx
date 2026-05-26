@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Eyebrow, Skeleton } from './Primitives.jsx';
+import { SectionHeader, Skeleton } from './Primitives.jsx';
 
 const MOODS    = ['🚀 Amazing', '😊 Good', '😐 Okay', '😔 Low', '😴 Tired'];
 const ENERGIES = ['⚡ High', '🔋 Medium', '🪫 Low'];
@@ -33,7 +33,7 @@ function Chip({ label, selected, onSelect, disabled }) {
 export default function MoodPicker({ today, writeback, loading }) {
   if (loading) return (
     <div>
-      <Eyebrow>Today · check-in</Eyebrow>
+      <SectionHeader label="Mood" />
       <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div>
           <Skeleton width={32} height={9} style={{ marginBottom: 8 }} />
@@ -81,7 +81,7 @@ export default function MoodPicker({ today, writeback, loading }) {
 
   return (
     <div>
-      <Eyebrow>Today · check-in</Eyebrow>
+      <SectionHeader label="Mood" />
 
       <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 10 }}>
         {/* Mood row */}

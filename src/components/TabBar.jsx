@@ -1,4 +1,4 @@
-const TABS = ['Daily', 'Weekly', 'Monthly'];
+const TABS = ['Today', 'Plan'];
 
 export default function TabBar({ tab, onChange }) {
   return (

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Eyebrow, ProgressBar, Skeleton } from './Primitives.jsx';
+import { SectionHeader, ProgressBar, Skeleton } from './Primitives.jsx';
 
 const AREA_ORDER = ['Career & Learning', 'Health & Fitness', 'Personal Growth', 'Relationships'];
 const AREA_GLYPH = {
@@ -47,7 +47,7 @@ export default function Goals({ goals, loading }) {
 
   return (
     <div>
-      <Eyebrow count={goals.length}>Active goals · 2026</Eyebrow>
+      <SectionHeader label="Goals · 2026" />
       <div style={{ marginTop: 6 }}>
         {areas.map(area => {
           const items = goals.filter(g => g.area === area);

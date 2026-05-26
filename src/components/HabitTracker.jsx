@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Eyebrow, Skeleton } from './Primitives.jsx';
+import { SectionHeader, Skeleton } from './Primitives.jsx';
 
 const DOT = 18;
 const GAP = 2;
@@ -73,7 +73,7 @@ export default function HabitTracker({ habits, habitHistory, loading, writeback 
 
   if (loading) return (
     <div>
-      <Eyebrow>Today · habits</Eyebrow>
+      <SectionHeader label="Habits" />
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 12 }}>
         {[90, 75, 110].map((w, i) => (
           <div key={i}>
@@ -94,7 +94,7 @@ export default function HabitTracker({ habits, habitHistory, loading, writeback 
 
   if (!habits.length) return (
     <div>
-      <Eyebrow>Today · habits</Eyebrow>
+      <SectionHeader label="Habits" />
       <p className="lp-mono" style={{ fontSize: 11, color: 'var(--faint)', marginTop: 12 }}>
         No habits today — add them in Notion.
       </p>
@@ -107,7 +107,7 @@ export default function HabitTracker({ habits, habitHistory, loading, writeback 
 
   return (
     <div>
-      <Eyebrow count={habits.length}>Today · habits</Eyebrow>
+      <SectionHeader label="Habits" stat={`${doneCount}/${habits.length}`} />
 
       {/* Date axis */}
       <div style={{
@@ -188,12 +188,6 @@ export default function HabitTracker({ habits, habitHistory, loading, writeback 
         })}
       </div>
 
-      {/* Summary */}
-      <div style={{ marginTop: 14 }}>
-        <span className="lp-mono" style={{ fontSize: 10, color: 'var(--faint)' }}>
-          {doneCount}/{habits.length} completed today
-        </span>
-      </div>
     </div>
   );
 }

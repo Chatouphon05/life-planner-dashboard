@@ -16,6 +16,27 @@ export function Bullet({ kind = 'task', color, size = 14, style: s = {} }) {
   );
 }
 
+export function SectionHeader({ label, stat }) {
+  return (
+    <div style={{
+      display: 'flex', justifyContent: 'space-between', alignItems: 'baseline',
+      paddingBottom: 9, borderBottom: '1.5px solid var(--text)', marginBottom: 14,
+    }}>
+      <span className="lp-mono" style={{
+        fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase',
+        color: 'var(--text)',
+      }}>
+        {label}
+      </span>
+      {stat !== undefined && (
+        <span className="lp-mono" style={{ fontSize: 11, color: 'var(--muted)' }}>
+          {stat}
+        </span>
+      )}
+    </div>
+  );
+}
+
 export function Eyebrow({ children, count, color, style: s = {} }) {
   return (
     <div className="lp-eyebrow" style={{

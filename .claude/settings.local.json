@@ -4,7 +4,12 @@
       "PowerShell(winget *)",
       "PowerShell(npm *)",
       "PowerShell(npm install *)",
-      "PowerShell(npm run *)"
+      "PowerShell(npm run *)",
+      "PowerShell($env:PATH = \"C:\\\\Program Files\\\\nodejs\\\\;\" + $env:PATH; Set-Location \"C:\\\\Users\\\\Lunk\\\\Project\\\\Life Planner\"; npx vite build 2>&1 | Select-Object -Last 30)",
+      "PowerShell($env:PATH = \"C:\\\\Program Files\\\\nodejs\\\\;\" + $env:PATH; Set-Location \"C:\\\\Users\\\\Lunk\\\\Project\\\\Life Planner\"; npx vite build 2>&1 | Select-Object -Last 15)",
+      "PowerShell($env:PATH = \"C:\\\\Program Files\\\\nodejs\\\\;\" + $env:PATH; Set-Location \"C:\\\\Users\\\\Lunk\\\\Project\\\\Life Planner\"; npx vite build 2>&1 | Select-Object -Last 10)",
+      "PowerShell($env:PATH = \"C:\\\\Program Files\\\\nodejs\\\\;\" + $env:PATH; Set-Location \"C:\\\\Users\\\\Lunk\\\\Project\\\\Life Planner\"; npx vite build 2>&1 | Select-Object -Last 8)",
+      "PowerShell($env:PATH = \"C:\\\\Program Files\\\\nodejs\\\\;\" + $env:PATH; Set-Location \"C:\\\\Users\\\\Lunk\\\\Project\\\\Life Planner\"; npx vite build 2>&1 | Select-Object -Last 12)"
     ]
   }
 }

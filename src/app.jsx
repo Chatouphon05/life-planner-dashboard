@@ -48,7 +48,7 @@ function PullIndicator({ pull, refreshing }) {
 }
 
 export default function App() {
-  const [tab, setTab]               = useState('Daily');
+  const [tab, setTab]               = useState('Today');
   const [pull, setPull]             = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [theme, setTheme]           = useState(() => localStorage.getItem('lp-theme') || 'dark');
@@ -133,10 +133,9 @@ export default function App() {
       >
         <div style={{ padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: 28 }}>
 
-          {tab === 'Daily' && (
+          {tab === 'Today' && (
             <>
               <MoodPicker today={today} writeback={writeback} loading={loading} />
-              <NavGrid />
               <TodayTasks
                 tasks={tasks}
                 taskHistory={taskHistory}
@@ -154,23 +153,15 @@ export default function App() {
             </>
           )}
 
-          {tab === 'Weekly' && (
+          {tab === 'Plan' && (
             <>
               <WeekPriorities priorities={priorities} loading={loading} />
               <WeeklyTasks weeklyTasks={weeklyTasks} currentWeek={currentWeek} loading={loading} fetchExpand={fetchExpand} writeback={writeback} />
-              <TimeRemaining time={liveDate.time} />
-            </>
-          )}
-
-          {tab === 'Monthly' && (
-            <>
-              <MonthlyFocus
-                monthly={monthly}
-                loading={loading}
-                monthName={liveDate.date.m}
-              />
+              <MonthlyFocus monthly={monthly} loading={loading} monthName={liveDate.date.m} />
               <MonthlyTasks monthlyTasks={monthlyTasks} currentMonth={currentMonth} loading={loading} fetchExpand={fetchExpand} writeback={writeback} />
               <Goals goals={goals} loading={loading} />
+              <TimeRemaining time={liveDate.time} />
+              <NavGrid />
             </>
           )}
 

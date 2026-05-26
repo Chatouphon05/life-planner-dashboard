@@ -1,9 +1,9 @@
-import { Eyebrow, MetricRow } from './Primitives.jsx';
+import { SectionHeader, MetricRow } from './Primitives.jsx';
 
 export default function TimeRemaining({ time }) {
   return (
     <div>
-      <Eyebrow>Time remaining</Eyebrow>
+      <SectionHeader label="Time Remaining" />
       <div style={{ marginTop: 8 }}>
         {time.map((t, i) => (
           <MetricRow

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Eyebrow, TaskRow, Skeleton } from './Primitives.jsx';
+import { SectionHeader, TaskRow, Skeleton } from './Primitives.jsx';
 
 const HEAT = [
   'var(--hair)',
@@ -60,8 +60,8 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
 
   if (loading) return (
     <div>
-      <Eyebrow>Today · tasks</Eyebrow>
-      <div style={{ display: 'flex', gap: 2, marginBottom: 14, marginTop: 10 }}>
+      <SectionHeader label="Tasks" />
+      <div style={{ display: 'flex', gap: 2, marginBottom: 14 }}>
         {Array(14).fill(0).map((_, i) => <Skeleton key={i} height={18} style={{ flex: 1 }} />)}
       </div>
       {[120, 80, 100].map((w, i) => (
@@ -78,7 +78,7 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
 
   if (error) return (
     <div>
-      <Eyebrow>Today · tasks</Eyebrow>
+      <SectionHeader label="Tasks" />
       {taskHistory?.length > 0 && <TaskHeatmap taskHistory={taskHistory} />}
       <p className="lp-mono" style={{ fontSize: 11, color: 'var(--faint)', marginTop: 12 }}>
         Could not reach Notion — pull down to retry.
@@ -88,28 +88,15 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
 
   return (
     <div>
-      <Eyebrow count={tasks.length}>Today · {dayLabel} log</Eyebrow>
+      <SectionHeader label={`Tasks · ${dayLabel}`} stat={`${completed}/${tasks.length}`} />
       <TaskHeatmap taskHistory={taskHistory} />
       {tasks.length === 0 ? (
         <p className="lp-mono" style={{ fontSize: 11, color: 'var(--faint)', marginTop: 12 }}>
           No tasks today — add them in Notion.
         </p>
       ) : (
-        <>
-          <div style={{
-            display: 'flex', justifyContent: 'space-between', alignItems: 'baseline',
-            marginTop: 8, marginBottom: 4,
-          }}>
-            <span className="lp-display-i" style={{ fontSize: 22, color: 'var(--text)' }}>
-              {tasks.length - completed}
-              {' '}<span style={{ color: 'var(--muted)', fontSize: 14 }}>open</span>
-            </span>
-            <span className="lp-mono" style={{ fontSize: 11, color: 'var(--faint)' }}>
-              {completed}/{tasks.length} done
-            </span>
-          </div>
-          <div>
-            {tasks.map(t => {
+        <div>
+          {tasks.map(t => {
               const done = effectiveDone(t);
               return (
                 <TaskRow
@@ -123,8 +110,7 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
                 />
               );
             })}
-          </div>
-        </>
+        </div>
       )}
       <a
         href="https://www.notion.so/c88c5452b1224fc3a8e421c77447e063"

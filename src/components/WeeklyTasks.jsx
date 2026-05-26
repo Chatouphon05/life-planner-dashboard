@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import { Eyebrow, Skeleton } from './Primitives.jsx';
+import { SectionHeader, Skeleton } from './Primitives.jsx';
 
 const STATUS_GLYPH = {
   'Not Started': '○',
@@ -164,7 +164,7 @@ export default function WeeklyTasks({ weeklyTasks, currentWeek, loading, fetchEx
 
   if (loading) return (
     <div>
-      <Eyebrow>Weekly · tasks</Eyebrow>
+      <SectionHeader label="Weekly Tasks" />
       {[100, 75, 90, 60].map((w, i) => (
         <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '9px 0', borderBottom: '0.5px dashed var(--hair)' }}>
           <Skeleton width={14} height={14} radius={99} />
@@ -181,19 +181,7 @@ export default function WeeklyTasks({ weeklyTasks, currentWeek, loading, fetchEx
 
   return (
     <div>
-      <Eyebrow count={total}>{label}</Eyebrow>
-
-      {total > 0 && (
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 8, marginBottom: 2 }}>
-          <span className="lp-display-i" style={{ fontSize: 22, color: 'var(--text)' }}>
-            {total - doneCount}
-            {' '}<span style={{ color: 'var(--muted)', fontSize: 14 }}>open</span>
-          </span>
-          <span className="lp-mono" style={{ fontSize: 11, color: 'var(--faint)' }}>
-            {doneCount}/{total} done
-          </span>
-        </div>
-      )}
+      <SectionHeader label={label} stat={total > 0 ? `${doneCount}/${total}` : undefined} />
 
       {total === 0 ? (
         <p className="lp-mono" style={{ fontSize: 11, color: 'var(--faint)', marginTop: 12 }}>

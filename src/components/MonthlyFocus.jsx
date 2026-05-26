@@ -1,9 +1,9 @@
-import { Eyebrow } from './Primitives.jsx';
+import { SectionHeader } from './Primitives.jsx';
 
 export default function MonthlyFocus({ monthly, loading, monthName }) {
   if (loading) return (
     <div>
-      <Eyebrow>{monthName} · monthly theme</Eyebrow>
+      <SectionHeader label={monthName} />
       <p className="lp-mono" style={{ fontSize: 11, color: 'var(--faint)', marginTop: 16, textAlign: 'center' }}>
         Syncing Notion…
       </p>
@@ -12,7 +12,7 @@ export default function MonthlyFocus({ monthly, loading, monthName }) {
 
   return (
     <div>
-      <Eyebrow>{monthName} · monthly theme</Eyebrow>
+      <SectionHeader label={monthName} />
       {monthly.theme ? (
         <p className="lp-display-i" style={{
           margin: '14px 0 14px', fontSize: 22, lineHeight: 1.25, color: 'var(--text)',

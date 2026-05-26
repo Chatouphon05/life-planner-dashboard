@@ -1,9 +1,9 @@
-import { Eyebrow, Skeleton } from './Primitives.jsx';
+import { SectionHeader, Skeleton } from './Primitives.jsx';
 
 export default function WeekPriorities({ priorities, loading }) {
   if (loading) return (
     <div>
-      <Eyebrow>This week · top 3</Eyebrow>
+      <SectionHeader label="This Week" />
       <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 14 }}>
         {[85, 65, 75].map((w, i) => (
           <div key={i} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', paddingBottom: 14, borderBottom: '0.5px solid var(--hair)' }}>
@@ -20,7 +20,7 @@ export default function WeekPriorities({ priorities, loading }) {
 
   if (!priorities.length) return (
     <div>
-      <Eyebrow>This week · top 3</Eyebrow>
+      <SectionHeader label="This Week" />
       <p className="lp-mono" style={{ fontSize: 11, color: 'var(--faint)', marginTop: 16 }}>
         No priorities set — update your Weekly Plan in Notion.
       </p>
@@ -29,7 +29,7 @@ export default function WeekPriorities({ priorities, loading }) {
 
   return (
     <div>
-      <Eyebrow count={priorities.length}>This week · top 3</Eyebrow>
+      <SectionHeader label="This Week" />
       <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 12 }}>
         {priorities.map(p => (
           <div key={p.n} style={{
