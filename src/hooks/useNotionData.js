@@ -114,6 +114,10 @@ function adaptWorkerData(raw) {
   const currentWeek  = raw.currentWeek  || '';
   const currentMonth = raw.currentMonth || '';
 
+  // Heatmaps — pass through directly (computed server-side)
+  const weeklyHeatmap  = raw.weeklyHeatmap  || [];
+  const monthlyHeatmap = raw.monthlyHeatmap || [];
+
   // Milestones — compute daysLeft and progress client-side
   const now = Date.now();
   const milestones = (raw.milestones || []).map(m => {
@@ -138,7 +142,7 @@ function adaptWorkerData(raw) {
     };
   });
 
-  return { tasks, habits, today, taskHistory, habitHistory, priorities, monthly, goals, weeklyTasks, monthlyTasks, currentWeek, currentMonth, milestones };
+  return { tasks, habits, today, taskHistory, habitHistory, priorities, monthly, goals, weeklyTasks, monthlyTasks, weeklyHeatmap, monthlyHeatmap, currentWeek, currentMonth, milestones };
 }
 
 const CACHE_KEY = 'lp-data-v2';
@@ -162,11 +166,13 @@ const EMPTY_STATE = {
   priorities:    [],
   monthly:       { theme: null, name: null, focusAreas: [] },
   goals:         [],
-  weeklyTasks:   [],
-  monthlyTasks:  [],
-  currentWeek:   '',
-  currentMonth:  '',
-  milestones:    [],
+  weeklyTasks:    [],
+  monthlyTasks:   [],
+  weeklyHeatmap:  [],
+  monthlyHeatmap: [],
+  currentWeek:    '',
+  currentMonth:   '',
+  milestones:     [],
 };
 
 export function useNotionData() {

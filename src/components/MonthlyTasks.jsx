@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { SectionHeader, Skeleton } from './Primitives.jsx';
+import TaskHeatmap from './TaskHeatmap.jsx';
 
 const STATUS_GLYPH = {
   'Not Started': '○',
@@ -137,7 +138,7 @@ function ExpandBody({ state, monthlyTaskId, onToggleDailyTask }) {
   );
 }
 
-export default function MonthlyTasks({ monthlyTasks, currentMonth, loading, fetchExpand, writeback }) {
+export default function MonthlyTasks({ monthlyTasks, currentMonth, loading, fetchExpand, writeback, monthlyHeatmap = [] }) {
   const [expanded,   setExpanded]   = useState(new Set());
   const [expandData, setExpandData] = useState({});
   const fetchCache = useRef({});
@@ -230,6 +231,10 @@ export default function MonthlyTasks({ monthlyTasks, currentMonth, loading, fetc
   return (
     <div>
       <SectionHeader label={label} stat={total > 0 ? `${doneCount}/${total}` : undefined} />
+
+      {monthlyHeatmap.length > 0 && (
+        <TaskHeatmap data={monthlyHeatmap} type="monthly" />
+      )}
 
       {total === 0 ? (
         <p className="lp-mono" style={{ fontSize: 13, color: 'var(--faint)', marginTop: 12 }}>

@@ -13,6 +13,7 @@ import MoodPicker     from './components/MoodPicker.jsx';
 import WeeklyTasks    from './components/WeeklyTasks.jsx';
 import MonthlyTasks   from './components/MonthlyTasks.jsx';
 import Milestones     from './components/Milestones.jsx';
+import SundayReview  from './components/SundayReview.jsx';
 
 function PullIndicator({ pull, refreshing }) {
   const pct = Math.min(1, pull / 60);
@@ -70,7 +71,8 @@ export default function App() {
   const {
     tasks, habits, today, taskHistory, habitHistory,
     priorities, monthly, goals,
-    weeklyTasks, monthlyTasks, currentWeek, currentMonth,
+    weeklyTasks, monthlyTasks, weeklyHeatmap, monthlyHeatmap,
+    currentWeek, currentMonth,
     milestones,
     liveDate, loading, stale, error, refetch, writeback, fetchExpand,
   } = useNotionData();
@@ -167,10 +169,11 @@ export default function App() {
 
           {tab === 'Plan' && (
             <>
+              <SundayReview />
               <WeekPriorities priorities={priorities} loading={loading} />
-              <WeeklyTasks weeklyTasks={weeklyTasks} currentWeek={currentWeek} loading={loading} fetchExpand={fetchExpand} writeback={writeback} />
+              <WeeklyTasks weeklyTasks={weeklyTasks} currentWeek={currentWeek} loading={loading} fetchExpand={fetchExpand} writeback={writeback} weeklyHeatmap={weeklyHeatmap} />
               <MonthlyFocus monthly={monthly} loading={loading} monthName={liveDate.date.m} />
-              <MonthlyTasks monthlyTasks={monthlyTasks} currentMonth={currentMonth} loading={loading} fetchExpand={fetchExpand} writeback={writeback} />
+              <MonthlyTasks monthlyTasks={monthlyTasks} currentMonth={currentMonth} loading={loading} fetchExpand={fetchExpand} writeback={writeback} monthlyHeatmap={monthlyHeatmap} />
             </>
           )}
 

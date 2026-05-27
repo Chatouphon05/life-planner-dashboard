@@ -44,6 +44,29 @@ function getISOWeekStr(dateStr) {
   return `W${String(weekNo).padStart(2, '0')}`;
 }
 
+// Returns array of last N ISO week strings, oldest → newest (includes current week)
+function getLast12Weeks(dateStr) {
+  const weeks = [];
+  const base  = new Date(dateStr + 'T12:00:00Z');
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(base);
+    d.setUTCDate(d.getUTCDate() - i * 7);
+    weeks.push(getISOWeekStr(d.toISOString().split('T')[0]));
+  }
+  return weeks;
+}
+
+// Returns array of last 6 month names (MONTH_NAMES[m]), oldest → newest (includes current month)
+function getLast6Months(dateStr) {
+  const months = [];
+  const base   = new Date(dateStr + 'T12:00:00Z');
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(Date.UTC(base.getUTCFullYear(), base.getUTCMonth() - i, 1));
+    months.push(MONTH_NAMES[d.getUTCMonth()]);
+  }
+  return months;
+}
+
 const getAllowedOrigin = (origin) =>
   ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
 
@@ -165,6 +188,8 @@ async function getData(token) {
   const dateAxis         = buildDateAxis(today);
   const weekStr          = getISOWeekStr(today);
   const currentMonthName = MONTH_NAMES[new Date(today + "T12:00:00Z").getUTCMonth()];
+  const last12Weeks      = getLast12Weeks(today);
+  const last6Months      = getLast6Months(today);
 
   const q = (dbId, filter, sorts) => notionQuery(dbId, filter, sorts, token);
 
@@ -198,9 +223,9 @@ async function getData(token) {
       { property: "Date", date: { on_or_after:  historyStartStr } },
       { property: "Date", date: { on_or_before: today } },
     ]}),
-    // Hierarchical task lists
-    q(DB.weekly_tasks,  { property: "Week",  select: { equals: weekStr          } }),
-    q(DB.monthly_tasks, { property: "Month", select: { equals: currentMonthName } }),
+    // Hierarchical task lists — fetch last 12 weeks / last 6 months for heatmaps
+    q(DB.weekly_tasks,  { or: last12Weeks.map(w => ({ property: "Week",  select: { equals: w } })) }),
+    q(DB.monthly_tasks, { or: last6Months.map(m => ({ property: "Month", select: { equals: m } })) }),
     // Milestones — Upcoming + Active only (graceful: empty if DB not connected yet)
     q(DB.milestones, { or: [
       { property: "Status", select: { equals: "Upcoming" } },
@@ -250,8 +275,8 @@ async function getData(token) {
     quarter:  getSelect(p.properties["Quarter"]),
   })).filter(g => g.name);
 
-  // Weekly tasks for current ISO week
-  const weeklyTasks = weeklyTasksRes.results.map(p => ({
+  // All weekly tasks across last 12 weeks
+  const allWeeklyTasks = weeklyTasksRes.results.map(p => ({
     id:       getId(p),
     task:     getText(p.properties["Task"]),
     status:   getSelect(p.properties["Status"]),
@@ -259,14 +284,42 @@ async function getData(token) {
     week:     getSelect(p.properties["Week"]),
   })).filter(t => t.task);
 
-  // Monthly tasks for current month
-  const monthlyTasks = monthlyTasksRes.results.map(p => ({
+  // Current-week subset shown in the task list
+  const weeklyTasks = allWeeklyTasks.filter(t => t.week === weekStr);
+
+  // Weekly heatmap — one entry per week, oldest → newest
+  const weeklyHeatmap = last12Weeks.map(w => {
+    const bucket = allWeeklyTasks.filter(t => t.week === w);
+    return {
+      week:      w,
+      done:      bucket.filter(t => t.status === 'Done').length,
+      total:     bucket.length,
+      isCurrent: w === weekStr,
+    };
+  });
+
+  // All monthly tasks across last 6 months
+  const allMonthlyTasks = monthlyTasksRes.results.map(p => ({
     id:       getId(p),
     task:     getText(p.properties["Task"]),
     status:   getSelect(p.properties["Status"]),
     priority: getSelect(p.properties["Priority"]),
     month:    getSelect(p.properties["Month"]),
   })).filter(t => t.task);
+
+  // Current-month subset shown in the task list
+  const monthlyTasks = allMonthlyTasks.filter(t => t.month === currentMonthName);
+
+  // Monthly heatmap — one entry per month, oldest → newest
+  const monthlyHeatmap = last6Months.map(m => {
+    const bucket = allMonthlyTasks.filter(t => t.month === m);
+    return {
+      month:     m,
+      done:      bucket.filter(t => t.status === 'Done').length,
+      total:     bucket.length,
+      isCurrent: m === currentMonthName,
+    };
+  });
 
   // Task history: { date, done, total } × 14 (sourced from Daily Tasks)
   const taskByDate = {};
@@ -325,6 +378,8 @@ async function getData(token) {
     goals,
     weeklyTasks,
     monthlyTasks,
+    weeklyHeatmap,
+    monthlyHeatmap,
     currentWeek:  weekStr,
     currentMonth: currentMonthName,
     milestones,
