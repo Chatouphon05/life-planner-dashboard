@@ -152,9 +152,18 @@ function MilestoneCard({ m }) {
 
 // ── Section ────────────────────────────────────────────────────────────────────
 export default function Milestones({ milestones = [], loading }) {
-  // Sort by target date ascending (soonest first), then filter out Done
+  // Today's date as YYYY-MM-DD in local timezone
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+  // Show only milestones whose start date has arrived (or have no start date)
+  // Hide Done and anything with a future start date
   const visible = milestones
-    .filter(m => m.status !== 'Done')
+    .filter(m => {
+      if (m.status === 'Done') return false;
+      if (m.start && m.start > todayStr) return false;
+      return true;
+    })
     .sort((a, b) => {
       if (!a.date) return 1;
       if (!b.date) return -1;
