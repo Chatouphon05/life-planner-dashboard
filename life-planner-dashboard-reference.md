@@ -161,7 +161,6 @@ Top to bottom:
 ### Not yet implemented
 - Habit tracker section (Habits DB is ready)
 - Mood + Energy selector (Daily Journal fields ready)
-- Spotify "Now Playing" widget
 - Brisbane/MDS departure countdown
 - Calendar view
 
@@ -214,12 +213,11 @@ Top to bottom:
 - Mood + Energy display/picker in hero or daily section
 - Brisbane departure countdown (days until 7 June 2026)
 - MDS start countdown (days until July 2026)
-- Spotify "Now Playing" widget
 
 ### 🔲 Phase C — React rebuild (Claude Code)
 - Migrate from vanilla HTML to React (Vite + GitHub Pages)
 - Component architecture: HeroSection, NavGrid, TimeTracker,
-  TaskList, HabitTracker, MoodPicker, GoalCard, SpotifyWidget
+  TaskList, HabitTracker, MoodPicker, GoalCard
 - `useNotionData.js` hook for data fetching + write-back
 - PWA support — installable, offline fallback
 - Use Claude Design output (app.jsx, sections.jsx, tokens.jsx) as base
@@ -275,7 +273,6 @@ Cloudflare Worker (separate deploy):
 │   │   ├── WeekPriorities.jsx
 │   │   ├── MonthlyFocus.jsx
 │   │   ├── GoalCard.jsx
-│   │   └── SpotifyWidget.jsx
 │   ├── hooks/
 │   │   └── useNotionData.js
 │   ├── App.jsx

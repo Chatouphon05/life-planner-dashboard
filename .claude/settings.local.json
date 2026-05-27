@@ -5,11 +5,12 @@
       "PowerShell(npm *)",
       "PowerShell(npm install *)",
       "PowerShell(npm run *)",
-      "PowerShell($env:PATH = \"C:\\\\Program Files\\\\nodejs\\\\;\" + $env:PATH; Set-Location \"C:\\\\Users\\\\Lunk\\\\Project\\\\Life Planner\"; npx vite build 2>&1 | Select-Object -Last 30)",
-      "PowerShell($env:PATH = \"C:\\\\Program Files\\\\nodejs\\\\;\" + $env:PATH; Set-Location \"C:\\\\Users\\\\Lunk\\\\Project\\\\Life Planner\"; npx vite build 2>&1 | Select-Object -Last 15)",
-      "PowerShell($env:PATH = \"C:\\\\Program Files\\\\nodejs\\\\;\" + $env:PATH; Set-Location \"C:\\\\Users\\\\Lunk\\\\Project\\\\Life Planner\"; npx vite build 2>&1 | Select-Object -Last 10)",
-      "PowerShell($env:PATH = \"C:\\\\Program Files\\\\nodejs\\\\;\" + $env:PATH; Set-Location \"C:\\\\Users\\\\Lunk\\\\Project\\\\Life Planner\"; npx vite build 2>&1 | Select-Object -Last 8)",
-      "PowerShell($env:PATH = \"C:\\\\Program Files\\\\nodejs\\\\;\" + $env:PATH; Set-Location \"C:\\\\Users\\\\Lunk\\\\Project\\\\Life Planner\"; npx vite build 2>&1 | Select-Object -Last 12)"
+      "Bash(git pull *)",
+      "Bash(git checkout *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "PowerShell($env:PATH = \"C:\\\\Program Files\\\\nodejs\\\\;\" + $env:PATH; cd \"C:\\\\Users\\\\Pc\\\\Desktop\\\\Planner Dashboard\"; npx vite build 2>&1)"
     ]
   }
 }

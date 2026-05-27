@@ -2,17 +2,12 @@ import { useState, useEffect, useCallback } from 'react';
 
 export const WORKER_URL = 'https://life-planner-dashboard.vercel.app/api';
 
-const BRISBANE_DATE      = new Date(2026, 5, 7); // June 7, 2026
-const BRISBANE_TOTAL_DAYS = 158;                 // Jan 1 → Jun 7
-
 const DAYS         = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const MONTHS       = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const MONTHS_SHORT = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
 
 export function getLiveDate() {
   const now = new Date();
-
-  const brisbaneDaysLeft = Math.max(0, Math.ceil((BRISBANE_DATE - now) / 86400000));
 
   const daysSinceMonday = (now.getDay() + 6) % 7;
   const weekPct         = Math.round((daysSinceMonday / 7) * 100);
@@ -21,14 +16,10 @@ export function getLiveDate() {
   const monthPct      = Math.round((now.getDate() / daysInMonth) * 100);
   const monthDaysLeft = daysInMonth - now.getDate();
 
-  const startOfYear  = new Date(now.getFullYear(), 0, 1);
-  const dayOfYear    = Math.ceil((now - startOfYear) / 86400000);
-  const daysInYear   = now.getFullYear() % 4 === 0 ? 366 : 365;
-  const yearPct      = Math.round((dayOfYear / daysInYear) * 100);
-
-  const brisbanePct = brisbaneDaysLeft <= 0
-    ? 100
-    : Math.min(100, Math.round((dayOfYear / BRISBANE_TOTAL_DAYS) * 100));
+  const startOfYear = new Date(now.getFullYear(), 0, 1);
+  const dayOfYear   = Math.ceil((now - startOfYear) / 86400000);
+  const daysInYear  = now.getFullYear() % 4 === 0 ? 366 : 365;
+  const yearPct     = Math.round((dayOfYear / daysInYear) * 100);
 
   return {
     date: {
@@ -38,14 +29,13 @@ export function getLiveDate() {
       mShort: MONTHS_SHORT[now.getMonth()],
       y:      now.getFullYear(),
     },
-    brisbane: { daysLeft: brisbaneDaysLeft, target: 'Jun 7' },
-    city:   brisbaneDaysLeft <= 0 ? 'Brisbane' : 'Vientiane',
+    // city is overridden in app.jsx based on milestones (Transition → Done)
+    city:   'Vientiane',
     mantra: 'Becoming more stable, clearer, and braver as who I already am.',
     time: [
-      { label: 'This week',   pct: weekPct,     sub: `${7 - daysSinceMonday}d remaining` },
-      { label: 'This month',  pct: monthPct,    sub: `${monthDaysLeft}d remaining · ${MONTHS[now.getMonth()]}` },
-      { label: 'This year',   pct: yearPct,     sub: `${daysInYear - dayOfYear}d remaining · ${now.getFullYear()}` },
-      { label: 'To Brisbane', pct: brisbanePct, sub: `${brisbaneDaysLeft}d remaining · Jun 7 departure` },
+      { label: 'This week',  pct: weekPct,  sub: `${7 - daysSinceMonday}d remaining` },
+      { label: 'This month', pct: monthPct, sub: `${monthDaysLeft}d remaining · ${MONTHS[now.getMonth()]}` },
+      { label: 'This year',  pct: yearPct,  sub: `${daysInYear - dayOfYear}d remaining · ${now.getFullYear()}` },
     ],
   };
 }
@@ -124,7 +114,31 @@ function adaptWorkerData(raw) {
   const currentWeek  = raw.currentWeek  || '';
   const currentMonth = raw.currentMonth || '';
 
-  return { tasks, habits, today, taskHistory, habitHistory, priorities, monthly, goals, weeklyTasks, monthlyTasks, currentWeek, currentMonth };
+  // Milestones — compute daysLeft and progress client-side
+  const now = Date.now();
+  const milestones = (raw.milestones || []).map(m => {
+    const targetMs = m.date  ? new Date(m.date  + 'T12:00:00Z').getTime() : null;
+    const startMs  = m.start ? new Date(m.start + 'T12:00:00Z').getTime() : null;
+    const daysLeft = targetMs != null
+      ? Math.max(0, Math.ceil((targetMs - now) / 86400000))
+      : null;
+    let progress = null;
+    if (m.status === 'Active' && startMs != null && targetMs != null && targetMs > startMs) {
+      progress = Math.min(100, Math.max(0, Math.round(((now - startMs) / (targetMs - startMs)) * 100)));
+    }
+    return {
+      id:       m.id       || '',
+      name:     m.name     || '',
+      date:     m.date     || null,
+      start:    m.start    || null,
+      category: m.category || null,
+      status:   m.status   || 'Upcoming',
+      daysLeft,
+      progress,
+    };
+  });
+
+  return { tasks, habits, today, taskHistory, habitHistory, priorities, monthly, goals, weeklyTasks, monthlyTasks, currentWeek, currentMonth, milestones };
 }
 
 const CACHE_KEY = 'lp-data-v2';
@@ -152,6 +166,7 @@ const EMPTY_STATE = {
   monthlyTasks:  [],
   currentWeek:   '',
   currentMonth:  '',
+  milestones:    [],
 };
 
 export function useNotionData() {

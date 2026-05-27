@@ -1,5 +1,15 @@
-export default function Hero({ liveDate, theme, onToggleTheme, syncing }) {
-  const { date, brisbane, mantra, city } = liveDate;
+// Category → display prefix symbol
+const CATEGORY_ICON = {
+  'Transition':   '→',
+  'Deadline':     '⏳',
+  'Look Forward': '✦',
+};
+
+export default function Hero({ liveDate, theme, onToggleTheme, syncing, milestones = [] }) {
+  const { date, mantra, city } = liveDate;
+
+  // Show Upcoming + Active milestones in the footer
+  const visibleMilestones = milestones.filter(m => m.status !== 'Done');
 
   return (
     <div style={{ padding: '24px 22px 18px', position: 'relative', flexShrink: 0 }}>
@@ -58,19 +68,40 @@ export default function Hero({ liveDate, theme, onToggleTheme, syncing }) {
         "{mantra}"
       </p>
 
+      {/* Milestone countdowns */}
       <div style={{
-        marginTop: 18, display: 'flex', gap: 16,
+        marginTop: 18, display: 'flex', flexWrap: 'wrap', gap: '6px 20px',
         paddingTop: 14, borderTop: '0.5px solid var(--hair)',
       }}>
-        <span className="lp-mono" style={{ fontSize: 10, color: 'var(--faint)' }}>
-          → BRISBANE{' '}
-          <span style={{ color: 'var(--accent)' }}>
-            {brisbane.daysLeft > 0 ? `${String(brisbane.daysLeft).padStart(2, '0')}d` : 'ARRIVED'}
-          </span>
-        </span>
-        <span className="lp-mono" style={{ fontSize: 10, color: 'var(--faint)' }}>
-          → MDS START <span style={{ color: 'var(--text)' }}>JUL 2026</span>
-        </span>
+        {visibleMilestones.length > 0 ? (
+          visibleMilestones.map(m => {
+            const icon     = CATEGORY_ICON[m.category] || '→';
+            const dayLabel = m.daysLeft === 0
+              ? 'TODAY'
+              : m.daysLeft != null
+              ? `${String(m.daysLeft).padStart(2, '0')}d`
+              : '—';
+            const isActive = m.status === 'Active';
+            return (
+              <span key={m.id} className="lp-mono" style={{ fontSize: 10, color: 'var(--faint)' }}>
+                {icon} {m.name.toUpperCase()}{' '}
+                <span style={{ color: isActive ? 'var(--accent)' : 'var(--muted)' }}>
+                  {dayLabel}
+                </span>
+              </span>
+            );
+          })
+        ) : (
+          // skeleton placeholder while loading
+          <>
+            <span className="lp-mono" style={{ fontSize: 10, color: 'var(--faint)', opacity: 0.4 }}>
+              → ············ ···
+            </span>
+            <span className="lp-mono" style={{ fontSize: 10, color: 'var(--faint)', opacity: 0.4 }}>
+              → ············ ···
+            </span>
+          </>
+        )}
       </div>
     </div>
   );

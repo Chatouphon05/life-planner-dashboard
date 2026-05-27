@@ -18,6 +18,7 @@ const DB = {
   weekly:         "2682d573db944fcf84c08dac4acc1a02",
   monthly:        "a24a10e0ad52408ab4fdd70e2768b979",
   goals:          "bde57e266a3f43438d5913bf205c10f3",
+  milestones:     "810fe48f4d1e494c9aa62d38bc62a316",  // 🏁 Milestones
 };
 
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -172,6 +173,7 @@ async function getData(token) {
     weeklyRes, monthlyRes, goalsRes,
     taskHistoryRes, habitHistoryRes,
     weeklyTasksRes, monthlyTasksRes,
+    milestonesRes,
   ] = await Promise.all([
     // Daily Tasks filtered by today (replaces standalone Tasks)
     q(DB.daily_tasks, { property: "Date", date: { equals: today } }),
@@ -199,6 +201,11 @@ async function getData(token) {
     // Hierarchical task lists
     q(DB.weekly_tasks,  { property: "Week",  select: { equals: weekStr          } }),
     q(DB.monthly_tasks, { property: "Month", select: { equals: currentMonthName } }),
+    // Milestones — Upcoming + Active only
+    q(DB.milestones, { or: [
+      { property: "Status", select: { equals: "Upcoming" } },
+      { property: "Status", select: { equals: "Active"   } },
+    ]}),
   ]);
 
   // Daily tasks (today)
@@ -298,6 +305,30 @@ async function getData(token) {
     });
   }
 
+  // Auto-promote Upcoming → Active when Start date has arrived
+  const toActivate = milestonesRes.results.filter(p => {
+    const status = getSelect(p.properties["Status"]);
+    const start  = getDate(p.properties["Start"]);
+    return status === "Upcoming" && start && start <= today;
+  });
+  if (toActivate.length > 0) {
+    await Promise.all(
+      toActivate.map(p =>
+        notionPatch(p.id, { "Status": { select: { name: "Active" } } }, token)
+      )
+    );
+  }
+  const activatedIds = new Set(toActivate.map(p => p.id));
+
+  const milestones = milestonesRes.results.map(p => ({
+    id:       getId(p),
+    name:     getText(p.properties["Name"]),
+    date:     getDate(p.properties["Date"]),
+    start:    getDate(p.properties["Start"]),
+    category: getSelect(p.properties["Category"]),
+    status:   activatedIds.has(p.id) ? "Active" : getSelect(p.properties["Status"]),
+  })).filter(m => m.name);
+
   return {
     today: { date: today, mood, energy, dailyId },
     tasks, taskHistory,
@@ -309,6 +340,7 @@ async function getData(token) {
     monthlyTasks,
     currentWeek:  weekStr,
     currentMonth: currentMonthName,
+    milestones,
   };
 }
 

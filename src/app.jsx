@@ -70,8 +70,15 @@ export default function App() {
     tasks, habits, today, taskHistory, habitHistory,
     priorities, monthly, goals,
     weeklyTasks, monthlyTasks, currentWeek, currentMonth,
+    milestones,
     liveDate, loading, stale, error, refetch, writeback, fetchExpand,
   } = useNotionData();
+
+  // Override city based on whether any Transition milestone is Done
+  const city = milestones.some(m => m.category === 'Transition' && m.status === 'Done')
+    ? 'Brisbane'
+    : liveDate.city;
+  const liveDateWithCity = { ...liveDate, city };
 
   // Pull-to-refresh gesture
   useEffect(() => {
@@ -119,7 +126,7 @@ export default function App() {
     <div className="lp-root">
       <PullIndicator pull={pull} refreshing={refreshing} />
 
-      <Hero liveDate={liveDate} theme={theme} onToggleTheme={toggleTheme} syncing={stale} />
+      <Hero liveDate={liveDateWithCity} theme={theme} onToggleTheme={toggleTheme} syncing={stale} milestones={milestones} />
       <TabBar tab={tab} onChange={setTab} />
 
       <div
@@ -160,7 +167,7 @@ export default function App() {
               <MonthlyFocus monthly={monthly} loading={loading} monthName={liveDate.date.m} />
               <MonthlyTasks monthlyTasks={monthlyTasks} currentMonth={currentMonth} loading={loading} fetchExpand={fetchExpand} writeback={writeback} />
               <Goals goals={goals} loading={loading} />
-              <TimeRemaining time={liveDate.time} />
+              <TimeRemaining time={liveDate.time} milestones={milestones} />
               <NavGrid />
             </>
           )}
