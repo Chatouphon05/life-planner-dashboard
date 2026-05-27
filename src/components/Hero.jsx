@@ -4,11 +4,11 @@ const CATEGORY = {
   'Look Forward': { icon: '✦', color: 'var(--accent2)' },
 };
 
-export default function Hero({ liveDate, theme, onToggleTheme, syncing, milestones = [] }) {
+export default function Hero({ liveDate, theme, onToggleTheme, syncing, milestones = [], loading }) {
   const { date, mantra, city } = liveDate;
 
-  // Footer shows Upcoming + Active milestones
-  const visible = milestones.filter(m => m.status !== 'Done');
+  // Footer shows only Active milestones — ones that have entered the present
+  const visible = milestones.filter(m => m.status === 'Active');
 
   return (
     <div style={{ padding: '24px 22px 18px', position: 'relative', flexShrink: 0 }}>
@@ -70,7 +70,8 @@ export default function Hero({ liveDate, theme, onToggleTheme, syncing, mileston
         "{mantra}"
       </p>
 
-      {/* ── Milestone countdown strip ── */}
+      {/* ── Active milestone countdown strip (hidden when nothing active) ── */}
+      {(visible.length > 0 || loading) && (
       <div style={{
         marginTop: 18,
         paddingTop: 14,
@@ -140,6 +141,7 @@ export default function Hero({ liveDate, theme, onToggleTheme, syncing, mileston
           </>
         )}
       </div>
+      )}
     </div>
   );
 }

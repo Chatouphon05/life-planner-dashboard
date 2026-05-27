@@ -1,4 +1,4 @@
-const TABS = ['Today', 'Plan'];
+const TABS = ['Today', 'Plan', 'Life'];
 
 export default function TabBar({ tab, onChange }) {
   return (

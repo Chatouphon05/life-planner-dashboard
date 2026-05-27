@@ -1,33 +1,33 @@
 /* ── Fallback colors for Chrome < 111 / Safari < 15.4 (no oklch support) ── */
 :root {
-  --bg:          #0d0c18;
-  --bg-2:        #131226;
-  --bg-3:        #1a192e;
+  --bg:          #080e1c;
+  --bg-2:        #0d1528;
+  --bg-3:        #131d35;
   --hair:        rgba(255,255,255,0.07);
-  --hair-strong: rgba(255,255,255,0.12);
-  --text:        rgba(240,236,255,0.94);
-  --muted:       rgba(160,150,210,0.62);
-  --faint:       rgba(120,110,180,0.42);
+  --hair-strong: rgba(255,255,255,0.13);
+  --text:        rgba(228,236,255,0.93);
+  --muted:       rgba(130,155,215,0.65);
+  --faint:       rgba(85,110,180,0.48);
   --accent:      #d4a84b;
   --accent2:     #6bbf9a;
-  --gradient:    radial-gradient(120% 80% at 10% 0%, #2a1f48 0%, #0d0c18 60%);
+  --gradient:    radial-gradient(120% 80% at 10% 0%, #162050 0%, #080e1c 65%);
   --font-display: "Newsreader", "Cormorant Garamond", Georgia, serif;
   --font-body:    "Geist", "Public Sans", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --font-mono:    "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
 }
 
-/* oklch overrides for modern browsers */
+/* oklch overrides for modern browsers — dark navy palette */
 @supports (color: oklch(0 0 0)) {
   :root {
-    --bg:          oklch(0.13 0.012 270);
-    --bg-2:        oklch(0.17 0.014 270);
-    --bg-3:        oklch(0.21 0.014 270);
-    --text:        oklch(0.94 0.008 80);
-    --muted:       oklch(0.62 0.015 270);
-    --faint:       oklch(0.42 0.015 270);
-    --accent:      oklch(0.80 0.11 70);
-    --accent2:     oklch(0.72 0.07 150);
-    --gradient:    radial-gradient(120% 80% at 10% 0%, oklch(0.22 0.06 290) 0%, oklch(0.13 0.012 270) 60%);
+    --bg:          oklch(0.14 0.04  240);
+    --bg-2:        oklch(0.18 0.044 238);
+    --bg-3:        oklch(0.23 0.046 236);
+    --text:        oklch(0.94 0.014 225);
+    --muted:       oklch(0.63 0.040 228);
+    --faint:       oklch(0.44 0.032 233);
+    --accent:      oklch(0.80 0.11  70);
+    --accent2:     oklch(0.72 0.07  150);
+    --gradient:    radial-gradient(120% 80% at 10% 0%, oklch(0.26 0.10 252) 0%, oklch(0.14 0.04 240) 65%);
   }
 }
 
