@@ -1,47 +1,90 @@
+/* ── Fallback colors for Chrome < 111 / Safari < 15.4 (no oklch support) ── */
 :root {
-  --bg:          oklch(0.13 0.012 270);
-  --bg-2:        oklch(0.17 0.014 270);
-  --bg-3:        oklch(0.21 0.014 270);
+  --bg:          #0d0c18;
+  --bg-2:        #131226;
+  --bg-3:        #1a192e;
   --hair:        rgba(255,255,255,0.07);
   --hair-strong: rgba(255,255,255,0.12);
-  --text:        oklch(0.94 0.008 80);
-  --muted:       oklch(0.62 0.015 270);
-  --faint:       oklch(0.42 0.015 270);
-  --accent:      oklch(0.80 0.11 70);
-  --accent2:     oklch(0.72 0.07 150);
-  --gradient:    radial-gradient(120% 80% at 10% 0%, oklch(0.22 0.06 290) 0%, oklch(0.13 0.012 270) 60%);
+  --text:        rgba(240,236,255,0.94);
+  --muted:       rgba(160,150,210,0.62);
+  --faint:       rgba(120,110,180,0.42);
+  --accent:      #d4a84b;
+  --accent2:     #6bbf9a;
+  --gradient:    radial-gradient(120% 80% at 10% 0%, #2a1f48 0%, #0d0c18 60%);
   --font-display: "Newsreader", "Cormorant Garamond", Georgia, serif;
   --font-body:    "Geist", "Public Sans", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --font-mono:    "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
 }
 
+/* oklch overrides for modern browsers */
+@supports (color: oklch(0 0 0)) {
+  :root {
+    --bg:          oklch(0.13 0.012 270);
+    --bg-2:        oklch(0.17 0.014 270);
+    --bg-3:        oklch(0.21 0.014 270);
+    --text:        oklch(0.94 0.008 80);
+    --muted:       oklch(0.62 0.015 270);
+    --faint:       oklch(0.42 0.015 270);
+    --accent:      oklch(0.80 0.11 70);
+    --accent2:     oklch(0.72 0.07 150);
+    --gradient:    radial-gradient(120% 80% at 10% 0%, oklch(0.22 0.06 290) 0%, oklch(0.13 0.012 270) 60%);
+  }
+}
+
 /* Light theme — parchment palette */
 html[data-theme="light"] {
-  --bg:          oklch(0.96 0.012 80);
-  --bg-2:        oklch(0.99 0.008 80);
-  --bg-3:        oklch(0.93 0.012 80);
+  --bg:          #f5f0e8;
+  --bg-2:        #faf7f2;
+  --bg-3:        #ede6d8;
   --hair:        rgba(40,30,20,0.10);
   --hair-strong: rgba(40,30,20,0.18);
-  --text:        oklch(0.22 0.012 80);
-  --muted:       oklch(0.45 0.015 80);
-  --faint:       oklch(0.60 0.015 80);
-  --accent:      oklch(0.55 0.13 50);
-  --accent2:     oklch(0.50 0.09 160);
-  --gradient:    radial-gradient(120% 80% at 10% 0%, oklch(0.92 0.020 80) 0%, oklch(0.96 0.012 80) 65%);
+  --text:        #2a2018;
+  --muted:       #6b5c44;
+  --faint:       #8a7a62;
+  --accent:      #a06030;
+  --accent2:     #3a8060;
+  --gradient:    radial-gradient(120% 80% at 10% 0%, #e8dcc8 0%, #f5f0e8 65%);
+}
+
+@supports (color: oklch(0 0 0)) {
+  html[data-theme="light"] {
+    --bg:          oklch(0.96 0.012 80);
+    --bg-2:        oklch(0.99 0.008 80);
+    --bg-3:        oklch(0.93 0.012 80);
+    --text:        oklch(0.22 0.012 80);
+    --muted:       oklch(0.45 0.015 80);
+    --faint:       oklch(0.60 0.015 80);
+    --accent:      oklch(0.55 0.13 50);
+    --accent2:     oklch(0.50 0.09 160);
+    --gradient:    radial-gradient(120% 80% at 10% 0%, oklch(0.92 0.020 80) 0%, oklch(0.96 0.012 80) 65%);
+  }
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html, body, #root {
+html {
+  height: 100%;
+  /* Prevent Safari elastic overscroll triggering a page reload */
+  overscroll-behavior-y: none;
+}
+
+body {
+  height: 100%;
+  /* Fallback for Android Chrome where 100% can mismatch the visible viewport */
+  min-height: -webkit-fill-available;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+#root {
   height: 100%;
   overflow: hidden;
   background: var(--bg);
   color: var(--text);
-}
-
-body {
-  font-family: var(--font-body);
-  -webkit-font-smoothing: antialiased;
 }
 
 .lp-root {
@@ -62,7 +105,7 @@ body {
 .lp-eyebrow   { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 400; }
 .lp-num       { font-variant-numeric: tabular-nums lining-nums; }
 
-.lp-scrollable                  { scrollbar-width: none; }
+.lp-scrollable                  { scrollbar-width: none; overscroll-behavior-y: contain; }
 .lp-scrollable::-webkit-scrollbar { display: none; }
 
 .lp-tap { cursor: pointer; -webkit-tap-highlight-color: transparent; user-select: none; }

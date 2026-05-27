@@ -201,11 +201,11 @@ async function getData(token) {
     // Hierarchical task lists
     q(DB.weekly_tasks,  { property: "Week",  select: { equals: weekStr          } }),
     q(DB.monthly_tasks, { property: "Month", select: { equals: currentMonthName } }),
-    // Milestones — Upcoming + Active only
+    // Milestones — Upcoming + Active only (graceful: empty if DB not connected yet)
     q(DB.milestones, { or: [
       { property: "Status", select: { equals: "Upcoming" } },
       { property: "Status", select: { equals: "Active"   } },
-    ]}),
+    ]}).catch(() => ({ results: [] })),
   ]);
 
   // Daily tasks (today)
@@ -312,9 +312,11 @@ async function getData(token) {
     return status === "Upcoming" && start && start <= today;
   });
   if (toActivate.length > 0) {
+    // Fire-and-forget — don't let patch failures break the response
     await Promise.all(
       toActivate.map(p =>
         notionPatch(p.id, { "Status": { select: { name: "Active" } } }, token)
+          .catch(() => null)
       )
     );
   }
