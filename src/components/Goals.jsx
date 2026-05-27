@@ -10,7 +10,7 @@ const AREA_GLYPH = {
 };
 
 export default function Goals({ goals, loading }) {
-  const [openAreas, setOpenAreas] = useState({ 'Career & Learning': true });
+  const [openAreas, setOpenAreas] = useState({});
 
   if (loading) return (
     <div>
@@ -52,7 +52,7 @@ export default function Goals({ goals, loading }) {
         {areas.map(area => {
           const items = goals.filter(g => g.area === area);
           const avg   = Math.round(items.reduce((s, g) => s + g.pct, 0) / items.length);
-          const open  = openAreas[area] !== false;
+          const open  = openAreas[area] === true;
 
           return (
             <div key={area} style={{ borderBottom: '0.5px solid var(--hair)', padding: '12px 0' }}>

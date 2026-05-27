@@ -176,8 +176,8 @@ export default function App() {
 
           {tab === 'Life' && (
             <>
-              <Goals goals={goals} loading={loading} />
               <Milestones milestones={milestones} loading={loading} />
+              <Goals goals={goals} loading={loading} />
               <TimeRemaining time={liveDate.time} />
               <NavGrid />
             </>
