@@ -12,6 +12,7 @@ import HabitTracker   from './components/HabitTracker.jsx';
 import MoodPicker     from './components/MoodPicker.jsx';
 import WeeklyTasks    from './components/WeeklyTasks.jsx';
 import MonthlyTasks   from './components/MonthlyTasks.jsx';
+import Milestones     from './components/Milestones.jsx';
 
 function PullIndicator({ pull, refreshing }) {
   const pct = Math.min(1, pull / 60);
@@ -167,7 +168,8 @@ export default function App() {
               <MonthlyFocus monthly={monthly} loading={loading} monthName={liveDate.date.m} />
               <MonthlyTasks monthlyTasks={monthlyTasks} currentMonth={currentMonth} loading={loading} fetchExpand={fetchExpand} writeback={writeback} />
               <Goals goals={goals} loading={loading} />
-              <TimeRemaining time={liveDate.time} milestones={milestones} />
+              <Milestones milestones={milestones} loading={loading} />
+              <TimeRemaining time={liveDate.time} />
               <NavGrid />
             </>
           )}

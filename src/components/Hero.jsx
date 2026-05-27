@@ -1,15 +1,14 @@
-// Category → display prefix symbol
-const CATEGORY_ICON = {
-  'Transition':   '→',
-  'Deadline':     '⏳',
-  'Look Forward': '✦',
+const CATEGORY = {
+  'Transition':   { icon: '→', color: 'var(--accent)'  },
+  'Deadline':     { icon: '⊙', color: 'var(--muted)'   },
+  'Look Forward': { icon: '✦', color: 'var(--accent2)' },
 };
 
 export default function Hero({ liveDate, theme, onToggleTheme, syncing, milestones = [] }) {
   const { date, mantra, city } = liveDate;
 
-  // Show Upcoming + Active milestones in the footer
-  const visibleMilestones = milestones.filter(m => m.status !== 'Done');
+  // Footer shows Upcoming + Active milestones
+  const visible = milestones.filter(m => m.status !== 'Done');
 
   return (
     <div style={{ padding: '24px 22px 18px', position: 'relative', flexShrink: 0 }}>
@@ -25,7 +24,7 @@ export default function Hero({ liveDate, theme, onToggleTheme, syncing, mileston
         display: 'flex', alignItems: 'center', gap: 5,
         padding: '5px 10px', borderRadius: 99,
         border: '0.5px solid var(--hair-strong)',
-        background: 'color-mix(in oklch, var(--bg-2) 70%, transparent)',
+        background: 'var(--bg-2)',
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
       }}>
@@ -40,6 +39,7 @@ export default function Hero({ liveDate, theme, onToggleTheme, syncing, mileston
         </span>
       </div>
 
+      {/* eyebrow */}
       <div className="lp-eyebrow" style={{ color: 'var(--muted)', marginBottom: 14 }}>
         <span style={{
           color: 'var(--accent)',
@@ -48,6 +48,7 @@ export default function Hero({ liveDate, theme, onToggleTheme, syncing, mileston
         &nbsp;{date.day.toUpperCase()} · {city.toUpperCase()}
       </div>
 
+      {/* date */}
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
         <span className="lp-display-i lp-num" style={{ fontSize: 56, lineHeight: 0.98, color: 'var(--text)' }}>
           {date.d}
@@ -60,6 +61,7 @@ export default function Hero({ liveDate, theme, onToggleTheme, syncing, mileston
         </span>
       </div>
 
+      {/* mantra */}
       <p className="lp-display-i" style={{
         marginTop: 16, marginBottom: 0,
         fontSize: 16, lineHeight: 1.4,
@@ -68,38 +70,73 @@ export default function Hero({ liveDate, theme, onToggleTheme, syncing, mileston
         "{mantra}"
       </p>
 
-      {/* Milestone countdowns */}
+      {/* ── Milestone countdown strip ── */}
       <div style={{
-        marginTop: 18, display: 'flex', flexWrap: 'wrap', gap: '6px 20px',
-        paddingTop: 14, borderTop: '0.5px solid var(--hair)',
+        marginTop: 18,
+        paddingTop: 14,
+        borderTop: '0.5px solid var(--hair)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 7,
       }}>
-        {visibleMilestones.length > 0 ? (
-          visibleMilestones.map(m => {
-            const icon     = CATEGORY_ICON[m.category] || '→';
-            const dayLabel = m.daysLeft === 0
-              ? 'TODAY'
-              : m.daysLeft != null
-              ? `${String(m.daysLeft).padStart(2, '0')}d`
-              : '—';
-            const isActive = m.status === 'Active';
-            return (
-              <span key={m.id} className="lp-mono" style={{ fontSize: 10, color: 'var(--faint)' }}>
-                {icon} {m.name.toUpperCase()}{' '}
-                <span style={{ color: isActive ? 'var(--accent)' : 'var(--muted)' }}>
-                  {dayLabel}
-                </span>
+        {visible.length > 0 ? visible.map(m => {
+          const cat      = CATEGORY[m.category] || CATEGORY['Transition'];
+          const isActive = m.status === 'Active';
+          const dayLabel = m.daysLeft === 0   ? 'today'
+                         : m.daysLeft === 1   ? '1 day'
+                         : m.daysLeft != null ? `${m.daysLeft}d`
+                         : '—';
+          return (
+            <div key={m.id} style={{
+              display: 'flex', alignItems: 'baseline', gap: 8,
+            }}>
+              {/* category glyph */}
+              <span className="lp-mono" style={{
+                fontSize: 9, color: cat.color,
+                opacity: isActive ? 1 : 0.55,
+                flexShrink: 0, width: 12,
+              }}>
+                {cat.icon}
               </span>
-            );
-          })
-        ) : (
-          // skeleton placeholder while loading
+
+              {/* name */}
+              <span className="lp-display-i" style={{
+                fontSize: 14, lineHeight: 1.3,
+                color: isActive ? 'var(--text)' : 'var(--muted)',
+                flex: 1,
+              }}>
+                {m.name}
+              </span>
+
+              {/* dot leader */}
+              <span style={{
+                flex: '0 1 24px', minWidth: 8,
+                borderBottom: '1px dotted var(--hair-strong)',
+                marginBottom: 3,
+              }} />
+
+              {/* countdown */}
+              <span className="lp-mono lp-num" style={{
+                fontSize: 13,
+                color: isActive ? cat.color : 'var(--faint)',
+                letterSpacing: '0.04em',
+                flexShrink: 0,
+              }}>
+                {dayLabel}
+              </span>
+            </div>
+          );
+        }) : (
+          // shimmer while loading
           <>
-            <span className="lp-mono" style={{ fontSize: 10, color: 'var(--faint)', opacity: 0.4 }}>
-              → ············ ···
-            </span>
-            <span className="lp-mono" style={{ fontSize: 10, color: 'var(--faint)', opacity: 0.4 }}>
-              → ············ ···
-            </span>
+            {[80, 110].map((w, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, opacity: 0.4 }}>
+                <div className="lp-shimmer" style={{ width: 9, height: 9, borderRadius: 2, flexShrink: 0 }} />
+                <div className="lp-shimmer" style={{ width: `${w}px`, height: 11, borderRadius: 3 }} />
+                <div style={{ flex: 1 }} />
+                <div className="lp-shimmer" style={{ width: 24, height: 11, borderRadius: 3 }} />
+              </div>
+            ))}
           </>
         )}
       </div>
