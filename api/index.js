@@ -305,30 +305,15 @@ async function getData(token) {
     });
   }
 
-  // Auto-promote Upcoming → Active when Start date has arrived
-  const toActivate = milestonesRes.results.filter(p => {
-    const status = getSelect(p.properties["Status"]);
-    const start  = getDate(p.properties["Start"]);
-    return status === "Upcoming" && start && start <= today;
-  });
-  if (toActivate.length > 0) {
-    // Fire-and-forget — don't let patch failures break the response
-    await Promise.all(
-      toActivate.map(p =>
-        notionPatch(p.id, { "Status": { select: { name: "Active" } } }, token)
-          .catch(() => null)
-      )
-    );
-  }
-  const activatedIds = new Set(toActivate.map(p => p.id));
-
+  // Status is managed manually in Notion — dashboard never writes it back.
+  // Set a milestone to Active in Notion when you're ready for it to enter the present.
   const milestones = milestonesRes.results.map(p => ({
     id:       getId(p),
     name:     getText(p.properties["Name"]),
     date:     getDate(p.properties["Date"]),
     start:    getDate(p.properties["Start"]),
     category: getSelect(p.properties["Category"]),
-    status:   activatedIds.has(p.id) ? "Active" : getSelect(p.properties["Status"]),
+    status:   getSelect(p.properties["Status"]),
   })).filter(m => m.name);
 
   return {
