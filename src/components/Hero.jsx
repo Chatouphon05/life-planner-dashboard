@@ -1,3 +1,5 @@
+import { ProgressBar } from './Primitives.jsx';
+
 const CATEGORY = {
   'Transition':   { icon: '→', color: 'var(--accent)'  },
   'Deadline':     { icon: '⊙', color: 'var(--muted)'   },
@@ -7,8 +9,14 @@ const CATEGORY = {
 export default function Hero({ liveDate, theme, onToggleTheme, syncing, milestones = [], loading }) {
   const { date, mantra, city } = liveDate;
 
-  // Footer shows only Active milestones — ones that have entered the present
-  const visible = milestones.filter(m => m.status === 'Active');
+  // Footer shows only Active milestones — sorted soonest first
+  const visible = milestones
+    .filter(m => m.status === 'Active')
+    .sort((a, b) => {
+      if (!a.date) return 1;
+      if (!b.date) return -1;
+      return a.date.localeCompare(b.date);
+    });
 
   return (
     <div style={{ padding: '24px 22px 18px', position: 'relative', flexShrink: 0 }}>
@@ -70,77 +78,78 @@ export default function Hero({ liveDate, theme, onToggleTheme, syncing, mileston
         "{mantra}"
       </p>
 
-      {/* ── Active milestone countdown strip (hidden when nothing active) ── */}
+      {/* ── Active milestone strip (hidden when nothing active) ── */}
       {(visible.length > 0 || loading) && (
-      <div style={{
-        marginTop: 18,
-        paddingTop: 14,
-        borderTop: '0.5px solid var(--hair)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 7,
-      }}>
-        {visible.length > 0 ? visible.map(m => {
-          const cat      = CATEGORY[m.category] || CATEGORY['Transition'];
-          const isActive = m.status === 'Active';
-          const dayLabel = m.daysLeft === 0   ? 'today'
-                         : m.daysLeft === 1   ? '1 day'
-                         : m.daysLeft != null ? `${m.daysLeft}d`
-                         : '—';
-          return (
-            <div key={m.id} style={{
-              display: 'flex', alignItems: 'baseline', gap: 8,
-            }}>
-              {/* category glyph */}
-              <span className="lp-mono" style={{
-                fontSize: 9, color: cat.color,
-                opacity: isActive ? 1 : 0.55,
-                flexShrink: 0, width: 12,
+        <div style={{
+          marginTop: 18,
+          paddingTop: 14,
+          borderTop: '0.5px solid var(--hair)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 9,
+        }}>
+          {visible.length > 0 ? visible.map(m => {
+            const cat      = CATEGORY[m.category] || CATEGORY['Transition'];
+            const dayLabel = m.daysLeft === 0   ? 'today'
+                           : m.daysLeft === 1   ? '1 day'
+                           : m.daysLeft != null ? `${m.daysLeft}d`
+                           : '—';
+            return (
+              <div key={m.id} style={{
+                display: 'flex', alignItems: 'center', gap: 8,
               }}>
-                {cat.icon}
-              </span>
+                {/* category glyph */}
+                <span className="lp-mono" style={{
+                  fontSize: 10, color: cat.color,
+                  flexShrink: 0, width: 14, lineHeight: 1,
+                }}>
+                  {cat.icon}
+                </span>
 
-              {/* name */}
-              <span className="lp-display-i" style={{
-                fontSize: 14, lineHeight: 1.3,
-                color: isActive ? 'var(--text)' : 'var(--muted)',
-                flex: 1,
-              }}>
-                {m.name}
-              </span>
+                {/* name */}
+                <span className="lp-display-i" style={{
+                  fontSize: 14, lineHeight: 1,
+                  color: 'var(--text)',
+                  flexShrink: 0,
+                }}>
+                  {m.name}
+                </span>
 
-              {/* dot leader */}
-              <span style={{
-                flex: '0 1 24px', minWidth: 8,
-                borderBottom: '1px dotted var(--hair-strong)',
-                marginBottom: 3,
-              }} />
+                {/* progress bar (replaces dot leader) */}
+                <div style={{ flex: 1, minWidth: 20 }}>
+                  <ProgressBar
+                    pct={m.progress ?? 0}
+                    color={cat.color}
+                    height={3}
+                    trackOpacity={0.18}
+                  />
+                </div>
 
-              {/* countdown */}
-              <span className="lp-mono lp-num" style={{
-                fontSize: 13,
-                color: isActive ? cat.color : 'var(--faint)',
-                letterSpacing: '0.04em',
-                flexShrink: 0,
-              }}>
-                {dayLabel}
-              </span>
-            </div>
-          );
-        }) : (
-          // shimmer while loading
-          <>
-            {[80, 110].map((w, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, opacity: 0.4 }}>
-                <div className="lp-shimmer" style={{ width: 9, height: 9, borderRadius: 2, flexShrink: 0 }} />
-                <div className="lp-shimmer" style={{ width: `${w}px`, height: 11, borderRadius: 3 }} />
-                <div style={{ flex: 1 }} />
-                <div className="lp-shimmer" style={{ width: 24, height: 11, borderRadius: 3 }} />
+                {/* countdown */}
+                <span className="lp-mono lp-num" style={{
+                  fontSize: 13,
+                  color: cat.color,
+                  letterSpacing: '0.04em',
+                  flexShrink: 0,
+                }}>
+                  {dayLabel}
+                </span>
               </div>
-            ))}
-          </>
-        )}
-      </div>
+            );
+          }) : (
+            // shimmer while loading
+            <>
+              {[100, 130].map((w, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, opacity: 0.35 }}>
+                  <div className="lp-shimmer" style={{ width: 10, height: 10, borderRadius: 2, flexShrink: 0 }} />
+                  <div className="lp-shimmer" style={{ width: `${w}px`, height: 11, borderRadius: 3, flexShrink: 0 }} />
+                  <div className="lp-shimmer" style={{ flex: 1, height: 3, borderRadius: 99 }} />
+                  <div className="lp-shimmer" style={{ width: 28, height: 11, borderRadius: 3 }} />
+                </div>
+              ))}
+            </>
+          )}
+        </div>
       )}
     </div>
   );

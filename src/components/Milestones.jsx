@@ -18,11 +18,11 @@ function formatDate(str) {
 
 // ── Single card ────────────────────────────────────────────────────────────────
 function MilestoneCard({ m }) {
-  const cat     = CATEGORY[m.category] || DEFAULT_CAT;
-  const daysStr = m.daysLeft === 0   ? '00'
-                : m.daysLeft != null ? String(m.daysLeft)
-                : '—';
-  const unit    = m.daysLeft === 1 ? 'day' : 'days';
+  const cat      = CATEGORY[m.category] || DEFAULT_CAT;
+  const daysStr  = m.daysLeft === 0   ? '00'
+                 : m.daysLeft != null ? String(m.daysLeft)
+                 : '—';
+  const unit     = m.daysLeft === 1 ? 'day' : 'days';
   const isActive   = m.status === 'Active';
   const isUpcoming = m.status === 'Upcoming';
 
@@ -42,20 +42,42 @@ function MilestoneCard({ m }) {
         top: 0, left: 0, right: 0,
         height: 2,
         background: cat.color,
-        opacity: isUpcoming ? 0.45 : 1,
+        opacity: isUpcoming ? 0.40 : 1,
       }} />
 
-      {/* ── Header row: category · status ── */}
+      {/* ── Header row: icon chip + label · status ── */}
       <div style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         marginBottom: 14,
       }}>
-        <span className="lp-mono" style={{
-          fontSize: 9, letterSpacing: '0.13em', textTransform: 'uppercase',
-          color: cat.color, opacity: isUpcoming ? 0.65 : 1,
-        }}>
-          {cat.icon}&nbsp;&nbsp;{cat.label}
-        </span>
+        {/* Icon chip + category label */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+          <div style={{
+            width: 34, height: 34,
+            borderRadius: 10,
+            background: 'var(--bg-3)',
+            border: '0.5px solid var(--hair-strong)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+            opacity: isUpcoming ? 0.60 : 1,
+          }}>
+            <span style={{
+              fontSize: 17, lineHeight: 1,
+              color: cat.color,
+              fontFamily: 'var(--font-mono)',
+            }}>
+              {cat.icon}
+            </span>
+          </div>
+          <span className="lp-mono" style={{
+            fontSize: 9, letterSpacing: '0.13em', textTransform: 'uppercase',
+            color: cat.color, opacity: isUpcoming ? 0.65 : 1,
+          }}>
+            {cat.label}
+          </span>
+        </div>
+
+        {/* Status pill */}
         <span className="lp-mono" style={{
           fontSize: 9, letterSpacing: '0.10em', textTransform: 'uppercase',
           color: isActive ? 'var(--accent2)' : 'var(--faint)',
@@ -97,13 +119,12 @@ function MilestoneCard({ m }) {
         </div>
       </div>
 
-      {/* ── Progress + date range (Active) ── */}
+      {/* ── Progress bar + date range (Active only) ── */}
       {isActive && m.progress != null && (
         <div style={{ marginTop: 16 }}>
-          <ProgressBar pct={m.progress} color={cat.color} height={1.5} />
+          <ProgressBar pct={m.progress} color={cat.color} height={2} />
           <div style={{
-            display: 'flex', justifyContent: 'space-between',
-            marginTop: 6,
+            display: 'flex', justifyContent: 'space-between', marginTop: 6,
           }}>
             <span className="lp-mono" style={{ fontSize: 9, color: 'var(--faint)' }}>
               {formatDate(m.start)}
@@ -131,7 +152,14 @@ function MilestoneCard({ m }) {
 
 // ── Section ────────────────────────────────────────────────────────────────────
 export default function Milestones({ milestones = [], loading }) {
-  const visible = milestones.filter(m => m.status !== 'Done');
+  // Sort by target date ascending (soonest first), then filter out Done
+  const visible = milestones
+    .filter(m => m.status !== 'Done')
+    .sort((a, b) => {
+      if (!a.date) return 1;
+      if (!b.date) return -1;
+      return a.date.localeCompare(b.date);
+    });
 
   if (!loading && visible.length === 0) return null;
 
@@ -141,8 +169,8 @@ export default function Milestones({ milestones = [], loading }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {loading && visible.length === 0 ? (
           <>
-            <Skeleton height={110} radius={14} />
-            <Skeleton height={90}  radius={14} style={{ opacity: 0.5 }} />
+            <Skeleton height={118} radius={14} />
+            <Skeleton height={98}  radius={14} style={{ opacity: 0.5 }} />
           </>
         ) : (
           visible.map(m => <MilestoneCard key={m.id} m={m} />)
