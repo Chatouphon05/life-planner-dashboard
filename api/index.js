@@ -78,35 +78,62 @@ const getCORS = (origin) => ({
 });
 
 // ── Notion helpers ────────────────────────────────────────────────────────────
+
+// Abort any single Notion request that hangs beyond this threshold
+const NOTION_QUERY_TIMEOUT_MS = 8000;
+
 async function notionQuery(dbId, filter, sorts, token) {
   const body = { page_size: 100 };
   if (filter) body.filter = filter;
   if (sorts)  body.sorts  = sorts;
-  const res = await fetch(`https://api.notion.com/v1/databases/${dbId}/query`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Notion-Version": NOTION_VERSION,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error(`Notion query ${dbId} → ${res.status}: ${await res.text()}`);
-  return res.json();
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), NOTION_QUERY_TIMEOUT_MS);
+
+  try {
+    const res = await fetch(`https://api.notion.com/v1/databases/${dbId}/query`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Notion-Version": NOTION_VERSION,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    clearTimeout(timer);
+    if (!res.ok) throw new Error(`Notion query ${dbId} → ${res.status}: ${await res.text()}`);
+    return res.json();
+  } catch (err) {
+    clearTimeout(timer);
+    if (err.name === 'AbortError') throw new Error(`Notion query timed out (${dbId})`);
+    throw err;
+  }
 }
 
 async function notionPatch(pageId, properties, token) {
-  const res = await fetch(`https://api.notion.com/v1/pages/${pageId}`, {
-    method: "PATCH",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Notion-Version": NOTION_VERSION,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ properties }),
-  });
-  if (!res.ok) throw new Error(`Notion patch ${pageId} → ${res.status}: ${await res.text()}`);
-  return res.json();
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), NOTION_QUERY_TIMEOUT_MS);
+
+  try {
+    const res = await fetch(`https://api.notion.com/v1/pages/${pageId}`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Notion-Version": NOTION_VERSION,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ properties }),
+      signal: controller.signal,
+    });
+    clearTimeout(timer);
+    if (!res.ok) throw new Error(`Notion patch ${pageId} → ${res.status}: ${await res.text()}`);
+    return res.json();
+  } catch (err) {
+    clearTimeout(timer);
+    if (err.name === 'AbortError') throw new Error(`Notion patch timed out (${pageId})`);
+    throw err;
+  }
 }
 
 // ── Property parsers ──────────────────────────────────────────────────────────
@@ -440,7 +467,13 @@ export default async function handler(request) {
       else                    data = await getData(token);
 
       return new Response(JSON.stringify(data), {
-        headers: { ...CORS, "Content-Type": "application/json" },
+        headers: {
+          ...CORS,
+          "Content-Type": "application/json",
+          // CDN caches for 45s; serves stale while revalidating for 2min.
+          // Pull-to-refresh appends ?fresh=1 which busts this cache.
+          "Cache-Control": "s-maxage=45, stale-while-revalidate=120",
+        },
       });
     }
     if (request.method === "POST") {
