@@ -200,34 +200,47 @@ export function useNotionData() {
     return res.json();
   }, []);
 
-  const fetchData = useCallback(async () => {
-    // Only show loading spinner when there's nothing to show yet
+  // fresh=true appends ?fresh=1 to bust Vercel's CDN cache (used by pull-to-refresh)
+  const fetchData = useCallback(async (fresh = false) => {
     setState(s => ({
       ...s,
       loading: !s.tasks.length && !s.habits.length,
       stale:   true,
       error:   null,
     }));
+
+    const controller = new AbortController();
+    // Give up after 12s — prevents the phone hanging indefinitely when Notion is slow
+    const timer = setTimeout(() => controller.abort(), 12000);
+
     try {
-      const res = await fetch(WORKER_URL);
+      const url = fresh ? `${WORKER_URL}?fresh=1` : WORKER_URL;
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timer);
       if (!res.ok) throw new Error(`Worker returned ${res.status}`);
       const raw     = await res.json();
       const adapted = adaptWorkerData(raw);
       saveCache(adapted);
       setState({ loading: false, stale: false, error: null, ...adapted });
     } catch (err) {
-      // If we have cached data, stay silent on background-refresh failure
+      clearTimeout(timer);
+      const timedOut = err.name === 'AbortError';
       setState(s => ({
         ...s,
         loading: false,
         stale:   false,
-        error:   (s.tasks.length || s.habits.length) ? null : err.message,
+        error:   (s.tasks.length || s.habits.length)
+          ? null
+          : (timedOut ? 'Notion is slow — pull down to retry' : err.message),
       }));
     }
   }, []);
 
+  // Pull-to-refresh bypasses the CDN cache to guarantee fresh data
+  const refetch = useCallback(() => fetchData(true), [fetchData]);
+
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  return { ...state, liveDate: getLiveDate(), refetch: fetchData, writeback, fetchExpand };
+  return { ...state, liveDate: getLiveDate(), refetch, writeback, fetchExpand };
 
 }
