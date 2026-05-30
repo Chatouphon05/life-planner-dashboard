@@ -1,0 +1,19 @@
+{
+  "name": "Life Planner",
+  "short_name": "Life Planner",
+  "description": "Personal life OS",
+  "theme_color": "#080e1c",
+  "background_color": "#080e1c",
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/life-planner-dashboard/",
+  "start_url": "/life-planner-dashboard/",
+  "icons": [
+    {
+      "src": "/life-planner-dashboard/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
