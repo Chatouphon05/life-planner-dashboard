@@ -1,37 +1,14 @@
 import { useState, useCallback } from 'react';
 import { SectionHeader, TaskRow, Skeleton } from './Primitives.jsx';
+import TaskHeatmap from './TaskHeatmap.jsx';
 
-const HEAT = [
-  'var(--hair)',
-  'color-mix(in oklch, var(--accent2) 28%, transparent)',
-  'color-mix(in oklch, var(--accent2) 55%, transparent)',
-  'color-mix(in oklch, var(--accent2) 80%, transparent)',
-  'var(--accent2)',
-];
-
-function heatColor(done, total) {
-  if (!total) return HEAT[0];
-  const r = done / total;
-  if (r === 0)  return HEAT[0];
-  if (r < 0.34) return HEAT[1];
-  if (r < 0.67) return HEAT[2];
-  if (r < 1)    return HEAT[3];
-  return HEAT[4];
-}
-
-function TaskHeatmap({ taskHistory }) {
-  if (!taskHistory?.length) return null;
-  return (
-    <div style={{ display: 'flex', gap: 2, marginBottom: 14, marginTop: 6 }}>
-      {taskHistory.map(({ date, done, total }) => (
-        <div
-          key={date}
-          title={`${date}: ${done}/${total}`}
-          style={{ flex: 1, height: 18, borderRadius: 3, background: heatColor(done, total) }}
-        />
-      ))}
-    </div>
-  );
+// taskHistory is [{date, done, total}], oldest → newest, ending today.
+// Adapt to the shared heatmap shape (last entry is the current day).
+function toHeatmap(taskHistory) {
+  return (taskHistory || []).map((d, i, arr) => ({
+    ...d,
+    isCurrent: i === arr.length - 1,
+  }));
 }
 
 export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabel, writeback }) {
@@ -79,7 +56,7 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
   if (error) return (
     <div>
       <SectionHeader label="Tasks" />
-      {taskHistory?.length > 0 && <TaskHeatmap taskHistory={taskHistory} />}
+      {taskHistory?.length > 0 && <TaskHeatmap data={toHeatmap(taskHistory)} type="daily" />}
       <p className="lp-mono" style={{ fontSize: 13, color: 'var(--faint)', marginTop: 12 }}>
         Could not reach Notion — pull down to retry.
       </p>
@@ -89,7 +66,7 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
   return (
     <div>
       <SectionHeader label={`Tasks · ${dayLabel}`} stat={`${completed}/${tasks.length}`} />
-      <TaskHeatmap taskHistory={taskHistory} />
+      <TaskHeatmap data={toHeatmap(taskHistory)} type="daily" />
       {tasks.length === 0 ? (
         <p className="lp-mono" style={{ fontSize: 13, color: 'var(--faint)', marginTop: 12 }}>
           No tasks today — add them in Notion.

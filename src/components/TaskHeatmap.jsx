@@ -1,5 +1,13 @@
 import { useState } from 'react';
 
+const MONTHS_SHORT = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+
+// Format a YYYY-MM-DD string as "MAY 29"
+function fmtDay(dateStr) {
+  const [, m, d] = dateStr.split('-');
+  return `${MONTHS_SHORT[Number(m) - 1]} ${Number(d)}`;
+}
+
 // ── Completion level (0–5) ────────────────────────────────────────────────────
 function getLevel(done, total) {
   if (total === 0) return 0;
@@ -22,18 +30,27 @@ const TILE_BG = [
 ];
 
 // ── Component ─────────────────────────────────────────────────────────────────
-// data:  [{ week|month, done, total, isCurrent }]  — oldest → newest
-// type:  'weekly' | 'monthly'
+// data:  [{ week|month|date, done, total, isCurrent }]  — oldest → newest
+// type:  'weekly' | 'monthly' | 'daily'
 export default function TaskHeatmap({ data, type }) {
   const [sel, setSel] = useState(null);
 
   if (!data || data.length === 0) return null;
 
+  // Per-type label (under each tile) and detail (tap line)
+  const labelOf = (item) =>
+    type === 'weekly'  ? item.week                            // "W21"
+  : type === 'monthly' ? item.month.slice(0, 3).toUpperCase() // "MAY"
+  :                      String(Number(item.date.split('-')[2])); // "29"
+
+  const headOf = (item) =>
+    type === 'weekly'  ? item.week
+  : type === 'monthly' ? item.month.slice(0, 3).toUpperCase()
+  :                      fmtDay(item.date);                    // "MAY 29"
+
   const selItem = sel !== null ? data[sel] : null;
   const detail  = selItem
-    ? type === 'weekly'
-      ? `${selItem.week}  ·  ${selItem.done} / ${selItem.total} done`
-      : `${selItem.month.slice(0, 3).toUpperCase()}  ·  ${selItem.done} / ${selItem.total} done`
+    ? `${headOf(selItem)}  ·  ${selItem.done} / ${selItem.total} done`
     : null;
 
   return (
@@ -45,9 +62,7 @@ export default function TaskHeatmap({ data, type }) {
           const level      = getLevel(item.done, item.total);
           const isCurrent  = item.isCurrent;
           const isSelected = sel === i;
-          const label      = type === 'weekly'
-            ? item.week                                       // "W21"
-            : item.month.slice(0, 3).toUpperCase();           // "MAY"
+          const label      = labelOf(item);
 
           return (
             <div

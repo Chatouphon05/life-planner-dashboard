@@ -69,7 +69,7 @@ export default function App() {
   };
 
   const {
-    tasks, habits, today, taskHistory, habitHistory,
+    tasks, habits, today, taskHistory, habitHistory, moodHistory,
     priorities, monthly, goals,
     weeklyTasks, monthlyTasks, weeklyHeatmap, monthlyHeatmap,
     currentWeek, currentMonth,
@@ -149,7 +149,7 @@ export default function App() {
 
           {tab === 'Today' && (
             <>
-              <MoodPicker today={today} writeback={writeback} loading={loading} />
+              <MoodPicker today={today} writeback={writeback} loading={loading} moodHistory={moodHistory} />
               <TodayTasks
                 tasks={tasks}
                 taskHistory={taskHistory}

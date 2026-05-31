@@ -4,6 +4,92 @@ import { SectionHeader, Skeleton } from './Primitives.jsx';
 const MOODS    = ['🚀 Amazing', '😊 Good', '😐 Okay', '😔 Low', '😴 Tired'];
 const ENERGIES = ['⚡ High', '🔋 Medium', '🪫 Low'];
 
+const MONTHS_SHORT = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+const emojiOf  = v => (v ? v.split(' ')[0] : null);
+const ENERGY_LEVEL = { '⚡ High': 3, '🔋 Medium': 2, '🪫 Low': 1 };
+// Energy bar fill — amber intensity scales with energy (matches "amber = now/energy")
+const ENERGY_BG = {
+  3: 'var(--accent)',
+  2: 'color-mix(in oklch, var(--accent) 55%, transparent)',
+  1: 'color-mix(in oklch, var(--accent) 28%, transparent)',
+  0: 'var(--bg-3)',
+};
+
+function fmtDay(dateStr) {
+  const [, m, d] = dateStr.split('-');
+  return `${MONTHS_SHORT[Number(m) - 1]} ${Number(d)}`;
+}
+
+// 14-day strip: mood emoji + energy bar per day. Today (last entry) reflects
+// the live local selection so it updates the moment you tap a chip.
+function MoodStrip({ history, todayMood, todayEnergy }) {
+  const [sel, setSel] = useState(null);
+  if (!history?.length) return null;
+
+  const data = history.map((d, i, arr) =>
+    i === arr.length - 1
+      ? { ...d, mood: todayMood ?? d.mood, energy: todayEnergy ?? d.energy }
+      : d
+  );
+
+  const selItem = sel !== null ? data[sel] : null;
+  const detail  = selItem
+    ? `${fmtDay(selItem.date)}  ·  ${selItem.mood || 'no mood'}${selItem.energy ? '  ·  ' + selItem.energy : ''}`
+    : null;
+
+  return (
+    <div style={{ marginTop: 14, paddingTop: 12, borderTop: '0.5px solid var(--hair)' }}>
+      <div className="lp-mono" style={{
+        fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase',
+        color: 'var(--muted)', marginBottom: 8,
+      }}>
+        Last 14 days
+      </div>
+
+      <div style={{ display: 'flex', gap: 3 }}>
+        {data.map((d, i) => {
+          const isToday    = i === data.length - 1;
+          const isSelected = sel === i;
+          const emoji      = emojiOf(d.mood);
+          const elvl       = ENERGY_LEVEL[d.energy] || 0;
+          return (
+            <div
+              key={d.date}
+              onClick={() => setSel(sel === i ? null : i)}
+              style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, cursor: 'pointer' }}
+            >
+              <span style={{ fontSize: 14, lineHeight: 1.1, opacity: emoji ? 1 : 0.25 }}>
+                {emoji || '·'}
+              </span>
+              <div style={{
+                width: '100%', height: 4, borderRadius: 99,
+                background: ENERGY_BG[elvl],
+                outline: isToday ? '1.5px solid var(--accent)'
+                       : isSelected ? '1px solid var(--muted)'
+                       : '1px solid transparent',
+              }} />
+              <span className="lp-mono" style={{
+                fontSize: 8, lineHeight: 1, userSelect: 'none',
+                color: isToday ? 'var(--accent)' : 'var(--faint)',
+              }}>
+                {Number(d.date.split('-')[2])}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      <div style={{ minHeight: 16, marginTop: 6 }}>
+        {detail && (
+          <span className="lp-mono" style={{ fontSize: 10, color: 'var(--muted)', letterSpacing: '0.03em' }}>
+            {detail}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function Chip({ label, selected, onSelect, disabled }) {
   return (
     <div
@@ -30,7 +116,7 @@ function Chip({ label, selected, onSelect, disabled }) {
   );
 }
 
-export default function MoodPicker({ today, writeback, loading }) {
+export default function MoodPicker({ today, writeback, loading, moodHistory }) {
   if (loading) return (
     <div>
       <SectionHeader label="Mood" />
@@ -45,6 +131,12 @@ export default function MoodPicker({ today, writeback, loading }) {
           <Skeleton width={40} height={9} style={{ marginBottom: 8 }} />
           <div style={{ display: 'flex', gap: 6 }}>
             {[60, 80, 55].map((w, i) => <Skeleton key={i} width={w} height={30} radius={99} />)}
+          </div>
+        </div>
+        <div style={{ paddingTop: 12, borderTop: '0.5px solid var(--hair)' }}>
+          <Skeleton width={70} height={9} style={{ marginBottom: 8 }} />
+          <div style={{ display: 'flex', gap: 3 }}>
+            {Array(14).fill(0).map((_, i) => <Skeleton key={i} height={26} style={{ flex: 1 }} />)}
           </div>
         </div>
       </div>
@@ -131,6 +223,8 @@ export default function MoodPicker({ today, writeback, loading }) {
             No daily entry found — create today's page in Notion first.
           </p>
         )}
+
+        <MoodStrip history={moodHistory} todayMood={mood} todayEnergy={energy} />
       </div>
     </div>
   );
