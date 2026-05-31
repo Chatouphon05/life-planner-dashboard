@@ -69,6 +69,7 @@ function adaptWorkerData(raw) {
   // 14-day history arrays (pass through from Worker)
   const taskHistory  = raw.taskHistory  || [];
   const habitHistory = raw.habitHistory || {};
+  const moodHistory  = raw.moodHistory  || [];
 
   // Weekly priorities — already an array in v2
   const priorities = (raw.week?.priorities || []).map((p, i) => ({
@@ -142,7 +143,7 @@ function adaptWorkerData(raw) {
     };
   });
 
-  return { tasks, habits, today, taskHistory, habitHistory, priorities, monthly, goals, weeklyTasks, monthlyTasks, weeklyHeatmap, monthlyHeatmap, currentWeek, currentMonth, milestones };
+  return { tasks, habits, today, taskHistory, habitHistory, moodHistory, priorities, monthly, goals, weeklyTasks, monthlyTasks, weeklyHeatmap, monthlyHeatmap, currentWeek, currentMonth, milestones };
 }
 
 const CACHE_KEY = 'lp-data-v2';
@@ -163,6 +164,7 @@ const EMPTY_STATE = {
   today:         { mood: null, energy: null, dailyId: null },
   taskHistory:   [],
   habitHistory:  {},
+  moodHistory:   [],
   priorities:    [],
   monthly:       { theme: null, name: null, focusAreas: [] },
   goals:         [],

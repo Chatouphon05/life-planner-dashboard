@@ -225,7 +225,7 @@ async function getData(token) {
     weeklyRes, monthlyRes, goalsRes,
     taskHistoryRes, habitHistoryRes,
     weeklyTasksRes, monthlyTasksRes,
-    milestonesRes,
+    milestonesRes, dailyHistoryRes,
   ] = await Promise.all([
     // Daily Tasks filtered by today (replaces standalone Tasks)
     q(DB.daily_tasks, { property: "Date", date: { equals: today } }),
@@ -258,6 +258,11 @@ async function getData(token) {
       { property: "Status", select: { equals: "Upcoming" } },
       { property: "Status", select: { equals: "Active"   } },
     ]}).catch(() => ({ results: [] })),
+    // 14-day mood + energy history (Daily Journal)
+    q(DB.daily, { and: [
+      { property: "Date", date: { on_or_after:  historyStartStr } },
+      { property: "Date", date: { on_or_before: today } },
+    ]}),
   ]);
 
   // Daily tasks (today)
@@ -385,6 +390,22 @@ async function getData(token) {
     });
   }
 
+  // Mood + energy history: { date, mood, energy } × 14 (from Daily Journal)
+  const moodByDate = {};
+  for (const p of dailyHistoryRes.results) {
+    const date = getDate(p.properties["Date"]);
+    if (!date) continue;
+    moodByDate[date] = {
+      mood:   getSelect(p.properties["Mood"]),
+      energy: getSelect(p.properties["Energy"]),
+    };
+  }
+  const moodHistory = dateAxis.map(date => ({
+    date,
+    mood:   moodByDate[date]?.mood   ?? null,
+    energy: moodByDate[date]?.energy ?? null,
+  }));
+
   // Status is managed manually in Notion — dashboard never writes it back.
   // Set a milestone to Active in Notion when you're ready for it to enter the present.
   const milestones = milestonesRes.results.map(p => ({
@@ -400,6 +421,7 @@ async function getData(token) {
     today: { date: today, mood, energy, dailyId },
     tasks, taskHistory,
     habits, habitHistory,
+    moodHistory,
     week:  { name: weekName, priorities },
     month: { name: monthName, theme: monthTheme, focus: monthFocus },
     goals,
