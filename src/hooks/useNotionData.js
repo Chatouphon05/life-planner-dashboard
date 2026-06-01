@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-export const WORKER_URL = 'https://life-planner-dashboard.vercel.app/api';
+export const WORKER_URL = 'https://life-planner-api.chatouphonstch.workers.dev';
 
 const DAYS         = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const MONTHS       = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -185,10 +185,20 @@ export function useNotionData() {
   });
 
   // Drilldown fetch: GET /api?weeklyTask=<id> or ?monthlyTask=<id>
+  // Always bypasses CDN cache (?fresh=1) so expanded tasks reflect latest Notion state.
   const fetchExpand = useCallback(async (type, id) => {
-    const res = await fetch(`${WORKER_URL}?${type}=${id}`);
-    if (!res.ok) throw new Error(`Expand fetch failed: ${res.status}`);
-    return res.json();
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 12000);
+    try {
+      const res = await fetch(`${WORKER_URL}?${type}=${id}&fresh=1`, { signal: controller.signal });
+      clearTimeout(timer);
+      if (!res.ok) throw new Error(`Expand fetch failed: ${res.status}`);
+      return res.json();
+    } catch (err) {
+      clearTimeout(timer);
+      if (err.name === 'AbortError') throw new Error('Expand timed out — pull to retry');
+      throw err;
+    }
   }, []);
 
   // Central write-back: POST { type, pageId, value } to Worker
