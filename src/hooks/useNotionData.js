@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 
-export const WORKER_URL = 'https://life-planner-dashboard.vercel.app/api';
+// After `npx wrangler deploy`, replace this with your Worker URL
+// It will look like: https://life-planner-api.YOUR_SUBDOMAIN.workers.dev
+export const WORKER_URL = 'https://life-planner-api.YOUR_SUBDOMAIN.workers.dev';
 
 const DAYS         = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const MONTHS       = ['January','February','March','April','May','June','July','August','September','October','November','December'];
