@@ -1,4 +1,4 @@
-const CACHE = 'life-planner-v1';
+const CACHE = 'life-planner-v2';
 
 self.addEventListener('install', () => self.skipWaiting());
 
@@ -14,8 +14,9 @@ self.addEventListener('fetch', event => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Never cache Notion API proxy calls — always needs live data
-  if (url.hostname.includes('vercel.app')) return;
+  // Never cache API calls — always needs live data
+  if (url.hostname === 'api.lunkystch.com') return;
+  if (url.hostname.includes('workers.dev'))  return;
 
   // Navigation: network-first, fall back to cached shell
   if (request.mode === 'navigate') {
@@ -26,7 +27,7 @@ self.addEventListener('fetch', event => {
           caches.open(CACHE).then(c => c.put(request, clone));
           return res;
         })
-        .catch(() => caches.match(request).then(cached => cached || caches.match('/life-planner-dashboard/')))
+        .catch(() => caches.match(request).then(cached => cached || caches.match('/')))
     );
     return;
   }

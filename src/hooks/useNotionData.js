@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-export const WORKER_URL = 'https://life-planner-api.chatouphonstch.workers.dev';
+export const WORKER_URL = 'https://api.lunkystch.com';
 
 const DAYS         = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const MONTHS       = ['January','February','March','April','May','June','July','August','September','October','November','December'];

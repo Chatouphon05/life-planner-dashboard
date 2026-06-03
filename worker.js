@@ -5,7 +5,7 @@
 
 const NOTION_VERSION       = "2022-06-28";
 const NOTION_TIMEOUT_MS    = 8000;
-const ALLOWED_ORIGINS      = ["https://chatouphon05.github.io"];
+const ALLOWED_ORIGINS      = ["https://chatouphon05.github.io", "https://lunkystch.com"];
 const MONTH_NAMES          = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 const DB = {

@@ -6,11 +6,11 @@
   "background_color": "#080e1c",
   "display": "standalone",
   "orientation": "portrait",
-  "scope": "/life-planner-dashboard/",
-  "start_url": "/life-planner-dashboard/",
+  "scope": "/",
+  "start_url": "/",
   "icons": [
     {
-      "src": "/life-planner-dashboard/icon.svg",
+      "src": "/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
