@@ -265,7 +265,19 @@ export function useNotionData() {
   // Pull-to-refresh bypasses the CDN cache to guarantee fresh data
   const refetch = useCallback(() => fetchData(true), [fetchData]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+
+    const interval = setInterval(() => fetchData(), 300000);
+
+    const onVisibility = () => { if (document.visibilityState === 'visible') fetchData(); };
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [fetchData]);
 
   return { ...state, liveDate: getLiveDate(state.today?.date || null), refetch, writeback, fetchExpand };
 

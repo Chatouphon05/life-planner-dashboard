@@ -1,6 +1,6 @@
 const TABS = ['Today', 'Plan', 'Life'];
 
-export default function TabBar({ tab, onChange }) {
+export default function TabBar({ tab, onChange, badges = {} }) {
   return (
     <div style={{
       display: 'flex',
@@ -19,11 +19,19 @@ export default function TabBar({ tab, onChange }) {
             flex: 1, textAlign: 'center',
             padding: '14px 0 12px', position: 'relative',
           }}>
-            <span className="lp-mono" style={{
-              fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase',
-              color: active ? 'var(--text)' : 'var(--faint)',
-              fontWeight: active ? 500 : 400,
-            }}>{t}</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+              <span className="lp-mono" style={{
+                fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase',
+                color: active ? 'var(--text)' : 'var(--faint)',
+                fontWeight: active ? 500 : 400,
+              }}>{t}</span>
+              {badges[t] > 0 && (
+                <span className="lp-mono" style={{
+                  fontSize: 9, lineHeight: 1.4, padding: '1px 5px', borderRadius: 99,
+                  background: 'var(--accent)', color: 'var(--bg)',
+                }}>{badges[t]}</span>
+              )}
+            </span>
             {active && (
               <span style={{
                 position: 'absolute', bottom: -0.5, left: '25%', right: '25%',

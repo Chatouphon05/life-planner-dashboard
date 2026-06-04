@@ -157,10 +157,18 @@ export default function HabitTracker({ habits, habitHistory, loading, writeback 
                 }}>
                   {habit.habit}
                 </span>
-                <span className="lp-mono" style={{
-                  fontSize: 11, color: 'var(--accent)', marginLeft: 8, flexShrink: 0,
-                }}>
-                  {habit.streak > 0 ? `${habit.streak}d` : ''}
+                <span className="lp-mono" style={{ marginLeft: 8, flexShrink: 0 }}>
+                  {habit.streak > 0 && (() => {
+                    const s = habit.streak;
+                    const color = s >= 7 ? 'var(--accent)' : s >= 3 ? 'var(--muted)' : 'var(--faint)';
+                    const glyph = s >= 30 ? '◆' : s >= 7 ? '●' : null;
+                    return (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                        {glyph && <span style={{ fontSize: 7, color, lineHeight: 1 }}>{glyph}</span>}
+                        <span style={{ fontSize: 11, color }}>{s}d</span>
+                      </span>
+                    );
+                  })()}
                 </span>
               </div>
 
