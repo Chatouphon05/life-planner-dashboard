@@ -134,7 +134,7 @@ export default function App() {
       <PullIndicator pull={pull} refreshing={refreshing} />
 
       <Hero liveDate={liveDateFinal} theme={theme} onToggleTheme={toggleTheme} syncing={stale} milestones={milestones} loading={loading} />
-      <TabBar tab={tab} onChange={setTab} />
+      <TabBar tab={tab} onChange={setTab} badges={{ Today: tasks.filter(t => !t.done).length }} />
 
       <div
         ref={scrollRef}
