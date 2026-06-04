@@ -169,7 +169,7 @@ export default function App() {
 
           {tab === 'Plan' && (
             <>
-              <SundayReview />
+              <SundayReview todayDate={today.date} />
               <WeekPriorities priorities={priorities} loading={loading} />
               <WeeklyTasks weeklyTasks={weeklyTasks} currentWeek={currentWeek} loading={loading} fetchExpand={fetchExpand} writeback={writeback} weeklyHeatmap={weeklyHeatmap} />
               <MonthlyFocus monthly={monthly} loading={loading} monthName={liveDate.date.m} />

@@ -10,7 +10,17 @@
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
       "Bash(git push *)",
-      "PowerShell($env:PATH = \"C:\\\\Program Files\\\\nodejs\\\\;\" + $env:PATH; cd \"C:\\\\Users\\\\Pc\\\\Desktop\\\\Planner Dashboard\"; npx vite build 2>&1)"
+      "PowerShell($env:PATH = \"C:\\\\Program Files\\\\nodejs\\\\;\" + $env:PATH; cd \"C:\\\\Users\\\\Pc\\\\Desktop\\\\Planner Dashboard\"; npx vite build 2>&1)",
+      "Bash(Remove-Item -Path \"C:\\\\Users\\\\Pc\\\\Desktop\\\\Planner Dashboard\\\\api\\\\index.js\" -Force)",
+      "Bash(Remove-Item -Path \"C:\\\\Users\\\\Pc\\\\Desktop\\\\Planner Dashboard\\\\api\\\\cron.js\" -Force)",
+      "Bash(Remove-Item -Path \"C:\\\\Users\\\\Pc\\\\Desktop\\\\Planner Dashboard\\\\vercel.json\" -Force)",
+      "Bash(Get-ChildItem \"C:\\\\Users\\\\Pc\\\\Desktop\\\\Planner Dashboard\\\\api\")",
+      "Bash(Measure-Object)",
+      "Bash(Select-Object -ExpandProperty Count)",
+      "Bash(rm \"C:/Users/Pc/Desktop/Planner Dashboard/api/index.js\")",
+      "Bash(rm \"C:/Users/Pc/Desktop/Planner Dashboard/api/cron.js\")",
+      "Bash(rm \"C:/Users/Pc/Desktop/Planner Dashboard/vercel.json\")",
+      "Bash(npm run *)"
     ]
   }
 }

@@ -1,9 +1,12 @@
 // Shown only on Sundays — a lightweight nudge to reflect before planning next week
 const SAGE = '#4aab82';
 
-export default function SundayReview() {
-  const today = new Date();
-  if (today.getDay() !== 0) return null; // 0 = Sunday
+export default function SundayReview({ todayDate = null }) {
+  // Use Worker date (UTC+7/UTC+10) so Sunday check matches the API's "today"
+  const dayOfWeek = todayDate
+    ? new Date(todayDate + 'T12:00:00Z').getUTCDay()
+    : new Date().getDay();
+  if (dayOfWeek !== 0) return null; // 0 = Sunday
 
   return (
     <div style={{

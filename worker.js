@@ -5,8 +5,11 @@
 
 const NOTION_VERSION       = "2022-06-28";
 const NOTION_TIMEOUT_MS    = 8000;
-const ALLOWED_ORIGINS      = ["https://chatouphon05.github.io", "https://lunkystch.com", "https://www.lunkystch.com"];
+const ALLOWED_ORIGINS      = ["https://lunkystch.com", "https://www.lunkystch.com"];
 const MONTH_NAMES          = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+// Change to 10 on/after Jun 7 2026 (Brisbane move, UTC+10), then redeploy + update wrangler.toml cron to "0 20 * * *"
+const UTC_OFFSET_HOURS = 7;
 
 const DB = {
   tasks:         "972a5ee5fce3470796efa210a62ffdcb",
@@ -23,9 +26,8 @@ const DB = {
 
 // ── Date helpers ──────────────────────────────────────────────────────────────
 
-// TODO after Brisbane move (~Jun 7 2026): change +7 to +10 and update cron schedule
 function laosDateStr(offsetDays = 0) {
-  const ms = Date.now() + 7 * 3600 * 1000 + offsetDays * 86400 * 1000;
+  const ms = Date.now() + UTC_OFFSET_HOURS * 3600 * 1000 + offsetDays * 86400 * 1000;
   return new Date(ms).toISOString().split("T")[0];
 }
 

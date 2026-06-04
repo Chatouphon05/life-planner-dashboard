@@ -6,9 +6,13 @@ const DAYS         = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday
 const MONTHS       = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const MONTHS_SHORT = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
 
-export function getLiveDate() {
+// workerDateStr: YYYY-MM-DD from Worker (UTC+7/UTC+10 timezone). When provided,
+// the date display fields (day name, d, m, y) reflect the Worker's "today" so
+// Hero and API stay in sync regardless of browser timezone.
+export function getLiveDate(workerDateStr = null) {
   const now = new Date();
 
+  // Progress percentages stay on browser local time — fine for "Time Remaining"
   const daysSinceMonday = (now.getDay() + 6) % 7;
   const weekPct         = Math.round((daysSinceMonday / 7) * 100);
 
@@ -21,13 +25,22 @@ export function getLiveDate() {
   const daysInYear  = now.getFullYear() % 4 === 0 ? 366 : 365;
   const yearPct     = Math.round((dayOfYear / daysInYear) * 100);
 
+  // Date display: use Worker's date if available so Hero matches API "today"
+  const display = workerDateStr
+    ? new Date(workerDateStr + 'T12:00:00Z')
+    : now;
+  const getDay   = workerDateStr ? (d) => d.getUTCDay()      : (d) => d.getDay();
+  const getDate  = workerDateStr ? (d) => d.getUTCDate()     : (d) => d.getDate();
+  const getMonth = workerDateStr ? (d) => d.getUTCMonth()    : (d) => d.getMonth();
+  const getYear  = workerDateStr ? (d) => d.getUTCFullYear() : (d) => d.getFullYear();
+
   return {
     date: {
-      day:    DAYS[now.getDay()],
-      d:      now.getDate(),
-      m:      MONTHS[now.getMonth()],
-      mShort: MONTHS_SHORT[now.getMonth()],
-      y:      now.getFullYear(),
+      day:    DAYS[getDay(display)],
+      d:      getDate(display),
+      m:      MONTHS[getMonth(display)],
+      mShort: MONTHS_SHORT[getMonth(display)],
+      y:      getYear(display),
     },
     // city is overridden in app.jsx based on milestones (Transition → Done)
     city:   'Vientiane',
@@ -59,8 +72,9 @@ function adaptWorkerData(raw) {
     streak:   h.streak   ?? 0,
   }));
 
-  // Today's mood + energy
+  // Today's mood + energy + Worker date (YYYY-MM-DD in Worker timezone)
   const today = {
+    date:    raw.today?.date    || null,
     mood:    raw.today?.mood    || null,
     energy:  raw.today?.energy  || null,
     dailyId: raw.today?.dailyId || null,
@@ -161,7 +175,7 @@ const EMPTY_STATE = {
   error:         null,
   tasks:         [],
   habits:        [],
-  today:         { mood: null, energy: null, dailyId: null },
+  today:         { date: null, mood: null, energy: null, dailyId: null },
   taskHistory:   [],
   habitHistory:  {},
   moodHistory:   [],
@@ -253,6 +267,6 @@ export function useNotionData() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  return { ...state, liveDate: getLiveDate(), refetch, writeback, fetchExpand };
+  return { ...state, liveDate: getLiveDate(state.today?.date || null), refetch, writeback, fetchExpand };
 
 }

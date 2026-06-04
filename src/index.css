@@ -128,3 +128,24 @@ body {
   animation: lp-shimmer 1.6s ease-in-out infinite;
   border-radius: 4px;
 }
+
+/* ── Desktop: phone-column layout centered on wide screens ── */
+@media (min-width: 500px) {
+  body {
+    overflow: auto;
+    background: var(--bg-3);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  #root {
+    width: 100%;
+    max-width: 430px;
+    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
+    background: var(--bg);
+    box-shadow: 0 0 0 0.5px var(--hair-strong), 0 8px 48px rgba(0, 0, 0, 0.45);
+  }
+}
