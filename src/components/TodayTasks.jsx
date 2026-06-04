@@ -15,6 +15,30 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
   // Local overrides: { [id]: boolean }. Falls back to task.done when not set.
   const [overrides, setOverrides] = useState({});
   const [failed,    setFailed]    = useState({});
+  const [adding,   setAdding]   = useState(false);
+  const [newTask,  setNewTask]   = useState('');
+  const [priority, setPriority]  = useState('');
+  const [creating, setCreating]  = useState(false);
+  const [created,  setCreated]   = useState(false);
+
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  const handleCreate = async () => {
+    if (!newTask.trim() || creating) return;
+    setCreating(true);
+    try {
+      await writeback('create-task', null, { task: newTask.trim(), priority: priority || null, date: todayStr });
+      setNewTask('');
+      setPriority('');
+      setAdding(false);
+      setCreated(true);
+      setTimeout(() => setCreated(false), 3000);
+    } catch {
+      // leave form open so user can retry
+    } finally {
+      setCreating(false);
+    }
+  };
 
   const toggle = useCallback(async (task) => {
     if (failed[task.id]) return;
@@ -89,23 +113,67 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
             })}
         </div>
       )}
-      <a
-        href="https://www.notion.so/c88c5452b1224fc3a8e421c77447e063"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="lp-tap"
-        style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-          marginTop: 16, textDecoration: 'none', padding: '12px 0', borderRadius: 10,
-          border: '1px solid color-mix(in oklch, var(--accent) 45%, transparent)',
-          background: 'color-mix(in oklch, var(--accent) 8%, var(--bg-2))',
-        }}
-      >
-        <span className="lp-mono" style={{ fontSize: 14, color: 'var(--accent)' }}>+</span>
-        <span className="lp-mono" style={{ fontSize: 12, color: 'var(--accent)', letterSpacing: '0.10em' }}>
-          ADD TASK
-        </span>
-      </a>
+      <div style={{ marginTop: 16 }}>
+        {created && (
+          <p className="lp-mono" style={{ fontSize: 11, color: 'var(--accent2)', marginBottom: 8 }}>
+            ✓ Task added — syncing…
+          </p>
+        )}
+        {!adding ? (
+          <button
+            className="lp-tap"
+            onClick={() => setAdding(true)}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              padding: '12px 0', borderRadius: 10, border: '1px solid color-mix(in oklch, var(--accent) 45%, transparent)',
+              background: 'color-mix(in oklch, var(--accent) 8%, var(--bg-2))', cursor: 'pointer',
+            }}
+          >
+            <span className="lp-mono" style={{ fontSize: 14, color: 'var(--accent)' }}>+</span>
+            <span className="lp-mono" style={{ fontSize: 12, color: 'var(--accent)', letterSpacing: '0.10em' }}>ADD TASK</span>
+          </button>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '12px 14px', borderRadius: 10, background: 'var(--bg-2)', border: '0.5px solid var(--hair-strong)' }}>
+            <input
+              autoFocus
+              value={newTask}
+              onChange={e => setNewTask(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') handleCreate(); if (e.key === 'Escape') setAdding(false); }}
+              placeholder="Task name…"
+              style={{
+                background: 'transparent', border: 'none', outline: 'none',
+                color: 'var(--text)', fontSize: 14, fontFamily: 'var(--font-body)', width: '100%',
+              }}
+            />
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              {['High', 'Medium', 'Low'].map(p => (
+                <button key={p} className="lp-tap" onClick={() => setPriority(priority === p ? '' : p)}
+                  style={{
+                    padding: '3px 8px', borderRadius: 6, border: '0.5px solid var(--hair-strong)',
+                    background: priority === p ? 'color-mix(in oklch, var(--accent) 20%, var(--bg-2))' : 'transparent',
+                    color: priority === p ? 'var(--accent)' : 'var(--faint)',
+                    fontSize: 10, fontFamily: 'var(--font-mono)', cursor: 'pointer', letterSpacing: '0.06em',
+                  }}
+                >{p}</button>
+              ))}
+              <div style={{ flex: 1 }} />
+              <button className="lp-tap" onClick={() => setAdding(false)}
+                style={{ background: 'none', border: 'none', color: 'var(--faint)', fontSize: 18, cursor: 'pointer', lineHeight: 1 }}>
+                ×
+              </button>
+              <button className="lp-tap" onClick={handleCreate} disabled={!newTask.trim() || creating}
+                style={{
+                  padding: '5px 12px', borderRadius: 7, border: 'none', cursor: newTask.trim() ? 'pointer' : 'default',
+                  background: newTask.trim() ? 'var(--accent)' : 'var(--bg-3)',
+                  color: newTask.trim() ? 'var(--bg)' : 'var(--faint)',
+                  fontSize: 11, fontFamily: 'var(--font-mono)', letterSpacing: '0.08em',
+                }}>
+                {creating ? '…' : 'ADD'}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
