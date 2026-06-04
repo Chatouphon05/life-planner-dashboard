@@ -14,6 +14,8 @@ import WeeklyTasks    from './components/WeeklyTasks.jsx';
 import MonthlyTasks   from './components/MonthlyTasks.jsx';
 import Milestones     from './components/Milestones.jsx';
 import SundayReview  from './components/SundayReview.jsx';
+import WeekStatsRow  from './components/WeekStatsRow.jsx';
+import ErrorBoundary from './components/ErrorBoundary.jsx';
 
 function PullIndicator({ pull, refreshing }) {
   const pct = Math.min(1, pull / 60);
@@ -70,10 +72,10 @@ export default function App() {
 
   const {
     tasks, habits, today, taskHistory, habitHistory, moodHistory,
-    priorities, monthly, goals,
+    priorities, weekId, monthly, goals,
     weeklyTasks, monthlyTasks, weeklyHeatmap, monthlyHeatmap,
     currentWeek, currentMonth,
-    milestones,
+    milestones, weekId,
     liveDate, loading, stale, error, refetch, writeback, fetchExpand,
   } = useNotionData();
 
@@ -145,10 +147,10 @@ export default function App() {
           transition: (refreshing || pull === 0) ? 'transform .25s cubic-bezier(.2,.7,.3,1)' : 'none',
         }}
       >
-        <div style={{ padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: 28 }}>
+        <div className="lp-content" style={{ padding: '20px 22px' }}>
 
           {tab === 'Today' && (
-            <>
+            <ErrorBoundary key="Today">
               <MoodPicker today={today} writeback={writeback} loading={loading} moodHistory={moodHistory} />
               <TodayTasks
                 tasks={tasks}
@@ -164,26 +166,27 @@ export default function App() {
                 loading={loading}
                 writeback={writeback}
               />
-            </>
+            </ErrorBoundary>
           )}
 
           {tab === 'Plan' && (
-            <>
-              <SundayReview todayDate={today.date} />
+            <ErrorBoundary key="Plan">
+              <WeekStatsRow habits={habits} weeklyHeatmap={weeklyHeatmap} loading={loading} />
+              <SundayReview todayDate={today.date} weekId={weekId} writeback={writeback} />
               <WeekPriorities priorities={priorities} loading={loading} />
               <WeeklyTasks weeklyTasks={weeklyTasks} currentWeek={currentWeek} loading={loading} fetchExpand={fetchExpand} writeback={writeback} weeklyHeatmap={weeklyHeatmap} />
               <MonthlyFocus monthly={monthly} loading={loading} monthName={liveDate.date.m} />
               <MonthlyTasks monthlyTasks={monthlyTasks} currentMonth={currentMonth} loading={loading} fetchExpand={fetchExpand} writeback={writeback} monthlyHeatmap={monthlyHeatmap} />
-            </>
+            </ErrorBoundary>
           )}
 
           {tab === 'Life' && (
-            <>
+            <ErrorBoundary key="Life">
               <Milestones milestones={milestones} loading={loading} />
               <Goals goals={goals} loading={loading} />
               <TimeRemaining time={liveDate.time} />
               <NavGrid />
-            </>
+            </ErrorBoundary>
           )}
 
           <div style={{ height: 40 }} />
