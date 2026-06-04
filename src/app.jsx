@@ -70,7 +70,7 @@ export default function App() {
 
   const {
     tasks, habits, today, taskHistory, habitHistory, moodHistory,
-    priorities, monthly, goals,
+    priorities, weekId, monthly, goals,
     weeklyTasks, monthlyTasks, weeklyHeatmap, monthlyHeatmap,
     currentWeek, currentMonth,
     milestones,
@@ -169,7 +169,7 @@ export default function App() {
 
           {tab === 'Plan' && (
             <>
-              <SundayReview todayDate={today.date} />
+              <SundayReview todayDate={today.date} weekId={weekId} writeback={writeback} />
               <WeekPriorities priorities={priorities} loading={loading} />
               <WeeklyTasks weeklyTasks={weeklyTasks} currentWeek={currentWeek} loading={loading} fetchExpand={fetchExpand} writeback={writeback} weeklyHeatmap={weeklyHeatmap} />
               <MonthlyFocus monthly={monthly} loading={loading} monthName={liveDate.date.m} />

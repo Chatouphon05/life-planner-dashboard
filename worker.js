@@ -429,7 +429,7 @@ async function getData(token) {
     tasks, taskHistory,
     habits, habitHistory,
     moodHistory,
-    week:  { name: weekName, priorities },
+    week:  { name: weekName, priorities, id: weekEntry ? getId(weekEntry) : null },
     month: { name: monthName, theme: monthTheme, focus: monthFocus },
     goals,
     weeklyTasks, monthlyTasks,
@@ -454,6 +454,13 @@ async function handlePatch(body, token) {
     case "task-status": await patch({ "Status": value ? { select: { name: value } } : { select: null } }); break;
     case "mood":        await patch({ "Mood":   value ? { select: { name: value } } : { select: null } }); break;
     case "energy":      await patch({ "Energy": value ? { select: { name: value } } : { select: null } }); break;
+    case "set-weekly-priorities":
+      await patch({
+        "Top 3 Priorities": {
+          rich_text: [{ text: { content: typeof value === 'string' ? value : '' } }]
+        }
+      });
+      break;
     default: throw new Error(`Unknown patch type: ${type}`);
   }
   return { ok: true, type, pageId };

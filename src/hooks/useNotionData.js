@@ -90,6 +90,7 @@ function adaptWorkerData(raw) {
     n:    i + 1,
     task: typeof p === 'string' ? p : String(p),
   }));
+  const weekId = raw.week?.id || null;
 
   // Monthly
   const monthly = {
@@ -157,7 +158,7 @@ function adaptWorkerData(raw) {
     };
   });
 
-  return { tasks, habits, today, taskHistory, habitHistory, moodHistory, priorities, monthly, goals, weeklyTasks, monthlyTasks, weeklyHeatmap, monthlyHeatmap, currentWeek, currentMonth, milestones };
+  return { tasks, habits, today, taskHistory, habitHistory, moodHistory, priorities, weekId, monthly, goals, weeklyTasks, monthlyTasks, weeklyHeatmap, monthlyHeatmap, currentWeek, currentMonth, milestones };
 }
 
 const CACHE_KEY = 'lp-data-v2';
@@ -180,6 +181,7 @@ const EMPTY_STATE = {
   habitHistory:  {},
   moodHistory:   [],
   priorities:    [],
+  weekId:        null,
   monthly:       { theme: null, name: null, focusAreas: [] },
   goals:         [],
   weeklyTasks:    [],
