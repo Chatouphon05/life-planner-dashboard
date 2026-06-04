@@ -14,6 +14,7 @@ import WeeklyTasks    from './components/WeeklyTasks.jsx';
 import MonthlyTasks   from './components/MonthlyTasks.jsx';
 import Milestones     from './components/Milestones.jsx';
 import SundayReview  from './components/SundayReview.jsx';
+import WeekStatsRow  from './components/WeekStatsRow.jsx';
 
 function PullIndicator({ pull, refreshing }) {
   const pct = Math.min(1, pull / 60);
@@ -169,6 +170,7 @@ export default function App() {
 
           {tab === 'Plan' && (
             <>
+              <WeekStatsRow habits={habits} weeklyHeatmap={weeklyHeatmap} loading={loading} />
               <SundayReview todayDate={today.date} />
               <WeekPriorities priorities={priorities} loading={loading} />
               <WeeklyTasks weeklyTasks={weeklyTasks} currentWeek={currentWeek} loading={loading} fetchExpand={fetchExpand} writeback={writeback} weeklyHeatmap={weeklyHeatmap} />
