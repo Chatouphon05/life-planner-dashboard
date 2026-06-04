@@ -147,7 +147,7 @@ export default function App() {
           transition: (refreshing || pull === 0) ? 'transform .25s cubic-bezier(.2,.7,.3,1)' : 'none',
         }}
       >
-        <div style={{ padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: 28 }}>
+        <div className="lp-content" style={{ padding: '20px 22px' }}>
 
           {tab === 'Today' && (
             <ErrorBoundary key="Today">

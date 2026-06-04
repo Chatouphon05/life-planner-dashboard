@@ -129,6 +129,12 @@ body {
   border-radius: 4px;
 }
 
+.lp-content {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
 /* ── Desktop: phone-column layout centered on wide screens ── */
 @media (min-width: 500px) {
   body {
@@ -141,11 +147,26 @@ body {
 
   #root {
     width: 100%;
-    max-width: 430px;
+    max-width: 480px;
     min-height: 100vh;
     height: 100vh;
     overflow: hidden;
     background: var(--bg);
     box-shadow: 0 0 0 0.5px var(--hair-strong), 0 8px 48px rgba(0, 0, 0, 0.45);
+  }
+}
+
+/* ── Wide desktop: 2-column content grid ── */
+@media (min-width: 900px) {
+  #root {
+    max-width: 920px;
+  }
+
+  .lp-content {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px 48px;
+    align-items: start;
+    padding: 24px 40px !important;
   }
 }
