@@ -75,7 +75,7 @@ export default function App() {
     priorities, weekId, monthly, goals,
     weeklyTasks, monthlyTasks, weeklyHeatmap, monthlyHeatmap,
     currentWeek, currentMonth,
-    milestones, weekId,
+    milestones,
     liveDate, loading, stale, error, refetch, writeback, fetchExpand,
   } = useNotionData();
 

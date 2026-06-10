@@ -8,8 +8,8 @@ const NOTION_TIMEOUT_MS    = 8000;
 const ALLOWED_ORIGINS      = ["https://lunkystch.com", "https://www.lunkystch.com"];
 const MONTH_NAMES          = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
-// Change to 10 on/after Jun 7 2026 (Brisbane move, UTC+10), then redeploy + update wrangler.toml cron to "0 20 * * *"
-const UTC_OFFSET_HOURS = 7;
+// Brisbane (UTC+10) since Jun 7 2026 move. Was 7 (Laos). Redeploy after changing.
+const UTC_OFFSET_HOURS = 10;
 
 const DB = {
   tasks:         "972a5ee5fce3470796efa210a62ffdcb",
