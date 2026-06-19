@@ -65,16 +65,17 @@ export default function TaskModal({ task, onClose, writeback, refetch, defaultDa
       style={{
         position: 'fixed', inset: 0, zIndex: 50,
         background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(2px)',
-        display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: 16, overflowY: 'auto',
       }}
     >
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          width: '100%', maxWidth: 460, margin: '0 12px 12px',
+          width: '100%', maxWidth: 460, margin: 'auto',
           background: 'var(--bg-2)', border: '0.5px solid var(--hair-strong)',
           borderRadius: 16, padding: '20px 18px',
-          boxShadow: '0 -8px 40px rgba(0,0,0,0.4)',
+          boxShadow: '0 8px 40px rgba(0,0,0,0.4)',
           display: 'flex', flexDirection: 'column', gap: 14,
         }}
       >
