@@ -8,7 +8,7 @@ function stripPriority(p) {
   return PRIORITIES.find(x => p.includes(x)) || '';
 }
 
-export default function TaskModal({ task, onClose, writeback, refetch, defaultDate, goals, weeklyTasks }) {
+export default function TaskModal({ task, onClose, writeback, refetch, defaultDate, goals, weeklyTasks, fetchExpand }) {
   const isEdit = !!task;
   const [name,         setName]         = useState(task?.task || '');
   const [priority,     setPriority]     = useState(stripPriority(task?.priority));
@@ -20,11 +20,26 @@ export default function TaskModal({ task, onClose, writeback, refetch, defaultDa
   const [err,      setErr]      = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
+  const [dateTasks,   setDateTasks]   = useState(null);
+  const [dateLoading, setDateLoading] = useState(false);
+
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
+
+  // Show what's already on the selected date so duplicates/clashes are obvious before saving.
+  useEffect(() => {
+    if (!date || !fetchExpand) return;
+    let cancelled = false;
+    setDateLoading(true);
+    fetchExpand('date', date)
+      .then(list => { if (!cancelled) setDateTasks(list); })
+      .catch(() => { if (!cancelled) setDateTasks(null); })
+      .finally(() => { if (!cancelled) setDateLoading(false); });
+    return () => { cancelled = true; };
+  }, [date, fetchExpand]);
 
   const save = async () => {
     if (!name.trim() || busy) return;
@@ -130,6 +145,29 @@ export default function TaskModal({ task, onClose, writeback, refetch, defaultDa
             }}
           />
         </div>
+
+        {(dateLoading || (dateTasks && dateTasks.length > 0)) && (
+          <div style={{
+            display: 'flex', flexDirection: 'column', gap: 5,
+            padding: '8px 10px', borderRadius: 8,
+            background: 'var(--bg)', border: '0.5px solid var(--hair)',
+          }}>
+            <span className="lp-mono" style={{ fontSize: 10, color: 'var(--faint)', letterSpacing: '0.08em' }}>
+              {dateLoading ? 'LOADING TASKS ON THIS DATE…' : `TASKS ON THIS DATE (${dateTasks.length})`}
+            </span>
+            {!dateLoading && dateTasks
+              .filter(t => !isEdit || t.id !== task.id)
+              .map(t => (
+                <span key={t.id} className="lp-mono" style={{
+                  fontSize: 12,
+                  color: t.done ? 'var(--faint)' : 'var(--text)',
+                  textDecoration: t.done ? 'line-through' : 'none',
+                }}>
+                  {t.task}
+                </span>
+              ))}
+          </div>
+        )}
 
         <textarea
           value={notes}

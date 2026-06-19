@@ -162,6 +162,7 @@ export default function App() {
                 refetch={refetch}
                 goals={goals}
                 weeklyTasks={weeklyTasks}
+                fetchExpand={fetchExpand}
               />
               <HabitTracker
                 habits={habits}

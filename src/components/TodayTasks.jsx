@@ -12,7 +12,7 @@ function toHeatmap(taskHistory) {
   }));
 }
 
-export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabel, writeback, refetch, goals, weeklyTasks }) {
+export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabel, writeback, refetch, goals, weeklyTasks, fetchExpand }) {
   // Local overrides: { [id]: boolean }. Falls back to task.done when not set.
   const [overrides, setOverrides] = useState({});
   const [failed,    setFailed]    = useState({});
@@ -125,6 +125,7 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
           defaultDate={todayStr}
           goals={goals}
           weeklyTasks={weeklyTasks}
+          fetchExpand={fetchExpand}
         />
       )}
     </div>

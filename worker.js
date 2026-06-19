@@ -208,6 +208,22 @@ function buildDateAxis(today) {
 
 // ── Drilldown queries ─────────────────────────────────────────────────────────
 
+async function getTasksByDate(dateStr, token) {
+  const res = await notionQuery(DB.daily_tasks, {
+    property: "Date", date: { equals: dateStr },
+  }, [{ property: "Date", direction: "ascending" }], token);
+
+  return res.results.map(p => ({
+    id:           getId(p),
+    task:         getText(p.properties["Task"]),
+    done:         getBool(p.properties["Done"]),
+    priority:     getSelect(p.properties["Priority"]),
+    notes:        getText(p.properties["Notes"]),
+    goalId:       getRelation(p.properties["Goal"])[0]        || null,
+    weeklyTaskId: getRelation(p.properties["Weekly Task"])[0] || null,
+  })).filter(t => t.task);
+}
+
 async function getWeeklyTaskDrilldown(weeklyTaskId, token) {
   const res = await notionQuery(DB.daily_tasks, {
     property: "Weekly Task",
@@ -605,10 +621,12 @@ export default {
         const url           = new URL(request.url);
         const weeklyTaskId  = url.searchParams.get("weeklyTask");
         const monthlyTaskId = url.searchParams.get("monthlyTask");
+        const dateParam     = url.searchParams.get("date");
 
         let data;
         if (weeklyTaskId)       data = await getWeeklyTaskDrilldown(weeklyTaskId, token);
         else if (monthlyTaskId) data = await getMonthlyTaskDrilldown(monthlyTaskId, token);
+        else if (dateParam)     data = await getTasksByDate(dateParam, token);
         else                    data = await getData(token);
 
         return new Response(JSON.stringify(data), {
