@@ -12,6 +12,12 @@ function toHeatmap(taskHistory) {
   }));
 }
 
+// "2026-06-07" -> "Sunday, Jun 7"
+function fmtDayLabel(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00Z');
+  return d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', timeZone: 'UTC' });
+}
+
 export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabel, writeback, refetch, goals, weeklyTasks, fetchExpand }) {
   // Local overrides: { [id]: boolean }. Falls back to task.done when not set.
   const [overrides, setOverrides] = useState({});
@@ -21,7 +27,38 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
   const [modalOpen, setModalOpen] = useState(false);
   const [editTask,  setEditTask]  = useState(null);
 
+  // When a non-today tile in the heatmap is tapped, fetch and show that date's tasks instead.
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [dateTasks,    setDateTasks]    = useState(null);
+  const [dateLoading,  setDateLoading]  = useState(false);
+  const [dateError,    setDateError]    = useState(null);
+
   const todayStr = new Date().toISOString().split('T')[0];
+
+  const onSelectDate = useCallback(async (dateStr) => {
+    if (!dateStr || dateStr === todayStr) {
+      setSelectedDate(null);
+      setDateTasks(null);
+      setDateError(null);
+      return;
+    }
+    setSelectedDate(dateStr);
+    setDateLoading(true);
+    setDateError(null);
+    try {
+      const result = await fetchExpand('date', dateStr);
+      setDateTasks(Array.isArray(result) ? result : []);
+    } catch (err) {
+      setDateError(err.message || 'Could not load tasks for this date.');
+      setDateTasks([]);
+    } finally {
+      setDateLoading(false);
+    }
+  }, [fetchExpand, todayStr]);
+
+  const viewingOtherDate = !!selectedDate;
+  const displayTasks     = viewingOtherDate ? (dateTasks || []) : tasks;
+  const headerLabel      = viewingOtherDate ? fmtDayLabel(selectedDate) : dayLabel;
 
   const openCreate = () => { setEditTask(null); setModalOpen(true); };
   const openEdit   = (t) => { setEditTask(t);  setModalOpen(true); };
@@ -44,7 +81,7 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
   const effectiveDone = (t) =>
     overrides.hasOwnProperty(t.id) ? overrides[t.id] : t.done;
 
-  const completed = tasks.filter(t => effectiveDone(t)).length;
+  const completed = displayTasks.filter(t => effectiveDone(t)).length;
 
   if (loading) return (
     <div>
@@ -76,15 +113,23 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
 
   return (
     <div>
-      <SectionHeader label={`Tasks · ${dayLabel}`} stat={`${completed}/${tasks.length}`} />
-      <TaskHeatmap data={toHeatmap(taskHistory)} type="daily" />
-      {tasks.length === 0 ? (
+      <SectionHeader label={`Tasks · ${headerLabel}`} stat={`${completed}/${displayTasks.length}`} />
+      <TaskHeatmap data={toHeatmap(taskHistory)} type="daily" onSelect={onSelectDate} />
+      {dateLoading ? (
         <p className="lp-mono" style={{ fontSize: 13, color: 'var(--faint)', marginTop: 12 }}>
-          No tasks today — add one below.
+          Loading tasks…
+        </p>
+      ) : dateError ? (
+        <p className="lp-mono" style={{ fontSize: 13, color: 'var(--faint)', marginTop: 12 }}>
+          {dateError}
+        </p>
+      ) : displayTasks.length === 0 ? (
+        <p className="lp-mono" style={{ fontSize: 13, color: 'var(--faint)', marginTop: 12 }}>
+          {viewingOtherDate ? 'No tasks on this date.' : 'No tasks today — add one below.'}
         </p>
       ) : (
         <div>
-          {tasks.map(t => {
+          {displayTasks.map(t => {
               const done = effectiveDone(t);
               return (
                 <TaskRow
@@ -122,7 +167,7 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
           onClose={closeModal}
           writeback={writeback}
           refetch={refetch}
-          defaultDate={todayStr}
+          defaultDate={selectedDate || todayStr}
           goals={goals}
           weeklyTasks={weeklyTasks}
           fetchExpand={fetchExpand}

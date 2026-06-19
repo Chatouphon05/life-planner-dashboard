@@ -32,10 +32,16 @@ const TILE_BG = [
 // ── Component ─────────────────────────────────────────────────────────────────
 // data:  [{ week|month|date, done, total, isCurrent }]  — oldest → newest
 // type:  'weekly' | 'monthly' | 'daily'
-export default function TaskHeatmap({ data, type }) {
+export default function TaskHeatmap({ data, type, onSelect }) {
   const [sel, setSel] = useState(null);
 
   if (!data || data.length === 0) return null;
+
+  const selectTile = (i) => {
+    const next = sel === i ? null : i;
+    setSel(next);
+    if (onSelect && type === 'daily') onSelect(next !== null ? data[next].date : null);
+  };
 
   // Per-type label (under each tile) and detail (tap line)
   const labelOf = (item) =>
@@ -68,7 +74,7 @@ export default function TaskHeatmap({ data, type }) {
             <div
               key={i}
               style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, cursor: 'pointer' }}
-              onClick={() => setSel(sel === i ? null : i)}
+              onClick={() => selectTile(i)}
             >
               {/* tile */}
               <div style={{
