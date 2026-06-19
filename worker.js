@@ -494,8 +494,8 @@ async function handlePatch(body, token) {
       };
       if (priority)     props["Priority"]     = priorityProp(priority);
       if (notes)        props["Notes"]        = { rich_text: [{ text: { content: notes } }] };
-      if (goalId)       props["Goal"]         = { relation: [{ id: goalId }] };
-      if (weeklyTaskId) props["Weekly Task"]  = { relation: [{ id: weeklyTaskId }] };
+      if (goalId)       props["Goal"]         = { relation: [{ id: fmtId(goalId) }] };
+      if (weeklyTaskId) props["Weekly Task"]  = { relation: [{ id: fmtId(weeklyTaskId) }] };
       await notionCreate(DB.daily_tasks, props, token);
       break;
     }
@@ -504,8 +504,8 @@ async function handlePatch(body, token) {
       const props = {
         "Priority":     priorityProp(priority),
         "Notes":        { rich_text: notes ? [{ text: { content: notes } }] : [] },
-        "Goal":         { relation: goalId       ? [{ id: goalId       }] : [] },
-        "Weekly Task":  { relation: weeklyTaskId ? [{ id: weeklyTaskId }] : [] },
+        "Goal":         { relation: goalId       ? [{ id: fmtId(goalId)       }] : [] },
+        "Weekly Task":  { relation: weeklyTaskId ? [{ id: fmtId(weeklyTaskId) }] : [] },
       };
       if (taskTitle != null) props["Task"] = { title: [{ text: { content: taskTitle } }] };
       if (date != null)      props["Date"] = { date: { start: date } };
