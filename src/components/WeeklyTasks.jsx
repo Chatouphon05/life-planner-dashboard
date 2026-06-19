@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { SectionHeader, Skeleton } from './Primitives.jsx';
 import TaskHeatmap from './TaskHeatmap.jsx';
+import PlanTaskModal from './PlanTaskModal.jsx';
 
 const STATUS_GLYPH = {
   'Not Started': '○',
@@ -94,13 +95,51 @@ function ExpandBody({ state, weeklyTaskId, onToggleDailyTask }) {
   );
 }
 
-export default function WeeklyTasks({ weeklyTasks, currentWeek, loading, fetchExpand, writeback, weeklyHeatmap = [] }) {
+export default function WeeklyTasks({ weeklyTasks, currentWeek, loading, fetchExpand, writeback, refetch, goals, monthlyTasks, weeklyHeatmap = [] }) {
   const [expanded,   setExpanded]   = useState(new Set());
   const [expandData, setExpandData] = useState({});
   const fetchCache = useRef({});
 
   const [overrides, setOverrides] = useState({});
   const [failed,    setFailed]    = useState({});
+
+  // Modal: false = closed; null = create mode; task object = edit mode.
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editTask,  setEditTask]  = useState(null);
+
+  // When a non-current week tile in the heatmap is tapped, fetch and show that week's tasks instead.
+  const [selectedWeek, setSelectedWeek] = useState(null);
+  const [weekTasks,    setWeekTasks]    = useState(null);
+  const [weekLoading,  setWeekLoading]  = useState(false);
+  const [weekError,    setWeekError]    = useState(null);
+
+  const onSelectWeek = useCallback(async (weekStr) => {
+    if (!weekStr || weekStr === currentWeek) {
+      setSelectedWeek(null);
+      setWeekTasks(null);
+      setWeekError(null);
+      return;
+    }
+    setSelectedWeek(weekStr);
+    setWeekLoading(true);
+    setWeekError(null);
+    try {
+      const result = await fetchExpand('week', weekStr);
+      setWeekTasks(Array.isArray(result) ? result : []);
+    } catch (err) {
+      setWeekError(err.message || 'Could not load tasks for this week.');
+      setWeekTasks([]);
+    } finally {
+      setWeekLoading(false);
+    }
+  }, [fetchExpand, currentWeek]);
+
+  const viewingOtherWeek = !!selectedWeek;
+  const displayTasks     = viewingOtherWeek ? (weekTasks || []) : weeklyTasks;
+
+  const openCreate = () => { setEditTask(null); setModalOpen(true); };
+  const openEdit   = (t) => { setEditTask(t);  setModalOpen(true); };
+  const closeModal = () => setModalOpen(false);
 
   const toggleExpand = useCallback(async (taskId) => {
     setExpanded(prev => {
@@ -176,25 +215,34 @@ export default function WeeklyTasks({ weeklyTasks, currentWeek, loading, fetchEx
   );
 
   const effectiveStatus = (t) => overrides.hasOwnProperty(t.id) ? overrides[t.id] : t.status;
-  const doneCount = weeklyTasks.filter(t => effectiveStatus(t) === 'Done').length;
-  const total     = weeklyTasks.length;
-  const label     = currentWeek ? `Weekly · ${currentWeek}` : 'Weekly · tasks';
+  const doneCount = displayTasks.filter(t => effectiveStatus(t) === 'Done').length;
+  const total     = displayTasks.length;
+  const labelWeek = selectedWeek || currentWeek;
+  const label     = labelWeek ? `Weekly · ${labelWeek}` : 'Weekly · tasks';
 
   return (
     <div>
       <SectionHeader label={label} stat={total > 0 ? `${doneCount}/${total}` : undefined} />
 
       {weeklyHeatmap.length > 0 && (
-        <TaskHeatmap data={weeklyHeatmap} type="weekly" />
+        <TaskHeatmap data={weeklyHeatmap} type="weekly" onSelect={onSelectWeek} />
       )}
 
-      {total === 0 ? (
+      {weekLoading ? (
         <p className="lp-mono" style={{ fontSize: 13, color: 'var(--faint)', marginTop: 12 }}>
-          No weekly tasks — add them in Notion.
+          Loading tasks…
+        </p>
+      ) : weekError ? (
+        <p className="lp-mono" style={{ fontSize: 13, color: 'var(--faint)', marginTop: 12 }}>
+          {weekError}
+        </p>
+      ) : total === 0 ? (
+        <p className="lp-mono" style={{ fontSize: 13, color: 'var(--faint)', marginTop: 12 }}>
+          {viewingOtherWeek ? 'No weekly tasks in this week.' : 'No weekly tasks — add one below.'}
         </p>
       ) : (
         <div>
-          {weeklyTasks.map(t => {
+          {displayTasks.map(t => {
             const s        = effectiveStatus(t) || 'Not Started';
             const isFailed = !!failed[t.id];
             const isOpen   = expanded.has(t.id);
@@ -253,6 +301,24 @@ export default function WeeklyTasks({ weeklyTasks, currentWeek, loading, fetchEx
                       display: 'inline-block', lineHeight: 1.6,
                     }}>›</span>
                   </div>
+
+                  {/* Edit pencil */}
+                  <button
+                    className="lp-tap"
+                    onClick={(e) => { e.stopPropagation(); openEdit(t); }}
+                    aria-label="Edit task"
+                    style={{
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      padding: '9px 0 9px 6px', color: 'var(--faint)', alignSelf: 'center', flexShrink: 0,
+                      display: 'inline-flex',
+                    }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 20h9" />
+                      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                    </svg>
+                  </button>
                 </div>
 
                 {isFailed && (
@@ -293,23 +359,51 @@ export default function WeeklyTasks({ weeklyTasks, currentWeek, loading, fetchEx
         </div>
       )}
 
-      <a
-        href="https://www.notion.so/5e77a48652b247ca99a86710e12094bb"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="lp-tap"
-        style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-          marginTop: 16, textDecoration: 'none', padding: '12px 0', borderRadius: 10,
-          border: '1px solid color-mix(in oklch, var(--accent) 45%, transparent)',
-          background: 'color-mix(in oklch, var(--accent) 8%, var(--bg-2))',
-        }}
-      >
-        <span className="lp-mono" style={{ fontSize: 14, color: 'var(--accent)' }}>↗</span>
-        <span className="lp-mono" style={{ fontSize: 12, color: 'var(--accent)', letterSpacing: '0.10em' }}>
-          OPEN WEEKLY TASKS
-        </span>
-      </a>
+      <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <button
+          className="lp-tap"
+          onClick={openCreate}
+          style={{
+            width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            padding: '12px 0', borderRadius: 10, border: '1px solid color-mix(in oklch, var(--accent) 45%, transparent)',
+            background: 'color-mix(in oklch, var(--accent) 8%, var(--bg-2))', cursor: 'pointer',
+          }}
+        >
+          <span className="lp-mono" style={{ fontSize: 14, color: 'var(--accent)' }}>+</span>
+          <span className="lp-mono" style={{ fontSize: 12, color: 'var(--accent)', letterSpacing: '0.10em' }}>ADD TASK</span>
+        </button>
+
+        <a
+          href="https://www.notion.so/5e77a48652b247ca99a86710e12094bb"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="lp-tap"
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            textDecoration: 'none', padding: '12px 0', borderRadius: 10,
+            border: '0.5px solid var(--hair-strong)',
+          }}
+        >
+          <span className="lp-mono" style={{ fontSize: 14, color: 'var(--faint)' }}>↗</span>
+          <span className="lp-mono" style={{ fontSize: 12, color: 'var(--faint)', letterSpacing: '0.10em' }}>
+            OPEN WEEKLY TASKS
+          </span>
+        </a>
+      </div>
+
+      {modalOpen && (
+        <PlanTaskModal
+          task={editTask}
+          level="weekly"
+          onClose={closeModal}
+          writeback={writeback}
+          refetch={refetch}
+          defaultPeriod={selectedWeek || currentWeek}
+          goals={goals}
+          monthlyTasks={monthlyTasks}
+          fetchExpand={fetchExpand}
+        />
+      )}
     </div>
   );
 }

@@ -178,9 +178,9 @@ export default function App() {
               <WeekStatsRow habits={habits} weeklyHeatmap={weeklyHeatmap} loading={loading} />
               <SundayReview todayDate={today.date} weekId={weekId} writeback={writeback} />
               <WeekPriorities priorities={priorities} loading={loading} />
-              <WeeklyTasks weeklyTasks={weeklyTasks} currentWeek={currentWeek} loading={loading} fetchExpand={fetchExpand} writeback={writeback} weeklyHeatmap={weeklyHeatmap} />
+              <WeeklyTasks weeklyTasks={weeklyTasks} currentWeek={currentWeek} loading={loading} fetchExpand={fetchExpand} writeback={writeback} refetch={refetch} goals={goals} monthlyTasks={monthlyTasks} weeklyHeatmap={weeklyHeatmap} />
               <MonthlyFocus monthly={monthly} loading={loading} monthName={liveDate.date.m} />
-              <MonthlyTasks monthlyTasks={monthlyTasks} currentMonth={currentMonth} loading={loading} fetchExpand={fetchExpand} writeback={writeback} monthlyHeatmap={monthlyHeatmap} />
+              <MonthlyTasks monthlyTasks={monthlyTasks} currentMonth={currentMonth} loading={loading} fetchExpand={fetchExpand} writeback={writeback} refetch={refetch} goals={goals} monthlyHeatmap={monthlyHeatmap} />
             </ErrorBoundary>
           )}
 

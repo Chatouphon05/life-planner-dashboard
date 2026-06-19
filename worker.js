@@ -224,6 +224,39 @@ async function getTasksByDate(dateStr, token) {
   })).filter(t => t.task);
 }
 
+async function getWeeklyTasksByWeek(weekStr, token) {
+  const res = await notionQuery(DB.weekly_tasks, {
+    property: "Week", select: { equals: weekStr },
+  }, null, token);
+
+  return res.results.map(p => ({
+    id:            getId(p),
+    task:          getText(p.properties["Task"]),
+    status:        getSelect(p.properties["Status"]),
+    priority:      getSelect(p.properties["Priority"]),
+    week:          getSelect(p.properties["Week"]),
+    notes:         getText(p.properties["Notes"]),
+    goalId:        getRelation(p.properties["Goal"])[0]         || null,
+    monthlyTaskId: getRelation(p.properties["Monthly Task"])[0] || null,
+  })).filter(t => t.task);
+}
+
+async function getMonthlyTasksByMonth(monthStr, token) {
+  const res = await notionQuery(DB.monthly_tasks, {
+    property: "Month", select: { equals: monthStr },
+  }, null, token);
+
+  return res.results.map(p => ({
+    id:       getId(p),
+    task:     getText(p.properties["Task"]),
+    status:   getSelect(p.properties["Status"]),
+    priority: getSelect(p.properties["Priority"]),
+    month:    getSelect(p.properties["Month"]),
+    notes:    getText(p.properties["Notes"]),
+    goalId:   getRelation(p.properties["Goal"])[0] || null,
+  })).filter(t => t.task);
+}
+
 async function getWeeklyTaskDrilldown(weeklyTaskId, token) {
   const res = await notionQuery(DB.daily_tasks, {
     property: "Weekly Task",
@@ -490,7 +523,8 @@ async function getData(token) {
 
 async function handlePatch(body, token) {
   const { type, pageId, value } = body;
-  if (!pageId && type !== "create-task") throw new Error("pageId is required");
+  const CREATE_TYPES = ["create-task", "create-weekly-task", "create-monthly-task"];
+  if (!pageId && !CREATE_TYPES.includes(type)) throw new Error("pageId is required");
   const patch = (props) => notionPatch(pageId, props, token);
   const priorityProp = (p) => (p ? { select: { name: p } } : { select: null });
 
@@ -528,7 +562,63 @@ async function handlePatch(body, token) {
       await patch(props);
       break;
     }
+    case "create-weekly-task": {
+      const { task: taskTitle, priority, status, week, notes, goalId, monthlyTaskId } = value;
+      const props = {
+        "Task":   { title: [{ text: { content: taskTitle } }] },
+        "Week":   { select: { name: week } },
+        "Status": { select: { name: status || "Not Started" } },
+      };
+      if (priority)      props["Priority"]      = priorityProp(priority);
+      if (notes)         props["Notes"]         = { rich_text: [{ text: { content: notes } }] };
+      if (goalId)        props["Goal"]          = { relation: [{ id: fmtId(goalId) }] };
+      if (monthlyTaskId) props["Monthly Task"]  = { relation: [{ id: fmtId(monthlyTaskId) }] };
+      await notionCreate(DB.weekly_tasks, props, token);
+      break;
+    }
+    case "update-weekly-task": {
+      const { task: taskTitle, priority, status, week, notes, goalId, monthlyTaskId } = value;
+      const props = {
+        "Priority":     priorityProp(priority),
+        "Status":       status ? { select: { name: status } } : { select: null },
+        "Notes":        { rich_text: notes ? [{ text: { content: notes } }] : [] },
+        "Goal":         { relation: goalId        ? [{ id: fmtId(goalId)        }] : [] },
+        "Monthly Task": { relation: monthlyTaskId  ? [{ id: fmtId(monthlyTaskId) }] : [] },
+      };
+      if (taskTitle != null) props["Task"] = { title: [{ text: { content: taskTitle } }] };
+      if (week != null)      props["Week"] = { select: { name: week } };
+      await patch(props);
+      break;
+    }
+    case "create-monthly-task": {
+      const { task: taskTitle, priority, status, month, notes, goalId } = value;
+      const props = {
+        "Task":   { title: [{ text: { content: taskTitle } }] },
+        "Month":  { select: { name: month } },
+        "Status": { select: { name: status || "Not Started" } },
+      };
+      if (priority) props["Priority"] = priorityProp(priority);
+      if (notes)    props["Notes"]    = { rich_text: [{ text: { content: notes } }] };
+      if (goalId)   props["Goal"]     = { relation: [{ id: fmtId(goalId) }] };
+      await notionCreate(DB.monthly_tasks, props, token);
+      break;
+    }
+    case "update-monthly-task": {
+      const { task: taskTitle, priority, status, month, notes, goalId } = value;
+      const props = {
+        "Priority": priorityProp(priority),
+        "Status":   status ? { select: { name: status } } : { select: null },
+        "Notes":    { rich_text: notes ? [{ text: { content: notes } }] : [] },
+        "Goal":     { relation: goalId ? [{ id: fmtId(goalId) }] : [] },
+      };
+      if (taskTitle != null) props["Task"]  = { title: [{ text: { content: taskTitle } }] };
+      if (month != null)     props["Month"] = { select: { name: month } };
+      await patch(props);
+      break;
+    }
     case "delete-task":
+    case "delete-weekly-task":
+    case "delete-monthly-task":
       await notionArchive(pageId, token);
       break;
     case "set-weekly-priorities":
@@ -622,11 +712,15 @@ export default {
         const weeklyTaskId  = url.searchParams.get("weeklyTask");
         const monthlyTaskId = url.searchParams.get("monthlyTask");
         const dateParam     = url.searchParams.get("date");
+        const weekParam     = url.searchParams.get("week");
+        const monthParam    = url.searchParams.get("month");
 
         let data;
         if (weeklyTaskId)       data = await getWeeklyTaskDrilldown(weeklyTaskId, token);
         else if (monthlyTaskId) data = await getMonthlyTaskDrilldown(monthlyTaskId, token);
         else if (dateParam)     data = await getTasksByDate(dateParam, token);
+        else if (weekParam)     data = await getWeeklyTasksByWeek(weekParam, token);
+        else if (monthParam)    data = await getMonthlyTasksByMonth(monthParam, token);
         else                    data = await getData(token);
 
         return new Response(JSON.stringify(data), {

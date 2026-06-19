@@ -37,17 +37,20 @@ export default function TaskHeatmap({ data, type, onSelect }) {
 
   if (!data || data.length === 0) return null;
 
-  const selectTile = (i) => {
-    const next = sel === i ? null : i;
-    setSel(next);
-    if (onSelect && type === 'daily') onSelect(next !== null ? data[next].date : null);
-  };
-
   // Per-type label (under each tile) and detail (tap line)
   const labelOf = (item) =>
     type === 'weekly'  ? item.week                            // "W21"
   : type === 'monthly' ? item.month.slice(0, 3).toUpperCase() // "MAY"
   :                      String(Number(item.date.split('-')[2])); // "29"
+
+  const periodOf = (item) =>
+    type === 'weekly' ? item.week : type === 'monthly' ? item.month : item.date;
+
+  const selectTile = (i) => {
+    const next = sel === i ? null : i;
+    setSel(next);
+    if (onSelect) onSelect(next !== null ? periodOf(data[next]) : null);
+  };
 
   const headOf = (item) =>
     type === 'weekly'  ? item.week
