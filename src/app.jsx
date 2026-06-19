@@ -160,6 +160,8 @@ export default function App() {
                 dayLabel={liveDate.date.day}
                 writeback={writeback}
                 refetch={refetch}
+                goals={goals}
+                weeklyTasks={weeklyTasks}
               />
               <HabitTracker
                 habits={habits}

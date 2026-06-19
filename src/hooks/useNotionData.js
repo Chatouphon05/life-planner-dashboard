@@ -56,11 +56,14 @@ export function getLiveDate(workerDateStr = null) {
 function adaptWorkerData(raw) {
   // Tasks — v2 returns rich objects
   const tasks = (raw.tasks || []).map(t => ({
-    id:       t.id,
-    task:     t.task     || '',
-    done:     t.done     ?? false,
-    area:     t.area     || null,
-    priority: t.priority || null,
+    id:           t.id,
+    task:         t.task         || '',
+    done:         t.done         ?? false,
+    area:         t.area         || null,
+    priority:     t.priority     || null,
+    notes:        t.notes        || '',
+    goalId:       t.goalId       || null,
+    weeklyTaskId: t.weeklyTaskId || null,
   }));
 
   // Habits — v2 returns rich objects

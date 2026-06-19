@@ -20,7 +20,8 @@
       "Bash(rm \"C:/Users/Pc/Desktop/Planner Dashboard/api/index.js\")",
       "Bash(rm \"C:/Users/Pc/Desktop/Planner Dashboard/api/cron.js\")",
       "Bash(rm \"C:/Users/Pc/Desktop/Planner Dashboard/vercel.json\")",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "mcp__df169e92-d735-4879-84be-8ade9be63ed5__notion-fetch"
     ]
   }
 }

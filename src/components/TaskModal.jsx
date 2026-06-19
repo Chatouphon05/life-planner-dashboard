@@ -8,11 +8,14 @@ function stripPriority(p) {
   return PRIORITIES.find(x => p.includes(x)) || '';
 }
 
-export default function TaskModal({ task, onClose, writeback, refetch, defaultDate }) {
+export default function TaskModal({ task, onClose, writeback, refetch, defaultDate, goals, weeklyTasks }) {
   const isEdit = !!task;
-  const [name,     setName]     = useState(task?.task || '');
-  const [priority, setPriority] = useState(stripPriority(task?.priority));
-  const [date,     setDate]     = useState(task?.date || defaultDate);
+  const [name,         setName]         = useState(task?.task || '');
+  const [priority,     setPriority]     = useState(stripPriority(task?.priority));
+  const [date,         setDate]         = useState(task?.date || defaultDate);
+  const [notes,        setNotes]        = useState(task?.notes || '');
+  const [goalId,       setGoalId]       = useState(task?.goalId || '');
+  const [weeklyTaskId, setWeeklyTaskId] = useState(task?.weeklyTaskId || '');
   const [busy,     setBusy]     = useState(false);
   const [err,      setErr]      = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -27,7 +30,12 @@ export default function TaskModal({ task, onClose, writeback, refetch, defaultDa
     if (!name.trim() || busy) return;
     setBusy(true); setErr(null);
     try {
-      const value = { task: name.trim(), priority: priority || null, date };
+      const value = {
+        task: name.trim(), priority: priority || null, date,
+        notes: notes.trim() || null,
+        goalId: goalId || null,
+        weeklyTaskId: weeklyTaskId || null,
+      };
       if (isEdit) await writeback('update-task', task.id, value);
       else        await writeback('create-task', null, value);
       await refetch?.();
@@ -120,6 +128,51 @@ export default function TaskModal({ task, onClose, writeback, refetch, defaultDa
               fontFamily: 'var(--font-mono)', padding: '5px 8px', colorScheme: 'dark',
             }}
           />
+        </div>
+
+        <textarea
+          value={notes}
+          onChange={e => setNotes(e.target.value)}
+          placeholder="Notes…"
+          rows={2}
+          style={{
+            background: 'var(--bg)', border: '0.5px solid var(--hair-strong)', borderRadius: 8,
+            outline: 'none', color: 'var(--text)', fontSize: 14, resize: 'vertical',
+            fontFamily: 'var(--font-body)', padding: '8px 12px', width: '100%',
+          }}
+        />
+
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <label style={{ flex: '1 1 140px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <span className="lp-mono" style={{ fontSize: 10, color: 'var(--faint)', letterSpacing: '0.08em' }}>GOAL</span>
+            <select
+              value={goalId}
+              onChange={e => setGoalId(e.target.value)}
+              style={{
+                background: 'var(--bg)', border: '0.5px solid var(--hair-strong)', borderRadius: 6,
+                outline: 'none', color: 'var(--text)', fontSize: 12,
+                fontFamily: 'var(--font-mono)', padding: '6px 8px', width: '100%',
+              }}
+            >
+              <option value="">— none —</option>
+              {(goals || []).map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+            </select>
+          </label>
+          <label style={{ flex: '1 1 140px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <span className="lp-mono" style={{ fontSize: 10, color: 'var(--faint)', letterSpacing: '0.08em' }}>WEEKLY TASK</span>
+            <select
+              value={weeklyTaskId}
+              onChange={e => setWeeklyTaskId(e.target.value)}
+              style={{
+                background: 'var(--bg)', border: '0.5px solid var(--hair-strong)', borderRadius: 6,
+                outline: 'none', color: 'var(--text)', fontSize: 12,
+                fontFamily: 'var(--font-mono)', padding: '6px 8px', width: '100%',
+              }}
+            >
+              <option value="">— none —</option>
+              {(weeklyTasks || []).map(w => <option key={w.id} value={w.id}>{w.task}</option>)}
+            </select>
+          </label>
         </div>
 
         {err && (

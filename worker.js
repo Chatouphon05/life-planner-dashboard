@@ -187,12 +187,13 @@ async function notionArchive(pageId, token) {
 
 // ── Property parsers ──────────────────────────────────────────────────────────
 
-const getText   = p => p?.rich_text?.map(r => r.plain_text).join("") || p?.title?.map(r => r.plain_text).join("") || "";
-const getSelect = p => p?.select?.name || null;
-const getNum    = p => p?.number ?? null;
-const getBool   = p => p?.checkbox ?? false;
-const getDate   = p => p?.date?.start?.split("T")[0] || null;
-const getId     = page => page.id.replace(/-/g, "");
+const getText     = p => p?.rich_text?.map(r => r.plain_text).join("") || p?.title?.map(r => r.plain_text).join("") || "";
+const getSelect   = p => p?.select?.name || null;
+const getNum      = p => p?.number ?? null;
+const getBool     = p => p?.checkbox ?? false;
+const getDate     = p => p?.date?.start?.split("T")[0] || null;
+const getId       = page => page.id.replace(/-/g, "");
+const getRelation = p => (p?.relation || []).map(r => r.id.replace(/-/g, ""));
 
 function buildDateAxis(today) {
   const axis = [];
@@ -311,10 +312,13 @@ async function getData(token) {
   ]);
 
   const tasks = tasksRes.results.map(p => ({
-    id:       getId(p),
-    task:     getText(p.properties["Task"]),
-    done:     getBool(p.properties["Done"]),
-    priority: getSelect(p.properties["Priority"]),
+    id:           getId(p),
+    task:         getText(p.properties["Task"]),
+    done:         getBool(p.properties["Done"]),
+    priority:     getSelect(p.properties["Priority"]),
+    notes:        getText(p.properties["Notes"]),
+    goalId:       getRelation(p.properties["Goal"])[0]        || null,
+    weeklyTaskId: getRelation(p.properties["Weekly Task"])[0] || null,
   })).filter(t => t.task);
 
   const habits = habitsRes.results.map(p => ({
@@ -482,19 +486,27 @@ async function handlePatch(body, token) {
     case "mood":        await patch({ "Mood":   value ? { select: { name: value } } : { select: null } }); break;
     case "energy":      await patch({ "Energy": value ? { select: { name: value } } : { select: null } }); break;
     case "create-task": {
-      const { task: taskTitle, priority, date } = value;
+      const { task: taskTitle, priority, date, notes, goalId, weeklyTaskId } = value;
       const props = {
         "Task": { title: [{ text: { content: taskTitle } }] },
         "Date": { date: { start: date } },
         "Done": { checkbox: false },
       };
-      if (priority) props["Priority"] = priorityProp(priority);
+      if (priority)     props["Priority"]     = priorityProp(priority);
+      if (notes)        props["Notes"]        = { rich_text: [{ text: { content: notes } }] };
+      if (goalId)       props["Goal"]         = { relation: [{ id: goalId }] };
+      if (weeklyTaskId) props["Weekly Task"]  = { relation: [{ id: weeklyTaskId }] };
       await notionCreate(DB.daily_tasks, props, token);
       break;
     }
     case "update-task": {
-      const { task: taskTitle, priority, date } = value;
-      const props = { "Priority": priorityProp(priority) };
+      const { task: taskTitle, priority, date, notes, goalId, weeklyTaskId } = value;
+      const props = {
+        "Priority":     priorityProp(priority),
+        "Notes":        { rich_text: notes ? [{ text: { content: notes } }] : [] },
+        "Goal":         { relation: goalId       ? [{ id: goalId       }] : [] },
+        "Weekly Task":  { relation: weeklyTaskId ? [{ id: weeklyTaskId }] : [] },
+      };
       if (taskTitle != null) props["Task"] = { title: [{ text: { content: taskTitle } }] };
       if (date != null)      props["Date"] = { date: { start: date } };
       await patch(props);
