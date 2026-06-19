@@ -444,7 +444,7 @@ async function getData(token) {
 
 async function handlePatch(body, token) {
   const { type, pageId, value } = body;
-  if (!pageId) throw new Error("pageId is required");
+  if (!pageId && type !== "create-task") throw new Error("pageId is required");
   const patch = (props) => notionPatch(pageId, props, token);
 
   switch (type) {

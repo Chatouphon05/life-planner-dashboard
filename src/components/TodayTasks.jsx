@@ -11,7 +11,7 @@ function toHeatmap(taskHistory) {
   }));
 }
 
-export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabel, writeback }) {
+export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabel, writeback, refetch }) {
   // Local overrides: { [id]: boolean }. Falls back to task.done when not set.
   const [overrides, setOverrides] = useState({});
   const [failed,    setFailed]    = useState({});
@@ -32,6 +32,7 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
       setPriority('');
       setAdding(false);
       setCreated(true);
+      refetch?.();
       setTimeout(() => setCreated(false), 3000);
     } catch {
       // leave form open so user can retry

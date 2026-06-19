@@ -159,6 +159,7 @@ export default function App() {
                 error={error}
                 dayLabel={liveDate.date.day}
                 writeback={writeback}
+                refetch={refetch}
               />
               <HabitTracker
                 habits={habits}
