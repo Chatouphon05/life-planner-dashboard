@@ -81,7 +81,7 @@ export function MetricRow({ label, value, pct, color, sub }) {
   );
 }
 
-export function TaskRow({ task, done, onToggle, priority, meta, failed }) {
+export function TaskRow({ task, done, onToggle, onEdit, priority, meta, failed }) {
   const bulletKind  = failed ? 'irrelevant' : (done ? 'done' : (priority ? 'priority' : 'task'));
   const bulletColor = failed ? 'var(--faint)'
     : done     ? 'var(--accent2)'
@@ -119,6 +119,24 @@ export function TaskRow({ task, done, onToggle, priority, meta, failed }) {
           </div>
         )}
       </div>
+      {onEdit && !failed && (
+        <button
+          className="lp-tap"
+          onClick={(e) => { e.stopPropagation(); onEdit(); }}
+          aria-label="Edit task"
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            padding: 6, color: 'var(--faint)', alignSelf: 'center', flexShrink: 0,
+            display: 'inline-flex',
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+          </svg>
+        </button>
+      )}
     </div>
   );
 }

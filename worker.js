@@ -159,6 +159,32 @@ async function notionCreate(databaseId, properties, token) {
   }
 }
 
+// Notion has no hard delete via API — archiving removes the page from all queries.
+async function notionArchive(pageId, token) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), NOTION_TIMEOUT_MS);
+
+  try {
+    const res = await fetch(`https://api.notion.com/v1/pages/${pageId}`, {
+      method: "PATCH",
+      headers: {
+        Authorization:    `Bearer ${token}`,
+        "Notion-Version": NOTION_VERSION,
+        "Content-Type":   "application/json",
+      },
+      body: JSON.stringify({ archived: true }),
+      signal: controller.signal,
+    });
+    clearTimeout(timer);
+    if (!res.ok) throw new Error(`Notion archive ${pageId} → ${res.status}: ${await res.text()}`);
+    return res.json();
+  } catch (err) {
+    clearTimeout(timer);
+    if (err.name === 'AbortError') throw new Error(`Notion archive timed out (${pageId})`);
+    throw err;
+  }
+}
+
 // ── Property parsers ──────────────────────────────────────────────────────────
 
 const getText   = p => p?.rich_text?.map(r => r.plain_text).join("") || p?.title?.map(r => r.plain_text).join("") || "";
@@ -446,6 +472,7 @@ async function handlePatch(body, token) {
   const { type, pageId, value } = body;
   if (!pageId && type !== "create-task") throw new Error("pageId is required");
   const patch = (props) => notionPatch(pageId, props, token);
+  const priorityProp = (p) => (p ? { select: { name: p } } : { select: null });
 
   switch (type) {
     case "daily-task-done":
@@ -461,10 +488,21 @@ async function handlePatch(body, token) {
         "Date": { date: { start: date } },
         "Done": { checkbox: false },
       };
-      if (priority) props["Priority"] = { select: { name: priority } };
+      if (priority) props["Priority"] = priorityProp(priority);
       await notionCreate(DB.daily_tasks, props, token);
       break;
     }
+    case "update-task": {
+      const { task: taskTitle, priority, date } = value;
+      const props = { "Priority": priorityProp(priority) };
+      if (taskTitle != null) props["Task"] = { title: [{ text: { content: taskTitle } }] };
+      if (date != null)      props["Date"] = { date: { start: date } };
+      await patch(props);
+      break;
+    }
+    case "delete-task":
+      await notionArchive(pageId, token);
+      break;
     case "set-weekly-priorities":
       await patch({
         "Top 3 Priorities": {
