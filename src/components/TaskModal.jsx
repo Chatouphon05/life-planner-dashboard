@@ -146,18 +146,27 @@ export default function TaskModal({ task, onClose, writeback, refetch, defaultDa
           />
         </div>
 
-        {(dateLoading || (dateTasks && dateTasks.length > 0)) && (
-          <div style={{
-            display: 'flex', flexDirection: 'column', gap: 5,
-            padding: '8px 10px', borderRadius: 8,
-            background: 'var(--bg)', border: '0.5px solid var(--hair)',
-          }}>
-            <span className="lp-mono" style={{ fontSize: 10, color: 'var(--faint)', letterSpacing: '0.08em' }}>
-              {dateLoading ? 'LOADING TASKS ON THIS DATE…' : `TASKS ON THIS DATE (${dateTasks.length})`}
-            </span>
-            {!dateLoading && dateTasks
-              .filter(t => !isEdit || t.id !== task.id)
-              .map(t => (
+        {date && fetchExpand && (() => {
+          const others = (dateTasks || []).filter(t => !isEdit || t.id !== task.id);
+          return (
+            <div style={{
+              display: 'flex', flexDirection: 'column', gap: 5,
+              padding: '8px 10px', borderRadius: 8,
+              background: 'var(--bg)', border: '0.5px solid var(--hair)',
+            }}>
+              <span className="lp-mono" style={{ fontSize: 10, color: 'var(--faint)', letterSpacing: '0.08em' }}>
+                {dateLoading
+                  ? 'LOADING TASKS ON THIS DATE…'
+                  : dateTasks === null
+                    ? 'COULD NOT LOAD TASKS FOR THIS DATE'
+                    : `TASKS ON THIS DATE (${others.length})`}
+              </span>
+              {!dateLoading && others.length === 0 && dateTasks !== null && (
+                <span className="lp-mono" style={{ fontSize: 12, color: 'var(--faint)' }}>
+                  Nothing else scheduled.
+                </span>
+              )}
+              {!dateLoading && others.map(t => (
                 <span key={t.id} className="lp-mono" style={{
                   fontSize: 12,
                   color: t.done ? 'var(--faint)' : 'var(--text)',
@@ -166,8 +175,9 @@ export default function TaskModal({ task, onClose, writeback, refetch, defaultDa
                   {t.task}
                 </span>
               ))}
-          </div>
-        )}
+            </div>
+          );
+        })()}
 
         <textarea
           value={notes}
