@@ -167,7 +167,8 @@ the batch.
 ## 7. Dashboard Layout (3 tabs)
 
 **Today** — MoodPicker (+ 14-day mood/energy strip) · TodayTasks (14-day amber
-heatmap + tasks + quick-add) · HabitTracker (14-day dot grid)
+heatmap + tasks + quick-add) · HabitTracker (14-day dot grid) · Books
+(now-reading card + on-deck queue, local-only — see §9)
 **Plan** — WeekStatsRow (stats summary) · SundayReview (Sundays only, writes Top
 3 Priorities back) · WeekPriorities · WeeklyTasks (12-week heatmap + expandable)
 · MonthlyFocus · MonthlyTasks (6-month heatmap + expandable)
@@ -222,8 +223,19 @@ A light "parchment" theme exists via `html[data-theme="light"]`.
 - **Migration** — Vercel → Cloudflare Workers + Pages on `lunkystch.com`
 - **Timezone** — flipped to UTC+10 Brisbane (June 2026)
 
+### ✅ Done (cont'd)
+- **Books / reading tracker** — now-reading card (title, author, progress,
+  last-opened) + on-deck queue + yearly finished/goal counter. Matches the
+  Claude Design mockup's visual treatment exactly (spine card, amber accent
+  bar, numbered queue). **Local-only** — persisted to `localStorage`
+  (`lp-books-v1`), no Notion database backs it yet, so it doesn't sync across
+  devices. Edited inline via the ✎ pencil in the section header.
+
 ### 🔲 Phase D — remaining
 - Study session tracker (MDS-specific, for July 2026 start)
+- Optional: back Books with a real Notion database + Worker write-back so it
+  syncs across devices like everything else (would need a new DB + `worker.js`
+  endpoint + manual `wrangler deploy`)
 
 ### 🔲 Backlog / ideas
 - **Auth:** Cloudflare Access (Zero Trust) in front of `lunkystch.com` —
@@ -279,6 +291,7 @@ life-planner-dashboard/
 │       ├── WeekPriorities.jsx  WeeklyTasks.jsx
 │       ├── MonthlyFocus.jsx    MonthlyTasks.jsx
 │       ├── Milestones.jsx  Goals.jsx  TimeRemaining.jsx  SundayReview.jsx
+│       ├── Books.jsx           # now-reading + queue, local-only (localStorage)
 │
 └── worker-v2.js                # OLD Cloudflare Worker — gitignored, inactive
 ```

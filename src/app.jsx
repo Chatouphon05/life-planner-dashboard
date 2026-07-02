@@ -9,6 +9,7 @@ import TimeRemaining  from './components/TimeRemaining.jsx';
 import MonthlyFocus   from './components/MonthlyFocus.jsx';
 import Goals          from './components/Goals.jsx';
 import HabitTracker   from './components/HabitTracker.jsx';
+import Books          from './components/Books.jsx';
 import MoodPicker     from './components/MoodPicker.jsx';
 import WeeklyTasks    from './components/WeeklyTasks.jsx';
 import MonthlyTasks   from './components/MonthlyTasks.jsx';
@@ -173,6 +174,7 @@ export default function App() {
                 loading={loading}
                 writeback={writeback}
               />
+              <Books />
             </ErrorBoundary>
           )}
 
