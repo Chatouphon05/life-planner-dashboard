@@ -1,8 +1,6 @@
 // Shown only on Sundays — a lightweight nudge to reflect before planning next week
 import { useState } from 'react';
 
-const SAGE = '#4aab82';
-
 export default function SundayReview({ todayDate = null, weekId = null, writeback }) {
   // Use Worker date (UTC+7/UTC+10) so Sunday check matches the API's "today"
   const dayOfWeek = todayDate
@@ -38,13 +36,13 @@ export default function SundayReview({ todayDate = null, weekId = null, writebac
       borderTop:    '0.5px solid var(--hair-strong)',
       borderRight:  '0.5px solid var(--hair-strong)',
       borderBottom: '0.5px solid var(--hair-strong)',
-      borderLeft:   `3px solid ${SAGE}`,
+      borderLeft:   '3px solid var(--accent2)',
     }}>
 
       {/* eyebrow */}
       <div className="lp-mono" style={{
         fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase',
-        color: SAGE, marginBottom: 8,
+        color: 'var(--accent2)', marginBottom: 8,
         display: 'flex', alignItems: 'center', gap: 6,
       }}>
         <span style={{ fontSize: 12, lineHeight: 1 }}>◎</span>
@@ -70,12 +68,12 @@ export default function SundayReview({ todayDate = null, weekId = null, writebac
           display: 'inline-flex', alignItems: 'center', gap: 6,
           marginTop: 12, padding: '7px 14px', borderRadius: 8,
           textDecoration: 'none',
-          background: `rgba(74,171,130,0.10)`,
-          border: `0.5px solid rgba(74,171,130,0.30)`,
+          background: 'color-mix(in oklch, var(--accent2) 10%, transparent)',
+          border: '0.5px solid color-mix(in oklch, var(--accent2) 30%, transparent)',
         }}
       >
         <span className="lp-mono" style={{
-          fontSize: 11, color: SAGE, letterSpacing: '0.08em',
+          fontSize: 11, color: 'var(--accent2)', letterSpacing: '0.08em',
         }}>
           Open Weekly Tasks ↗
         </span>
@@ -84,7 +82,7 @@ export default function SundayReview({ todayDate = null, weekId = null, writebac
       {weekId && (
         <div style={{ marginTop: 10 }}>
           {saved && (
-            <p className="lp-mono" style={{ fontSize: 11, color: SAGE, marginBottom: 6 }}>✓ Saved</p>
+            <p className="lp-mono" style={{ fontSize: 11, color: 'var(--accent2)', marginBottom: 6 }}>✓ Saved</p>
           )}
           {!editing ? (
             <button className="lp-tap" onClick={() => setEditing(true)}
@@ -92,7 +90,7 @@ export default function SundayReview({ todayDate = null, weekId = null, writebac
                 background: 'none', border: 'none', padding: 0, cursor: 'pointer',
                 display: 'inline-flex', alignItems: 'center', gap: 5,
               }}>
-              <span className="lp-mono" style={{ fontSize: 11, color: SAGE, letterSpacing: '0.08em' }}>
+              <span className="lp-mono" style={{ fontSize: 11, color: 'var(--accent2)', letterSpacing: '0.08em' }}>
                 ✎ Set priorities
               </span>
             </button>
@@ -105,8 +103,10 @@ export default function SundayReview({ todayDate = null, weekId = null, writebac
                 placeholder={'1. First priority\n2. Second priority\n3. Third priority'}
                 rows={3}
                 style={{
-                  width: '100%', background: 'rgba(74,171,130,0.06)',
-                  border: `0.5px solid rgba(74,171,130,0.25)`, borderRadius: 8,
+                  width: '100%',
+                  background: 'color-mix(in oklch, var(--accent2) 6%, transparent)',
+                  border: '0.5px solid color-mix(in oklch, var(--accent2) 25%, transparent)',
+                  borderRadius: 8,
                   padding: '8px 10px', color: 'var(--text)', fontSize: 13,
                   fontFamily: 'var(--font-body)', lineHeight: 1.5, resize: 'none', outline: 'none',
                 }}
@@ -118,9 +118,10 @@ export default function SundayReview({ todayDate = null, weekId = null, writebac
                 </button>
                 <button className="lp-tap" onClick={handleSave} disabled={!text.trim() || saving}
                   style={{
-                    padding: '5px 12px', borderRadius: 7, border: 'none', cursor: 'pointer',
-                    background: `rgba(74,171,130,0.18)`, border: `0.5px solid rgba(74,171,130,0.35)`,
-                    color: SAGE, fontSize: 11, fontFamily: 'var(--font-mono)', letterSpacing: '0.08em',
+                    padding: '5px 12px', borderRadius: 7, cursor: 'pointer',
+                    background: 'color-mix(in oklch, var(--accent2) 18%, transparent)',
+                    border: '0.5px solid color-mix(in oklch, var(--accent2) 35%, transparent)',
+                    color: 'var(--accent2)', fontSize: 11, fontFamily: 'var(--font-mono)', letterSpacing: '0.08em',
                   }}>
                   {saving ? '…' : 'SAVE'}
                 </button>

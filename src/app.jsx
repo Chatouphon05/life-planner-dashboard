@@ -60,8 +60,11 @@ export default function App() {
   const pullRef   = useRef(0);
 
   // Sync theme to <html data-theme="..."> before first paint to avoid flash
+  // Also update theme-color meta so the browser chrome matches the app bg
   useLayoutEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.content = theme === 'dark' ? '#080e1c' : '#f5f0e8';
   }, [theme]);
 
   const toggleTheme = () => {

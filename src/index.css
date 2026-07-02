@@ -8,10 +8,25 @@
   --text:        rgba(228,236,255,0.93);
   --muted:       rgba(130,155,215,0.65);
   --faint:       rgba(85,110,180,0.48);
-  --accent:      #d4a84b;
+  --accent:      #e0a94f;
+  --accent-hover:#edb968;
   --accent2:     #6bbf9a;
   --gradient:    radial-gradient(120% 80% at 10% 0%, #162050 0%, #080e1c 65%);
-  --font-display: "Newsreader", "Cormorant Garamond", Georgia, serif;
+
+  /* Semantic priority / status tokens */
+  --priority-high:       #f0616d;
+  --priority-high-fill:  rgba(240,97,109,0.12);
+  --priority-low:        #5ac8a8;
+  --priority-low-fill:   rgba(90,200,168,0.12);
+  --status-active:       #5b9bf0;
+  --status-active-fill:  rgba(91,155,240,0.12);
+  --status-done:         #6b7794;
+
+  /* Overlay / shadow tokens for modals */
+  --overlay:     rgba(0,0,0,0.55);
+  --shadow-deep: rgba(0,0,0,0.40);
+
+  --font-display: "Fraunces", "Cormorant Garamond", Georgia, serif;
   --font-body:    "Geist", "Public Sans", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --font-mono:    "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
 }
@@ -25,7 +40,8 @@
     --text:        oklch(0.94 0.014 225);
     --muted:       oklch(0.63 0.040 228);
     --faint:       oklch(0.44 0.032 233);
-    --accent:      oklch(0.80 0.11  70);
+    --accent:      oklch(0.81 0.115 70);
+    --accent-hover:oklch(0.87 0.10  72);
     --accent2:     oklch(0.72 0.07  150);
     --gradient:    radial-gradient(120% 80% at 10% 0%, oklch(0.26 0.10 252) 0%, oklch(0.14 0.04 240) 65%);
   }
@@ -42,8 +58,21 @@ html[data-theme="light"] {
   --muted:       #6b5c44;
   --faint:       #8a7a62;
   --accent:      #a06030;
+  --accent-hover:#b87038;
   --accent2:     #3a8060;
   --gradient:    radial-gradient(120% 80% at 10% 0%, #e8dcc8 0%, #f5f0e8 65%);
+
+  /* Semantic priority / status tokens — dark-adjusted for parchment */
+  --priority-high:       #c0303d;
+  --priority-high-fill:  rgba(192,48,61,0.10);
+  --priority-low:        #2a8060;
+  --priority-low-fill:   rgba(42,128,96,0.10);
+  --status-active:       #2c6abf;
+  --status-active-fill:  rgba(44,106,191,0.10);
+  --status-done:         #8a9ab0;
+
+  --overlay:     rgba(0,0,0,0.35);
+  --shadow-deep: rgba(0,0,0,0.15);
 }
 
 @supports (color: oklch(0 0 0)) {
@@ -55,6 +84,7 @@ html[data-theme="light"] {
     --muted:       oklch(0.45 0.015 80);
     --faint:       oklch(0.60 0.015 80);
     --accent:      oklch(0.55 0.13 50);
+    --accent-hover:oklch(0.62 0.12 52);
     --accent2:     oklch(0.50 0.09 160);
     --gradient:    radial-gradient(120% 80% at 10% 0%, oklch(0.92 0.020 80) 0%, oklch(0.96 0.012 80) 65%);
   }
@@ -168,5 +198,14 @@ body {
     gap: 28px 48px;
     align-items: start;
     padding: 24px 40px !important;
+  }
+}
+
+/* ── Accessibility: respect reduced-motion preference ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration:        0.01ms !important;
+    animation-iteration-count: 1      !important;
+    transition-duration:       0.01ms !important;
   }
 }

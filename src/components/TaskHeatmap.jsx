@@ -19,14 +19,14 @@ function getLevel(done, total) {
   return 5;                 // 100% complete
 }
 
-// Amber / gold scale that pops against dark navy
+// Amber / gold scale derived from --accent token so light/dark themes adapt
 const TILE_BG = [
-  'var(--bg-3)',             // 0 — no tasks this period
-  'rgba(180,140,30,0.13)',   // 1 — tasks exist, 0% done
-  'rgba(180,140,30,0.32)',   // 2 — <35% done
-  'rgba(180,140,30,0.56)',   // 3 — <70% done
-  'rgba(180,140,30,0.80)',   // 4 — <100% done
-  'rgba(190,152,36,1.00)',   // 5 — fully done
+  'var(--bg-3)',                                            // 0 — no tasks this period
+  'color-mix(in oklch, var(--accent) 13%, transparent)',    // 1 — tasks exist, 0% done
+  'color-mix(in oklch, var(--accent) 32%, transparent)',    // 2 — <35% done
+  'color-mix(in oklch, var(--accent) 56%, transparent)',    // 3 — <70% done
+  'color-mix(in oklch, var(--accent) 80%, transparent)',    // 4 — <100% done
+  'var(--accent)',                                          // 5 — fully done
 ];
 
 // ── Component ─────────────────────────────────────────────────────────────────
