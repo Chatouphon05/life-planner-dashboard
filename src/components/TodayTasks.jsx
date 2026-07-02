@@ -1,10 +1,9 @@
 import { useState, useCallback } from 'react';
-import { SectionHeader, TaskRow, Skeleton } from './Primitives.jsx';
+import { SectionHeader, TaskRow, Skeleton, Eyebrow } from './Primitives.jsx';
 import TaskHeatmap from './TaskHeatmap.jsx';
 import TaskModal from './TaskModal.jsx';
+import { groupByArea, getMvdTasks } from '../utils/groupTasks.js';
 
-// taskHistory is [{date, done, total}], oldest → newest, ending today.
-// Adapt to the shared heatmap shape (last entry is the current day).
 function toHeatmap(taskHistory) {
   return (taskHistory || []).map((d, i, arr) => ({
     ...d,
@@ -18,16 +17,32 @@ function fmtDayLabel(dateStr) {
   return d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', timeZone: 'UTC' });
 }
 
+function MvdToggle({ active, onToggle }) {
+  return (
+    <button
+      className="lp-tap"
+      onClick={onToggle}
+      style={{
+        background: 'none', border: 'none', cursor: 'pointer',
+        padding: '2px 6px', borderRadius: 4,
+        color: active ? 'var(--accent)' : 'var(--faint)',
+        fontSize: 10, fontFamily: 'var(--font-mono)', letterSpacing: '0.08em',
+        transition: 'color 0.15s',
+      }}
+    >
+      {active ? 'ALL TASKS' : 'FOCUS'}
+    </button>
+  );
+}
+
 export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabel, writeback, refetch, goals, weeklyTasks, fetchExpand }) {
-  // Local overrides: { [id]: boolean }. Falls back to task.done when not set.
   const [overrides, setOverrides] = useState({});
   const [failed,    setFailed]    = useState({});
+  const [mvdMode,   setMvdMode]   = useState(false);
 
-  // Modal: false = closed; null = create mode; task object = edit mode.
   const [modalOpen, setModalOpen] = useState(false);
   const [editTask,  setEditTask]  = useState(null);
 
-  // When a non-today tile in the heatmap is tapped, fetch and show that date's tasks instead.
   const [selectedDate, setSelectedDate] = useState(null);
   const [dateTasks,    setDateTasks]    = useState(null);
   const [dateLoading,  setDateLoading]  = useState(false);
@@ -78,8 +93,9 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
     }
   }, [overrides, failed, writeback]);
 
-  const effectiveDone = (t) =>
-    overrides.hasOwnProperty(t.id) ? overrides[t.id] : t.done;
+  const effectiveDone = useCallback((t) =>
+    overrides.hasOwnProperty(t.id) ? overrides[t.id] : t.done,
+  [overrides]);
 
   const completed = displayTasks.filter(t => effectiveDone(t)).length;
 
@@ -90,7 +106,7 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
         {Array(14).fill(0).map((_, i) => <Skeleton key={i} height={18} style={{ flex: 1 }} />)}
       </div>
       {[120, 80, 100].map((w, i) => (
-        <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'flex-start', padding: '10px 0', borderBottom: '0.5px dashed var(--hair)' }}>
+        <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'flex-start', padding: '10px 0', borderBottom: '0.5px solid var(--hair)' }}>
           <Skeleton width={22} height={22} radius={99} />
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6, paddingTop: 2 }}>
             <Skeleton width={`${w}%`} height={13} />
@@ -111,10 +127,43 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
     </div>
   );
 
+  const mvdTasks   = getMvdTasks(tasks, effectiveDone);
+  const mvdAllDone = mvdMode && mvdTasks.length > 0 && mvdTasks.every(t => effectiveDone(t));
+  const hiddenCount = tasks.length - mvdTasks.length;
+
+  const renderTask = (t) => {
+    const done = effectiveDone(t);
+    return (
+      <TaskRow
+        key={t.id}
+        task={t.task}
+        area={t.area || undefined}
+        priority={t.priority || undefined}
+        date={t.date || undefined}
+        done={done}
+        failed={!!failed[t.id]}
+        onToggle={() => toggle(t)}
+        onEdit={() => openEdit(t)}
+      />
+    );
+  };
+
+  const sectionLabel = viewingOtherDate
+    ? `Tasks · ${headerLabel}`
+    : mvdMode ? 'Just these today' : `Tasks · ${dayLabel}`;
+  const sectionStat = (mvdMode && !viewingOtherDate)
+    ? undefined
+    : `${completed}/${displayTasks.length}`;
+
   return (
     <div>
-      <SectionHeader label={`Tasks · ${headerLabel}`} stat={`${completed}/${displayTasks.length}`} />
+      <SectionHeader
+        label={sectionLabel}
+        stat={sectionStat}
+        right={!viewingOtherDate && tasks.length > 0 && <MvdToggle active={mvdMode} onToggle={() => setMvdMode(m => !m)} />}
+      />
       <TaskHeatmap data={toHeatmap(taskHistory)} type="daily" onSelect={onSelectDate} />
+
       {dateLoading ? (
         <p className="lp-mono" style={{ fontSize: 13, color: 'var(--faint)', marginTop: 12 }}>
           Loading tasks…
@@ -123,30 +172,64 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
         <p className="lp-mono" style={{ fontSize: 13, color: 'var(--faint)', marginTop: 12 }}>
           {dateError}
         </p>
-      ) : displayTasks.length === 0 ? (
+      ) : viewingOtherDate ? (
+        // ── Selected-date view (flat, no MVD) ────────────────────────────
+        displayTasks.length === 0 ? (
+          <p className="lp-mono" style={{ fontSize: 13, color: 'var(--faint)', marginTop: 12 }}>
+            No tasks on this date.
+          </p>
+        ) : (
+          <div>{displayTasks.map(renderTask)}</div>
+        )
+      ) : tasks.length === 0 ? (
         <p className="lp-mono" style={{ fontSize: 13, color: 'var(--faint)', marginTop: 12 }}>
-          {viewingOtherDate ? 'No tasks on this date.' : 'No tasks today — add one below.'}
+          No tasks today — add one below.
         </p>
-      ) : (
+      ) : mvdMode ? (
+        // ── Minimum Viable Day view ───────────────────────────────────────
         <div>
-          {displayTasks.map(t => {
-              const done = effectiveDone(t);
-              return (
-                <TaskRow
-                  key={t.id}
-                  task={t.task}
-                  area={t.area || undefined}
-                  priority={t.priority || undefined}
-                  date={t.date || undefined}
-                  done={done}
-                  failed={!!failed[t.id]}
-                  onToggle={() => toggle(t)}
-                  onEdit={() => openEdit(t)}
-                />
-              );
-            })}
+          {mvdTasks.length === 0 ? (
+            <p className="lp-display-i" style={{ color: 'var(--muted)', fontSize: 15, marginTop: 8, lineHeight: 1.65 }}>
+              No high or medium priority tasks — you're clear to choose freely today.
+            </p>
+          ) : mvdAllDone ? (
+            <p className="lp-display-i lp-fade" style={{ color: 'var(--muted)', fontSize: 15, marginTop: 8, lineHeight: 1.65 }}>
+              That counts. Everything else is still here when you want it.
+            </p>
+          ) : (
+            mvdTasks.map(renderTask)
+          )}
+
+          {hiddenCount > 0 && (
+            <button
+              className="lp-tap lp-mono"
+              onClick={() => setMvdMode(false)}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                marginTop: 12, padding: 0,
+                fontSize: 11, color: 'var(--faint)', letterSpacing: '0.06em',
+              }}
+            >
+              Show all ({hiddenCount} more)
+            </button>
+          )}
+        </div>
+      ) : (
+        // ── Normal view with section grouping ────────────────────────────
+        <div>
+          {groupByArea(tasks).map(({ area, tasks: group }) => (
+            <div key={area ?? '__none__'} style={{ marginBottom: 8 }}>
+              {area && (
+                <div style={{ marginBottom: 4 }}>
+                  <Eyebrow count={group.length}>{area}</Eyebrow>
+                </div>
+              )}
+              {group.map(renderTask)}
+            </div>
+          ))}
         </div>
       )}
+
       <div style={{ marginTop: 16 }}>
         <button
           className="lp-tap"
