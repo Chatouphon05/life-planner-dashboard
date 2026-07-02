@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import { SectionHeader, Skeleton } from './Primitives.jsx';
+import { HierarchyHeader, Skeleton } from './Primitives.jsx';
 import TaskHeatmap from './TaskHeatmap.jsx';
 import PlanTaskModal from './PlanTaskModal.jsx';
 
@@ -204,7 +204,7 @@ export default function WeeklyTasks({ weeklyTasks, currentWeek, loading, fetchEx
 
   if (loading) return (
     <div>
-      <SectionHeader label="Weekly Tasks" />
+      <HierarchyHeader eyebrow="This week" title="Weekly tasks" />
       {[100, 75, 90, 60].map((w, i) => (
         <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '9px 0', borderBottom: '0.5px dashed var(--hair)' }}>
           <Skeleton width={14} height={14} radius={99} />
@@ -222,7 +222,11 @@ export default function WeeklyTasks({ weeklyTasks, currentWeek, loading, fetchEx
 
   return (
     <div>
-      <SectionHeader label={label} stat={total > 0 ? `${doneCount}/${total}` : undefined} />
+      <HierarchyHeader
+        eyebrow={currentWeek || 'Current week'}
+        title="Weekly tasks"
+        stat={total > 0 ? `${doneCount}/${total}` : undefined}
+      />
 
       {weeklyHeatmap.length > 0 && (
         <TaskHeatmap data={weeklyHeatmap} type="weekly" onSelect={onSelectWeek} />

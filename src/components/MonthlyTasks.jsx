@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import { SectionHeader, Skeleton } from './Primitives.jsx';
+import { HierarchyHeader, Skeleton } from './Primitives.jsx';
 import TaskHeatmap from './TaskHeatmap.jsx';
 import PlanTaskModal from './PlanTaskModal.jsx';
 
@@ -252,7 +252,7 @@ export default function MonthlyTasks({ monthlyTasks, currentMonth, loading, fetc
 
   if (loading) return (
     <div>
-      <SectionHeader label="Monthly Tasks" />
+      <HierarchyHeader eyebrow="This month" title="Monthly tasks" />
       {[100, 80, 65, 90].map((w, i) => (
         <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '9px 0', borderBottom: '0.5px dashed var(--hair)' }}>
           <Skeleton width={14} height={14} radius={99} />
@@ -270,7 +270,11 @@ export default function MonthlyTasks({ monthlyTasks, currentMonth, loading, fetc
 
   return (
     <div>
-      <SectionHeader label={label} stat={total > 0 ? `${doneCount}/${total}` : undefined} />
+      <HierarchyHeader
+        eyebrow={currentMonth || 'Current month'}
+        title="Monthly tasks"
+        stat={total > 0 ? `${doneCount}/${total}` : undefined}
+      />
 
       {monthlyHeatmap.length > 0 && (
         <TaskHeatmap data={monthlyHeatmap} type="monthly" onSelect={onSelectMonth} />

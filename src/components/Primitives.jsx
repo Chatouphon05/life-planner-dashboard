@@ -86,6 +86,33 @@ export function MetricRow({ label, value, pct, color, sub }) {
   );
 }
 
+// Fraunces display header for week/month/year hierarchy levels (Plan tab).
+// NOT used on the Today tab (keeps mono SectionHeader there).
+export function HierarchyHeader({ eyebrow, title, stat }) {
+  return (
+    <div style={{ marginBottom: 14 }}>
+      {eyebrow && (
+        <div className="lp-eyebrow" style={{ color: 'var(--faint)', marginBottom: 6 }}>
+          {eyebrow}
+        </div>
+      )}
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'baseline',
+        paddingBottom: 9, borderBottom: '1.5px solid var(--text)',
+      }}>
+        <span className="lp-display-i" style={{ fontSize: 22, color: 'var(--text)' }}>
+          {title}
+        </span>
+        {stat !== undefined && (
+          <span className="lp-mono lp-num" style={{ fontSize: 13, color: 'var(--muted)' }}>
+            {stat}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── TaskRow sub-components ────────────────────────────────────────────────────
 
 function CheckboxIcon({ done, failed, priority }) {

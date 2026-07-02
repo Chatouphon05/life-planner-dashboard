@@ -1,9 +1,9 @@
-import { SectionHeader, Skeleton } from './Primitives.jsx';
+import { HierarchyHeader, Skeleton } from './Primitives.jsx';
 
 export default function WeekPriorities({ priorities, loading }) {
   if (loading) return (
     <div>
-      <SectionHeader label="This Week" />
+      <HierarchyHeader eyebrow="This week" title="Priorities" />
       <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 14 }}>
         {[85, 65, 75].map((w, i) => (
           <div key={i} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', paddingBottom: 14, borderBottom: '0.5px solid var(--hair)' }}>
@@ -20,7 +20,7 @@ export default function WeekPriorities({ priorities, loading }) {
 
   if (!priorities.length) return (
     <div>
-      <SectionHeader label="This Week" />
+      <HierarchyHeader eyebrow="This week" title="Priorities" />
       <p className="lp-mono" style={{ fontSize: 13, color: 'var(--faint)', marginTop: 16 }}>
         No priorities set — update your Weekly Plan in Notion.
       </p>
@@ -29,7 +29,7 @@ export default function WeekPriorities({ priorities, loading }) {
 
   return (
     <div>
-      <SectionHeader label="This Week" />
+      <HierarchyHeader eyebrow="This week" title="Priorities" />
       <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 12 }}>
         {priorities.map(p => (
           <div key={p.n} style={{
@@ -37,7 +37,7 @@ export default function WeekPriorities({ priorities, loading }) {
             borderBottom: p.n < priorities.length ? '0.5px solid var(--hair)' : 'none',
           }}>
             <span className="lp-display-i lp-num" style={{
-              fontSize: 28, color: 'var(--accent)', lineHeight: 1, width: 24, flexShrink: 0,
+              fontSize: 20, color: 'var(--accent)', lineHeight: 1.2, width: 20, flexShrink: 0,
             }}>{p.n}</span>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 16, color: 'var(--text)', lineHeight: 1.35, fontWeight: 500 }}>
