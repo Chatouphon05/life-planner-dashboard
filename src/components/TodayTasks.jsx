@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { SectionHeader, TaskRow, Skeleton, Eyebrow } from './Primitives.jsx';
 import TaskHeatmap from './TaskHeatmap.jsx';
 import TaskModal from './TaskModal.jsx';
@@ -127,12 +127,28 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
     </div>
   );
 
+  const weeklyById = useMemo(
+    () => new Map((weeklyTasks || []).map(w => [w.id, w])),
+    [weeklyTasks]
+  );
+  const goalById = useMemo(
+    () => new Map((goals || []).map(g => [g.id, g])),
+    [goals]
+  );
+
   const mvdTasks   = getMvdTasks(tasks, effectiveDone);
   const mvdAllDone = mvdMode && mvdTasks.length > 0 && mvdTasks.every(t => effectiveDone(t));
   const hiddenCount = tasks.length - mvdTasks.length;
 
   const renderTask = (t) => {
     const done = effectiveDone(t);
+
+    const weeklyParent = t.weeklyTaskId ? weeklyById.get(t.weeklyTaskId) : null;
+    const goal         = t.goalId       ? goalById.get(t.goalId)         : null;
+    const lineage = (weeklyParent || goal)
+      ? { weekly: weeklyParent?.task || null, goal: goal?.name || null }
+      : null;
+
     return (
       <TaskRow
         key={t.id}
@@ -142,6 +158,7 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
         date={t.date || undefined}
         done={done}
         failed={!!failed[t.id]}
+        lineage={lineage}
         onToggle={() => toggle(t)}
         onEdit={() => openEdit(t)}
       />

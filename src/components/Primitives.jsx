@@ -169,10 +169,39 @@ function DueChip() {
   );
 }
 
+function LineageTag({ weekly, goal }) {
+  return (
+    <span className="lp-mono" style={{
+      display: 'inline-flex', alignItems: 'center', gap: 5,
+      fontSize: 10, color: 'var(--muted)', letterSpacing: '0.03em',
+      maxWidth: '100%', minWidth: 0,
+    }}>
+      <span style={{ color: 'var(--faint)', flexShrink: 0 }}>↳</span>
+      {weekly && (
+        <span style={{
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        }}>{weekly}</span>
+      )}
+      {goal && (
+        <>
+          <span style={{
+            width: 5, height: 5, borderRadius: 1, background: 'var(--accent)',
+            display: 'inline-block', flexShrink: 0,
+          }} />
+          <span style={{
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            color: 'var(--faint)',
+          }}>{goal}</span>
+        </>
+      )}
+    </span>
+  );
+}
+
 // ── TaskRow ───────────────────────────────────────────────────────────────────
 // Props: task, done, onToggle, onEdit, priority (string|null), area (string|null),
-//        date (YYYY-MM-DD|null), failed (bool)
-export function TaskRow({ task, done, onToggle, onEdit, priority, area, date, failed }) {
+//        date (YYYY-MM-DD|null), failed (bool), lineage ({weekly, goal}|null)
+export function TaskRow({ task, done, onToggle, onEdit, priority, area, date, failed, lineage }) {
   const [expanded, setExpanded] = useState(false);
   const [swipeX,   setSwipeX]   = useState(0);
   const [swiping,  setSwiping]  = useState(false);
@@ -291,6 +320,12 @@ export function TaskRow({ task, done, onToggle, onEdit, priority, area, date, fa
             <div style={{ display: 'flex', gap: 4, marginTop: 4, flexWrap: 'wrap' }}>
               {area && <AreaTag area={area} />}
               {isOverdue && <DueChip />}
+            </div>
+          )}
+
+          {!failed && lineage && (lineage.weekly || lineage.goal) && (
+            <div style={{ display: 'flex', marginTop: 4, minWidth: 0 }}>
+              <LineageTag weekly={lineage.weekly} goal={lineage.goal} />
             </div>
           )}
 
