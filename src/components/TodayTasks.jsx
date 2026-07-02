@@ -99,6 +99,15 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
 
   const completed = displayTasks.filter(t => effectiveDone(t)).length;
 
+  const weeklyById = useMemo(
+    () => new Map((weeklyTasks || []).map(w => [w.id, w])),
+    [weeklyTasks]
+  );
+  const goalById = useMemo(
+    () => new Map((goals || []).map(g => [g.id, g])),
+    [goals]
+  );
+
   if (loading) return (
     <div>
       <SectionHeader label="Tasks" />
@@ -125,15 +134,6 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
         Could not reach Notion — pull down to retry.
       </p>
     </div>
-  );
-
-  const weeklyById = useMemo(
-    () => new Map((weeklyTasks || []).map(w => [w.id, w])),
-    [weeklyTasks]
-  );
-  const goalById = useMemo(
-    () => new Map((goals || []).map(g => [g.id, g])),
-    [goals]
   );
 
   const mvdTasks   = getMvdTasks(tasks, effectiveDone);
