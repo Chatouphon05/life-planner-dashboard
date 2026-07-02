@@ -61,6 +61,7 @@ function adaptWorkerData(raw) {
     done:         t.done         ?? false,
     area:         t.area         || null,
     priority:     t.priority     || null,
+    date:         t.date         || null,
     notes:        t.notes        || '',
     goalId:       t.goalId       || null,
     weeklyTaskId: t.weeklyTaskId || null,

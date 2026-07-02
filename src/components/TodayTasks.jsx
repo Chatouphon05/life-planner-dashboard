@@ -135,8 +135,9 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
                 <TaskRow
                   key={t.id}
                   task={t.task}
-                  meta={[t.area, t.priority].filter(Boolean).join(' · ') || undefined}
-                  priority={t.priority?.includes('High')}
+                  area={t.area || undefined}
+                  priority={t.priority || undefined}
+                  date={t.date || undefined}
                   done={done}
                   failed={!!failed[t.id]}
                   onToggle={() => toggle(t)}

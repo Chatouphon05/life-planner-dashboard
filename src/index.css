@@ -148,6 +148,13 @@ body {
   0%   { background-position: -200% 0; }
   100% { background-position:  200% 0; }
 }
+/* Check mark draw-in for TaskRow done state */
+@keyframes lp-check-in {
+  from { stroke-dashoffset: 24; }
+  to   { stroke-dashoffset: 0;  }
+}
+/* Task row hover lift (desktop) */
+.task-row:hover { background: var(--bg-3); }
 
 .lp-fade     { animation: lp-fade-in .42s cubic-bezier(.2,.7,.3,1) both; }
 .lp-bar-anim > div { transform-origin: left; animation: lp-bar-fill .9s cubic-bezier(.2,.7,.3,1) both; }
