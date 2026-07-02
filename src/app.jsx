@@ -53,7 +53,7 @@ function PullIndicator({ pull, refreshing }) {
 }
 
 export default function App() {
-  const [tab, setTab]               = useState('Today');
+  const [tab, setTab]               = useState('Daily');
   const [pull, setPull]             = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [theme, setTheme]           = useState(() => localStorage.getItem('lp-theme') || 'dark');
@@ -139,8 +139,8 @@ export default function App() {
     <div className="lp-root">
       <PullIndicator pull={pull} refreshing={refreshing} />
 
-      <Hero liveDate={liveDateFinal} theme={theme} onToggleTheme={toggleTheme} syncing={stale} milestones={milestones} loading={loading} />
-      <TabBar tab={tab} onChange={setTab} badges={{ Today: tasks.filter(t => !t.done).length }} />
+      <Hero liveDate={liveDateFinal} theme={theme} onToggleTheme={toggleTheme} syncing={stale} milestones={milestones} loading={loading} tab={tab} />
+      <TabBar tab={tab} onChange={setTab} badges={{ Daily: tasks.filter(t => !t.done).length }} />
 
       <div
         ref={scrollRef}
@@ -153,8 +153,8 @@ export default function App() {
       >
         <div className="lp-content" style={{ padding: '20px 22px' }}>
 
-          {tab === 'Today' && (
-            <ErrorBoundary key="Today">
+          {tab === 'Daily' && (
+            <ErrorBoundary key="Daily">
               <MoodPicker today={today} writeback={writeback} loading={loading} moodHistory={moodHistory} />
               <TodayTasks
                 tasks={tasks}
@@ -167,6 +167,7 @@ export default function App() {
                 goals={goals}
                 weeklyTasks={weeklyTasks}
                 fetchExpand={fetchExpand}
+                onNavigate={setTab}
               />
               <HabitTracker
                 habits={habits}
@@ -178,22 +179,22 @@ export default function App() {
             </ErrorBoundary>
           )}
 
-          {tab === 'Plan' && (
-            <ErrorBoundary key="Plan">
+          {tab === 'Weekly' && (
+            <ErrorBoundary key="Weekly">
               <WeekStatsRow habits={habits} weeklyHeatmap={weeklyHeatmap} loading={loading} />
               <SundayReview todayDate={today.date} weekId={weekId} writeback={writeback} />
               <WeekPriorities priorities={priorities} loading={loading} />
               <WeeklyTasks weeklyTasks={weeklyTasks} currentWeek={currentWeek} loading={loading} fetchExpand={fetchExpand} writeback={writeback} refetch={refetch} goals={goals} monthlyTasks={monthlyTasks} weeklyHeatmap={weeklyHeatmap} />
-              <MonthlyFocus monthly={monthly} loading={loading} monthName={liveDate.date.m} />
-              <MonthlyTasks monthlyTasks={monthlyTasks} currentMonth={currentMonth} loading={loading} fetchExpand={fetchExpand} writeback={writeback} refetch={refetch} goals={goals} monthlyHeatmap={monthlyHeatmap} />
+              <TimeRemaining time={liveDate.time} />
             </ErrorBoundary>
           )}
 
-          {tab === 'Life' && (
-            <ErrorBoundary key="Life">
-              <Milestones milestones={milestones} loading={loading} />
+          {tab === 'Monthly' && (
+            <ErrorBoundary key="Monthly">
+              <MonthlyFocus monthly={monthly} loading={loading} monthName={liveDate.date.m} />
+              <MonthlyTasks monthlyTasks={monthlyTasks} currentMonth={currentMonth} loading={loading} fetchExpand={fetchExpand} writeback={writeback} refetch={refetch} goals={goals} monthlyHeatmap={monthlyHeatmap} />
               <Goals goals={goals} loading={loading} />
-              <TimeRemaining time={liveDate.time} />
+              <Milestones milestones={milestones} loading={loading} />
               <NavGrid />
             </ErrorBoundary>
           )}

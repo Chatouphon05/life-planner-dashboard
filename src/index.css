@@ -26,6 +26,14 @@
   --overlay:     rgba(0,0,0,0.55);
   --shadow-deep: rgba(0,0,0,0.40);
 
+  /* Area thread colors (task lineage tags) */
+  --area-learning:      #9b8de0;
+  --area-work:          #7ba3e0;
+  --area-life:          #7dbf9a;
+  --area-health:        #e0a072;
+  --area-mental:        #dd8ec0;
+  --area-relationships: #b8c078;
+
   --font-display: "Fraunces", "Cormorant Garamond", Georgia, serif;
   --font-body:    "Geist", "Public Sans", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --font-mono:    "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
@@ -44,6 +52,13 @@
     --accent-hover:oklch(0.87 0.10  72);
     --accent2:     oklch(0.72 0.07  150);
     --gradient:    radial-gradient(120% 80% at 10% 0%, oklch(0.26 0.10 252) 0%, oklch(0.14 0.04 240) 65%);
+
+    --area-learning:      oklch(0.76 0.10 275);
+    --area-work:          oklch(0.76 0.10 235);
+    --area-life:          oklch(0.76 0.10 150);
+    --area-health:        oklch(0.76 0.10 35);
+    --area-mental:        oklch(0.76 0.10 320);
+    --area-relationships: oklch(0.76 0.10 95);
   }
 }
 
@@ -73,6 +88,14 @@ html[data-theme="light"] {
 
   --overlay:     rgba(0,0,0,0.35);
   --shadow-deep: rgba(0,0,0,0.15);
+
+  /* Area thread colors — dark-adjusted for parchment */
+  --area-learning:      #6a5cc0;
+  --area-work:          #3d72b8;
+  --area-life:          #3a8a5c;
+  --area-health:        #b8622a;
+  --area-mental:        #b8459a;
+  --area-relationships: #7a8a2a;
 }
 
 @supports (color: oklch(0 0 0)) {
@@ -87,6 +110,13 @@ html[data-theme="light"] {
     --accent-hover:oklch(0.62 0.12 52);
     --accent2:     oklch(0.50 0.09 160);
     --gradient:    radial-gradient(120% 80% at 10% 0%, oklch(0.92 0.020 80) 0%, oklch(0.96 0.012 80) 65%);
+
+    --area-learning:      oklch(0.52 0.12 275);
+    --area-work:          oklch(0.52 0.12 235);
+    --area-life:          oklch(0.52 0.12 150);
+    --area-health:        oklch(0.52 0.12 35);
+    --area-mental:        oklch(0.52 0.12 320);
+    --area-relationships: oklch(0.52 0.12 95);
   }
 }
 

@@ -3,6 +3,7 @@ import { SectionHeader, TaskRow, Skeleton, Eyebrow } from './Primitives.jsx';
 import TaskHeatmap from './TaskHeatmap.jsx';
 import TaskModal from './TaskModal.jsx';
 import { groupByArea, getMvdTasks } from '../utils/groupTasks.js';
+import { areaColor } from '../utils/areaColor.js';
 
 function toHeatmap(taskHistory) {
   return (taskHistory || []).map((d, i, arr) => ({
@@ -35,7 +36,7 @@ function MvdToggle({ active, onToggle }) {
   );
 }
 
-export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabel, writeback, refetch, goals, weeklyTasks, fetchExpand }) {
+export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabel, writeback, refetch, goals, weeklyTasks, fetchExpand, onNavigate }) {
   const [overrides, setOverrides] = useState({});
   const [failed,    setFailed]    = useState({});
   const [mvdMode,   setMvdMode]   = useState(false);
@@ -145,9 +146,12 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
 
     const weeklyParent = t.weeklyTaskId ? weeklyById.get(t.weeklyTaskId) : null;
     const goal         = t.goalId       ? goalById.get(t.goalId)         : null;
-    const lineage = (weeklyParent || goal)
-      ? { weekly: weeklyParent?.task || null, goal: goal?.name || null }
-      : null;
+    const lineage = (weeklyParent || goal) ? {
+      weekly: weeklyParent?.task || null,
+      goal:   goal?.name || null,
+      color:  areaColor(goal?.area),
+      onNavigate: onNavigate ? () => onNavigate('Weekly') : null,
+    } : null;
 
     return (
       <TaskRow

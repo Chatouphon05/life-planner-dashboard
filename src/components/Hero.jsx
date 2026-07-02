@@ -6,8 +6,16 @@ const CATEGORY = {
   'Look Forward': { icon: '✦', color: 'var(--accent2)' },
 };
 
-export default function Hero({ liveDate, theme, onToggleTheme, syncing, milestones = [], loading }) {
+export default function Hero({ liveDate, theme, onToggleTheme, syncing, milestones = [], loading, tab = 'Daily' }) {
   const { date, mantra, city } = liveDate;
+
+  const crumbs = [ String(date.y), date.m, `Week ${date.weekNum}`, date.day.slice(0, 3) ];
+  const depth  = tab === 'Monthly' ? 2 : tab === 'Weekly' ? 3 : 4;
+
+  let big, small;
+  if (tab === 'Monthly')      { big = date.m;         small = String(date.y); }
+  else if (tab === 'Weekly')  { big = date.weekRange; small = `${date.mShort} · WEEK ${date.weekNum}`; }
+  else                        { big = date.d;         small = `${date.mShort} · ${date.y}`; }
 
   // Footer shows only Active milestones — sorted soonest first
   const visible = milestones
@@ -47,26 +55,29 @@ export default function Hero({ liveDate, theme, onToggleTheme, syncing, mileston
         </span>
       </div>
 
-      {/* eyebrow */}
-      <div className="lp-eyebrow" style={{ color: 'var(--muted)', marginBottom: 14 }}>
-        <span style={{
-          color: 'var(--accent)',
-          animation: syncing ? 'lp-pulse 1.4s ease-in-out infinite' : 'none',
-        }}>●</span>
-        &nbsp;{date.day.toUpperCase()} · {city.toUpperCase()}
+      {/* breadcrumb eyebrow */}
+      <div className="lp-eyebrow" style={{
+        color: 'var(--muted)', marginBottom: 14,
+        display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6,
+      }}>
+        <span style={{ color: 'var(--accent)',
+          animation: syncing ? 'lp-pulse 1.4s ease-in-out infinite' : 'none' }}>●</span>
+        {crumbs.slice(0, depth).map((c, i) => (
+          <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            {i > 0 && <span style={{ color: 'var(--faint)' }}>›</span>}
+            <span style={{ color: i === depth - 1 ? 'var(--text)' : 'var(--muted)' }}>{c.toUpperCase()}</span>
+          </span>
+        ))}
+        <span style={{ color: 'var(--faint)' }}>·</span>
+        <span>{city.toUpperCase()}</span>
       </div>
 
-      {/* date */}
+      {/* scope-aware date */}
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
-        <span className="lp-display-i lp-num" style={{ fontSize: 56, lineHeight: 0.98, color: 'var(--text)' }}>
-          {date.d}
-        </span>
+        <span className="lp-display-i lp-num" style={{
+          fontSize: tab === 'Daily' ? 56 : 44, lineHeight: 0.98, color: 'var(--text)' }}>{big}</span>
         <span className="lp-mono" style={{
-          fontSize: 14, color: 'var(--muted)',
-          letterSpacing: '0.10em', textTransform: 'uppercase',
-        }}>
-          {date.mShort} · {date.y}
-        </span>
+          fontSize: 14, color: 'var(--muted)', letterSpacing: '0.10em', textTransform: 'uppercase' }}>{small}</span>
       </div>
 
       {/* mantra */}

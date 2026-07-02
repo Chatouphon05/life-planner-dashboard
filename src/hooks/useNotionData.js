@@ -34,6 +34,20 @@ export function getLiveDate(workerDateStr = null) {
   const getMonth = workerDateStr ? (d) => d.getUTCMonth()    : (d) => d.getMonth();
   const getYear  = workerDateStr ? (d) => d.getUTCFullYear() : (d) => d.getFullYear();
 
+  // ISO week number + Mon–Sun label for the breadcrumb
+  const wkBase = workerDateStr ? new Date(workerDateStr + 'T12:00:00Z') : new Date();
+  const wd = new Date(Date.UTC(wkBase.getFullYear(), wkBase.getMonth(), wkBase.getDate()));
+  const dayNr = (wd.getUTCDay() + 6) % 7;            // Mon=0
+  wd.setUTCDate(wd.getUTCDate() - dayNr + 3);        // nearest Thursday
+  const firstThu = new Date(Date.UTC(wd.getUTCFullYear(), 0, 4));
+  const weekNum = 1 + Math.round(((wd - firstThu) / 86400000 - 3 + ((firstThu.getUTCDay() + 6) % 7)) / 7);
+
+  const monday = new Date(wkBase); monday.setDate(wkBase.getDate() - ((wkBase.getDay() + 6) % 7));
+  const sunday = new Date(monday);  sunday.setDate(monday.getDate() + 6);
+  const weekRange = monday.getMonth() === sunday.getMonth()
+    ? `${monday.getDate()}–${sunday.getDate()}`
+    : `${monday.getDate()} ${MONTHS_SHORT[monday.getMonth()]}–${sunday.getDate()} ${MONTHS_SHORT[sunday.getMonth()]}`;
+
   return {
     date: {
       day:    DAYS[getDay(display)],
@@ -41,6 +55,8 @@ export function getLiveDate(workerDateStr = null) {
       m:      MONTHS[getMonth(display)],
       mShort: MONTHS_SHORT[getMonth(display)],
       y:      getYear(display),
+      weekNum,
+      weekRange,
     },
     // city is overridden in app.jsx based on milestones (Transition → Done)
     city:   'Vientiane',

@@ -169,38 +169,25 @@ function DueChip() {
   );
 }
 
-function LineageTag({ weekly, goal }) {
+function LineageTag({ weekly, goal, color, onNavigate }) {
   return (
-    <span className="lp-mono" style={{
-      display: 'inline-flex', alignItems: 'center', gap: 5,
-      fontSize: 10, color: 'var(--muted)', letterSpacing: '0.03em',
-      maxWidth: '100%', minWidth: 0,
-    }}>
+    <span className={onNavigate ? 'lp-mono lp-tap' : 'lp-mono'}
+      onClick={onNavigate ? (e) => { e.stopPropagation(); onNavigate(); } : undefined}
+      style={{ display: 'inline-flex', alignItems: 'center', gap: 5,
+        fontSize: 10, color: 'var(--muted)', letterSpacing: '0.03em',
+        minWidth: 0, cursor: onNavigate ? 'pointer' : 'default' }}>
       <span style={{ color: 'var(--faint)', flexShrink: 0 }}>↳</span>
-      {weekly && (
-        <span style={{
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-        }}>{weekly}</span>
-      )}
-      {goal && (
-        <>
-          <span style={{
-            width: 5, height: 5, borderRadius: 1, background: 'var(--accent)',
-            display: 'inline-block', flexShrink: 0,
-          }} />
-          <span style={{
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            color: 'var(--faint)',
-          }}>{goal}</span>
-        </>
-      )}
+      <span style={{ width: 5, height: 5, borderRadius: 1, background: color || 'var(--accent)', flexShrink: 0 }} />
+      {weekly && <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{weekly}</span>}
+      {goal && <span style={{ color: 'var(--faint)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>· {goal}</span>}
+      {onNavigate && <span style={{ color: 'var(--faint)', flexShrink: 0 }}>→</span>}
     </span>
   );
 }
 
 // ── TaskRow ───────────────────────────────────────────────────────────────────
 // Props: task, done, onToggle, onEdit, priority (string|null), area (string|null),
-//        date (YYYY-MM-DD|null), failed (bool), lineage ({weekly, goal}|null)
+//        date (YYYY-MM-DD|null), failed (bool), lineage ({weekly, goal, color, onNavigate}|null)
 export function TaskRow({ task, done, onToggle, onEdit, priority, area, date, failed, lineage }) {
   const [expanded, setExpanded] = useState(false);
   const [swipeX,   setSwipeX]   = useState(0);
@@ -325,7 +312,8 @@ export function TaskRow({ task, done, onToggle, onEdit, priority, area, date, fa
 
           {!failed && lineage && (lineage.weekly || lineage.goal) && (
             <div style={{ display: 'flex', marginTop: 4, minWidth: 0 }}>
-              <LineageTag weekly={lineage.weekly} goal={lineage.goal} />
+              <LineageTag weekly={lineage.weekly} goal={lineage.goal}
+                color={lineage.color} onNavigate={lineage.onNavigate} />
             </div>
           )}
 
