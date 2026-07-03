@@ -1,17 +1,17 @@
 /* ── Fallback colors for Chrome < 111 / Safari < 15.4 (no oklch support) ── */
 :root {
-  --bg:          #080e1c;
-  --bg-2:        #0d1528;
-  --bg-3:        #131d35;
+  --bg:          #06070c;
+  --bg-2:        #0d0f16;
+  --bg-3:        #16181f;
   --hair:        rgba(255,255,255,0.07);
-  --hair-strong: rgba(255,255,255,0.13);
-  --text:        rgba(228,236,255,0.93);
-  --muted:       rgba(130,155,215,0.65);
-  --faint:       rgba(85,110,180,0.48);
-  --accent:      #e0a94f;
-  --accent-hover:#edb968;
-  --accent2:     #6bbf9a;
-  --gradient:    radial-gradient(120% 80% at 10% 0%, #162050 0%, #080e1c 65%);
+  --hair-strong: rgba(255,255,255,0.12);
+  --text:        #eeebe5;
+  --muted:       #828690;
+  --faint:       #4a4d56;
+  --accent:      #ebb16c;
+  --accent-hover:#f7c384;
+  --accent2:     #85b18e;
+  --gradient:    radial-gradient(120% 80% at 10% 0%, #1b1434 0%, #06070c 60%);
 
   /* Semantic priority / status tokens */
   --priority-high:       #f0616d;
@@ -34,7 +34,7 @@
   --area-mental:        #dd8ec0;
   --area-relationships: #b8c078;
 
-  --font-display: "Fraunces", "Cormorant Garamond", Georgia, serif;
+  --font-display: "Newsreader", "Cormorant Garamond", Georgia, serif;
   --font-body:    "Geist", "Public Sans", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --font-mono:    "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
 }
@@ -42,16 +42,16 @@
 /* oklch overrides for modern browsers — dark navy palette */
 @supports (color: oklch(0 0 0)) {
   :root {
-    --bg:          oklch(0.14 0.04  240);
-    --bg-2:        oklch(0.18 0.044 238);
-    --bg-3:        oklch(0.23 0.046 236);
-    --text:        oklch(0.94 0.014 225);
-    --muted:       oklch(0.63 0.040 228);
-    --faint:       oklch(0.44 0.032 233);
-    --accent:      oklch(0.81 0.115 70);
-    --accent-hover:oklch(0.87 0.10  72);
-    --accent2:     oklch(0.72 0.07  150);
-    --gradient:    radial-gradient(120% 80% at 10% 0%, oklch(0.26 0.10 252) 0%, oklch(0.14 0.04 240) 65%);
+    --bg:          oklch(0.13 0.012 270);
+    --bg-2:        oklch(0.17 0.014 270);
+    --bg-3:        oklch(0.21 0.014 270);
+    --text:        oklch(0.94 0.008 80);
+    --muted:       oklch(0.62 0.015 270);
+    --faint:       oklch(0.42 0.015 270);
+    --accent:      oklch(0.80 0.11 70);
+    --accent-hover:oklch(0.85 0.10 71);
+    --accent2:     oklch(0.72 0.07 150);
+    --gradient:    radial-gradient(120% 80% at 10% 0%, oklch(0.22 0.06 290) 0%, oklch(0.13 0.012 270) 60%);
 
     --area-learning:      oklch(0.76 0.10 275);
     --area-work:          oklch(0.76 0.10 235);
@@ -178,11 +178,6 @@ body {
   0%   { background-position: -200% 0; }
   100% { background-position:  200% 0; }
 }
-/* Check mark draw-in for TaskRow done state */
-@keyframes lp-check-in {
-  from { stroke-dashoffset: 24; }
-  to   { stroke-dashoffset: 0;  }
-}
 /* Task row hover lift (desktop) */
 .task-row:hover { background: var(--bg-3); }
 
@@ -196,7 +191,15 @@ body {
   border-radius: 4px;
 }
 
-.lp-content {
+/* Each tab's content lives in a permanently-mounted .lp-pane so switching
+   tabs never remounts/loses state. Only the pane matching the active tab
+   (tracked via [data-active-tab] on .lp-content) is shown — pure CSS
+   tab-switching. At desktop widths (see 1100px block below) all three
+   panes are shown at once as a side-by-side spread instead. */
+.lp-pane { display: none; }
+.lp-content[data-active-tab="Daily"]   .lp-pane[data-pane="Daily"],
+.lp-content[data-active-tab="Weekly"]  .lp-pane[data-pane="Weekly"],
+.lp-content[data-active-tab="Monthly"] .lp-pane[data-pane="Monthly"] {
   display: flex;
   flex-direction: column;
   gap: 28px;
@@ -223,19 +226,44 @@ body {
   }
 }
 
-/* ── Wide desktop: 2-column content grid ── */
-@media (min-width: 900px) {
-  #root {
-    max-width: 920px;
+/* ── Wide desktop: true 3-column spread — Daily | Weekly | Monthly shown
+   at once, no tab bar, each column scrolls independently, full-bleed
+   (no phone-frame shell). Mirrors the mockup's DesktopApp layout. ── */
+@media (min-width: 1100px) {
+  body {
+    background: var(--bg);
+    display: block;
   }
+
+  #root {
+    max-width: none;
+    width: 100%;
+    box-shadow: none;
+  }
+
+  .lp-tabbar { display: none; }
+
+  /* overrides the inline overflowY:'auto' set for the mobile pull-to-refresh
+     scroll container — each .lp-pane scrolls independently instead */
+  .lp-scrollable { overflow: hidden !important; }
 
   .lp-content {
     display: grid !important;
-    grid-template-columns: 1fr 1fr;
-    gap: 28px 48px;
-    align-items: start;
-    padding: 24px 40px !important;
+    grid-template-columns: 1.15fr 1fr 1.1fr;
+    height: 100%;
+    padding: 0 !important;
   }
+
+  .lp-pane {
+    display: flex !important;
+    flex-direction: column;
+    gap: 28px;
+    overflow-y: auto;
+    height: 100%;
+    padding: 32px 30px;
+    border-right: 0.5px solid var(--hair);
+  }
+  .lp-pane:last-child { border-right: none; }
 }
 
 /* ── Accessibility: respect reduced-motion preference ── */

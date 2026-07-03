@@ -4,6 +4,7 @@ import Hero         from './components/Hero.jsx';
 import TabBar       from './components/TabBar.jsx';
 import NavGrid      from './components/NavGrid.jsx';
 import TodayTasks   from './components/TodayTasks.jsx';
+import QuickCapture from './components/QuickCapture.jsx';
 import WeekPriorities from './components/WeekPriorities.jsx';
 import TimeRemaining  from './components/TimeRemaining.jsx';
 import MonthlyFocus   from './components/MonthlyFocus.jsx';
@@ -52,11 +53,25 @@ function PullIndicator({ pull, refreshing }) {
   );
 }
 
+function FAB({ onClick }) {
+  return (
+    <button onClick={onClick} className="lp-tap" style={{
+      position: 'absolute', right: 20, bottom: 24, zIndex: 40,
+      width: 52, height: 52, borderRadius: 16, border: 0,
+      background: 'var(--accent)', color: 'var(--bg)',
+      boxShadow: '0 8px 24px color-mix(in oklch, var(--accent) 40%, transparent)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontSize: 26, lineHeight: 1, cursor: 'pointer', fontWeight: 300,
+    }}>+</button>
+  );
+}
+
 export default function App() {
   const [tab, setTab]               = useState('Daily');
   const [pull, setPull]             = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [theme, setTheme]           = useState(() => localStorage.getItem('lp-theme') || 'dark');
+  const [quickCaptureOpen, setQuickCaptureOpen] = useState(false);
   const scrollRef = useRef(null);
   const pullRef   = useRef(0);
 
@@ -65,7 +80,7 @@ export default function App() {
   useLayoutEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.content = theme === 'dark' ? '#080e1c' : '#f5f0e8';
+    if (meta) meta.content = theme === 'dark' ? '#06070c' : '#f5f0e8';
   }, [theme]);
 
   const toggleTheme = () => {
@@ -92,6 +107,7 @@ export default function App() {
   const mantra = monthly.theme || liveDate.mantra;
 
   const liveDateFinal = { ...liveDate, city, mantra };
+  const todayStr = new Date().toISOString().split('T')[0];
 
   // Pull-to-refresh gesture
   useEffect(() => {
@@ -140,7 +156,9 @@ export default function App() {
       <PullIndicator pull={pull} refreshing={refreshing} />
 
       <Hero liveDate={liveDateFinal} theme={theme} onToggleTheme={toggleTheme} syncing={stale} milestones={milestones} loading={loading} tab={tab} />
-      <TabBar tab={tab} onChange={setTab} badges={{ Daily: tasks.filter(t => !t.done).length }} />
+      <div className="lp-tabbar">
+        <TabBar tab={tab} onChange={setTab} badges={{ Daily: tasks.filter(t => !t.done).length }} />
+      </div>
 
       <div
         ref={scrollRef}
@@ -151,10 +169,10 @@ export default function App() {
           transition: (refreshing || pull === 0) ? 'transform .25s cubic-bezier(.2,.7,.3,1)' : 'none',
         }}
       >
-        <div className="lp-content" style={{ padding: '20px 22px' }}>
+        <div className="lp-content" data-active-tab={tab} style={{ padding: '20px 22px' }}>
 
-          {tab === 'Daily' && (
-            <ErrorBoundary key="Daily">
+          <div className="lp-pane" data-pane="Daily">
+            <ErrorBoundary>
               <MoodPicker today={today} writeback={writeback} loading={loading} moodHistory={moodHistory} />
               <TodayTasks
                 tasks={tasks}
@@ -177,31 +195,43 @@ export default function App() {
               />
               <Books />
             </ErrorBoundary>
-          )}
+            <div style={{ height: 40 }} />
+          </div>
 
-          {tab === 'Weekly' && (
-            <ErrorBoundary key="Weekly">
+          <div className="lp-pane" data-pane="Weekly">
+            <ErrorBoundary>
               <WeekStatsRow habits={habits} weeklyHeatmap={weeklyHeatmap} loading={loading} />
               <SundayReview todayDate={today.date} weekId={weekId} writeback={writeback} />
               <WeekPriorities priorities={priorities} loading={loading} />
               <WeeklyTasks weeklyTasks={weeklyTasks} currentWeek={currentWeek} loading={loading} fetchExpand={fetchExpand} writeback={writeback} refetch={refetch} goals={goals} monthlyTasks={monthlyTasks} weeklyHeatmap={weeklyHeatmap} />
               <TimeRemaining time={liveDate.time} />
             </ErrorBoundary>
-          )}
+            <div style={{ height: 40 }} />
+          </div>
 
-          {tab === 'Monthly' && (
-            <ErrorBoundary key="Monthly">
+          <div className="lp-pane" data-pane="Monthly">
+            <ErrorBoundary>
               <MonthlyFocus monthly={monthly} loading={loading} monthName={liveDate.date.m} />
               <MonthlyTasks monthlyTasks={monthlyTasks} currentMonth={currentMonth} loading={loading} fetchExpand={fetchExpand} writeback={writeback} refetch={refetch} goals={goals} monthlyHeatmap={monthlyHeatmap} />
               <Goals goals={goals} loading={loading} />
               <Milestones milestones={milestones} loading={loading} />
               <NavGrid />
             </ErrorBoundary>
-          )}
-
-          <div style={{ height: 40 }} />
+            <div style={{ height: 40 }} />
+          </div>
         </div>
       </div>
+
+      <FAB onClick={() => setQuickCaptureOpen(true)} />
+      {quickCaptureOpen && (
+        <QuickCapture
+          onClose={() => setQuickCaptureOpen(false)}
+          writeback={writeback}
+          refetch={refetch}
+          defaultDate={todayStr}
+          dayLabel={liveDate.date.day}
+        />
+      )}
     </div>
   );
 }

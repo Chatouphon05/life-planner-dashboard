@@ -40,8 +40,8 @@ function Dot({ value, isToday, done: localDone, onToggle, pending }) {
       className={isToday ? 'lp-tap' : ''}
       onClick={isToday ? onToggle : undefined}
       style={{
-        flex: 1, aspectRatio: '1 / 1',
-        borderRadius: '50%',
+        flex: 1, height: DOT,
+        borderRadius: 2,
         background: bg,
         border,
         opacity: pending ? 0.6 : 1,

@@ -76,7 +76,6 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
   const displayTasks     = viewingOtherDate ? (dateTasks || []) : tasks;
   const headerLabel      = viewingOtherDate ? fmtDayLabel(selectedDate) : dayLabel;
 
-  const openCreate = () => { setEditTask(null); setModalOpen(true); };
   const openEdit   = (t) => { setEditTask(t);  setModalOpen(true); };
   const closeModal = () => setModalOpen(false);
 
@@ -204,7 +203,7 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
         )
       ) : tasks.length === 0 ? (
         <p className="lp-mono" style={{ fontSize: 13, color: 'var(--faint)', marginTop: 12 }}>
-          No tasks today — add one below.
+          No tasks today — tap + to add one.
         </p>
       ) : mvdMode ? (
         // ── Minimum Viable Day view ───────────────────────────────────────
@@ -250,21 +249,6 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
           ))}
         </div>
       )}
-
-      <div style={{ marginTop: 16 }}>
-        <button
-          className="lp-tap"
-          onClick={openCreate}
-          style={{
-            width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            padding: '12px 0', borderRadius: 10, border: '1px solid color-mix(in oklch, var(--accent) 45%, transparent)',
-            background: 'color-mix(in oklch, var(--accent) 8%, var(--bg-2))', cursor: 'pointer',
-          }}
-        >
-          <span className="lp-mono" style={{ fontSize: 14, color: 'var(--accent)' }}>+</span>
-          <span className="lp-mono" style={{ fontSize: 12, color: 'var(--accent)', letterSpacing: '0.10em' }}>ADD TASK</span>
-        </button>
-      </div>
 
       {modalOpen && (
         <TaskModal

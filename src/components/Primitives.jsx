@@ -115,32 +115,11 @@ export function HierarchyHeader({ eyebrow, title, stat }) {
 
 // ── TaskRow sub-components ────────────────────────────────────────────────────
 
+// BuJo bullet: · open, ✕ done, ★ high-priority — the glyph itself is the tap target.
 function CheckboxIcon({ done, failed, priority }) {
-  const ringColor = failed
-    ? 'var(--faint)'
-    : done
-    ? 'var(--accent2)'
-    : priority?.includes('High')
-    ? 'var(--priority-high)'
-    : 'var(--hair-strong)';
-
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-      <circle cx="10" cy="10" r="8.5" stroke={ringColor} strokeWidth="1.5" />
-      {done && (
-        <path
-          d="M6 10L9 13L14 7"
-          stroke="var(--accent2)"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeDasharray="24"
-          strokeDashoffset="0"
-          style={{ animation: 'lp-check-in 0.22s ease-out both' }}
-        />
-      )}
-    </svg>
-  );
+  if (done) return <Bullet kind="done" color="var(--accent2)" size={14} style={{ animation: 'lp-fade-in 0.22s ease-out both' }} />;
+  if (!failed && priority?.includes('High')) return <Bullet kind="priority" color="var(--priority-high)" size={12} />;
+  return <Bullet kind="task" color={failed ? 'var(--faint)' : 'var(--muted)'} size={15} />;
 }
 
 function AreaTag({ area }) {
