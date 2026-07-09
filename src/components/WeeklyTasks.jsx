@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import { HierarchyHeader, Skeleton } from './Primitives.jsx';
+import { Eyebrow, Skeleton } from './Primitives.jsx';
 import TaskHeatmap from './TaskHeatmap.jsx';
 import PlanTaskModal from './PlanTaskModal.jsx';
 
@@ -204,7 +204,7 @@ export default function WeeklyTasks({ weeklyTasks, currentWeek, loading, fetchEx
 
   if (loading) return (
     <div>
-      <HierarchyHeader eyebrow="This week" title="Weekly tasks" />
+      <Eyebrow>{currentWeek || 'Current week'} · weekly tasks</Eyebrow>
       {[100, 75, 90, 60].map((w, i) => (
         <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '9px 0', borderBottom: '0.5px dashed var(--hair)' }}>
           <Skeleton width={14} height={14} radius={99} />
@@ -215,18 +215,13 @@ export default function WeeklyTasks({ weeklyTasks, currentWeek, loading, fetchEx
   );
 
   const effectiveStatus = (t) => overrides.hasOwnProperty(t.id) ? overrides[t.id] : t.status;
-  const doneCount = displayTasks.filter(t => effectiveStatus(t) === 'Done').length;
   const total     = displayTasks.length;
   const labelWeek = selectedWeek || currentWeek;
   const label     = labelWeek ? `Weekly · ${labelWeek}` : 'Weekly · tasks';
 
   return (
     <div>
-      <HierarchyHeader
-        eyebrow={currentWeek || 'Current week'}
-        title="Weekly tasks"
-        stat={total > 0 ? `${doneCount}/${total}` : undefined}
-      />
+      <Eyebrow count={total}>{currentWeek || 'Current week'} · weekly tasks</Eyebrow>
 
       {weeklyHeatmap.length > 0 && (
         <TaskHeatmap data={weeklyHeatmap} type="weekly" onSelect={onSelectWeek} />

@@ -18,31 +18,7 @@ export function Bullet({ kind = 'task', color, size = 16, style: s = {} }) {
   );
 }
 
-export function SectionHeader({ label, stat, right }) {
-  return (
-    <div style={{
-      display: 'flex', justifyContent: 'space-between', alignItems: 'baseline',
-      paddingBottom: 9, borderBottom: '1.5px solid var(--text)', marginBottom: 14,
-    }}>
-      <span className="lp-mono" style={{
-        fontSize: 13, letterSpacing: '0.12em', textTransform: 'uppercase',
-        color: 'var(--text)',
-      }}>
-        {label}
-      </span>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        {stat !== undefined && (
-          <span className="lp-mono" style={{ fontSize: 13, color: 'var(--muted)' }}>
-            {stat}
-          </span>
-        )}
-        {right}
-      </div>
-    </div>
-  );
-}
-
-export function Eyebrow({ children, count, color, style: s = {} }) {
+export function Eyebrow({ children, count, color, right, style: s = {} }) {
   return (
     <div className="lp-eyebrow" style={{
       display: 'flex', alignItems: 'center', gap: 8,
@@ -53,6 +29,7 @@ export function Eyebrow({ children, count, color, style: s = {} }) {
         <span className="lp-num" style={{ color: 'var(--faint)' }}>{String(count).padStart(2, '0')}</span>
       )}
       <span style={{ flex: 1, height: 0.5, background: 'var(--hair)' }} />
+      {right}
     </div>
   );
 }
@@ -82,33 +59,6 @@ export function MetricRow({ label, value, pct, color, sub }) {
       </div>
       {pct !== undefined && <ProgressBar pct={pct} color={color} />}
       {sub && <span className="lp-mono" style={{ color: 'var(--faint)', fontSize: 11 }}>{sub}</span>}
-    </div>
-  );
-}
-
-// Fraunces display header for week/month/year hierarchy levels (Plan tab).
-// NOT used on the Today tab (keeps mono SectionHeader there).
-export function HierarchyHeader({ eyebrow, title, stat }) {
-  return (
-    <div style={{ marginBottom: 14 }}>
-      {eyebrow && (
-        <div className="lp-eyebrow" style={{ color: 'var(--faint)', marginBottom: 6 }}>
-          {eyebrow}
-        </div>
-      )}
-      <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'baseline',
-        paddingBottom: 9, borderBottom: '1.5px solid var(--text)',
-      }}>
-        <span className="lp-display-i" style={{ fontSize: 22, color: 'var(--text)' }}>
-          {title}
-        </span>
-        {stat !== undefined && (
-          <span className="lp-mono lp-num" style={{ fontSize: 13, color: 'var(--muted)' }}>
-            {stat}
-          </span>
-        )}
-      </div>
     </div>
   );
 }

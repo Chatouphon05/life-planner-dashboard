@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { SectionHeader, ProgressBar } from './Primitives.jsx';
+import { Eyebrow, ProgressBar } from './Primitives.jsx';
 
 const STORAGE_KEY = 'lp-books-v1';
 
@@ -186,7 +186,7 @@ export default function Books() {
 
   return (
     <div>
-      <SectionHeader label="Reading" stat={`${state.finished}/${state.goal} this year`} right={<EditPencil onClick={openEdit} />} />
+      <Eyebrow right={<EditPencil onClick={openEdit} />}>Reading · {state.finished}/{state.goal} this year</Eyebrow>
 
       {editing ? (
         <BooksEditor draft={draft} setDraft={setDraft} onSave={saveEdit} onCancel={() => setEditing(false)} />

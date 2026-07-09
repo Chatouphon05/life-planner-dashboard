@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { SectionHeader, Skeleton } from './Primitives.jsx';
+import { Eyebrow, Skeleton } from './Primitives.jsx';
 
 const DOT = 20;
 const GAP = 2;
@@ -73,7 +73,7 @@ export default function HabitTracker({ habits, habitHistory, loading, writeback 
 
   if (loading) return (
     <div>
-      <SectionHeader label="Habits" />
+      <Eyebrow>Habits · 14 days</Eyebrow>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 12 }}>
         {[90, 75, 110].map((w, i) => (
           <div key={i}>
@@ -94,20 +94,16 @@ export default function HabitTracker({ habits, habitHistory, loading, writeback 
 
   if (!habits.length) return (
     <div>
-      <SectionHeader label="Habits" />
+      <Eyebrow>Habits · 14 days</Eyebrow>
       <p className="lp-mono" style={{ fontSize: 13, color: 'var(--faint)', marginTop: 12 }}>
         No habits today — add them in Notion.
       </p>
     </div>
   );
 
-  const doneCount = habits.filter(h =>
-    overrides.hasOwnProperty(h.id) ? overrides[h.id] : h.done
-  ).length;
-
   return (
     <div>
-      <SectionHeader label="Habits" stat={`${doneCount}/${habits.length}`} />
+      <Eyebrow count={habits.length}>Habits · 14 days</Eyebrow>
 
       {/* Date axis */}
       <div style={{

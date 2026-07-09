@@ -1,4 +1,4 @@
-import { SectionHeader, ProgressBar, Skeleton } from './Primitives.jsx';
+import { Eyebrow, ProgressBar, Skeleton } from './Primitives.jsx';
 
 // ── Category config ────────────────────────────────────────────────────────────
 const CATEGORY = {
@@ -174,7 +174,7 @@ export default function Milestones({ milestones = [], loading }) {
 
   return (
     <div>
-      <SectionHeader label="Milestones" />
+      <Eyebrow count={visible.length}>Milestones</Eyebrow>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {loading && visible.length === 0 ? (
           <>

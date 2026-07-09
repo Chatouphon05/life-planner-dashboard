@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { SectionHeader, ProgressBar, Skeleton } from './Primitives.jsx';
+import { Eyebrow, ProgressBar, Skeleton } from './Primitives.jsx';
 
 const AREA_ORDER = ['Career & Learning', 'Health & Fitness', 'Personal Growth', 'Relationships'];
 const AREA_GLYPH = {
@@ -14,7 +14,7 @@ export default function Goals({ goals, loading }) {
 
   if (loading) return (
     <div>
-      <SectionHeader label="Goals · 2026" />
+      <Eyebrow>Active goals · 2026</Eyebrow>
       <div style={{ marginTop: 8 }}>
         {[null, null].map((_, i) => (
           <div key={i} style={{ borderBottom: '0.5px solid var(--hair)', padding: '14px 0' }}>
@@ -36,7 +36,7 @@ export default function Goals({ goals, loading }) {
 
   if (!goals.length) return (
     <div>
-      <SectionHeader label="Goals · 2026" />
+      <Eyebrow>Active goals · 2026</Eyebrow>
       <p className="lp-mono" style={{ fontSize: 13, color: 'var(--faint)', marginTop: 16 }}>
         No active goals found.
       </p>
@@ -47,7 +47,7 @@ export default function Goals({ goals, loading }) {
 
   return (
     <div>
-      <SectionHeader label="Goals · 2026" />
+      <Eyebrow count={goals.length}>Active goals · 2026</Eyebrow>
       <div style={{ marginTop: 6 }}>
         {areas.map(area => {
           const items = goals.filter(g => g.area === area);

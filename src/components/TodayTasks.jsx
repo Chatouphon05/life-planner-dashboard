@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { SectionHeader, TaskRow, Skeleton, Eyebrow } from './Primitives.jsx';
+import { TaskRow, Skeleton, Eyebrow } from './Primitives.jsx';
 import TaskHeatmap from './TaskHeatmap.jsx';
 import TaskModal from './TaskModal.jsx';
 import { groupByArea, getMvdTasks } from '../utils/groupTasks.js';
@@ -110,7 +110,7 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
 
   if (loading) return (
     <div>
-      <SectionHeader label="Tasks" />
+      <Eyebrow>Today{dayLabel ? ` · ${dayLabel} log` : ''}</Eyebrow>
       <div style={{ display: 'flex', gap: 2, marginBottom: 14 }}>
         {Array(14).fill(0).map((_, i) => <Skeleton key={i} height={18} style={{ flex: 1 }} />)}
       </div>
@@ -128,7 +128,7 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
 
   if (error) return (
     <div>
-      <SectionHeader label="Tasks" />
+      <Eyebrow>Today{dayLabel ? ` · ${dayLabel} log` : ''}</Eyebrow>
       {taskHistory?.length > 0 && <TaskHeatmap data={toHeatmap(taskHistory)} type="daily" />}
       <p className="lp-mono" style={{ fontSize: 13, color: 'var(--faint)', marginTop: 12 }}>
         Could not reach Notion — pull down to retry.
@@ -169,19 +169,27 @@ export default function TodayTasks({ tasks, taskHistory, loading, error, dayLabe
   };
 
   const sectionLabel = viewingOtherDate
-    ? `Tasks · ${headerLabel}`
-    : mvdMode ? 'Just these today' : `Tasks · ${dayLabel}`;
-  const sectionStat = (mvdMode && !viewingOtherDate)
-    ? undefined
-    : `${completed}/${displayTasks.length}`;
+    ? headerLabel
+    : mvdMode ? 'Just these today' : `Today · ${dayLabel} log`;
 
   return (
     <div>
-      <SectionHeader
-        label={sectionLabel}
-        stat={sectionStat}
+      <Eyebrow
+        count={mvdMode && !viewingOtherDate ? undefined : displayTasks.length}
         right={!viewingOtherDate && tasks.length > 0 && <MvdToggle active={mvdMode} onToggle={() => setMvdMode(m => !m)} />}
-      />
+      >
+        {sectionLabel}
+      </Eyebrow>
+      {!mvdMode && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 8, marginBottom: 4 }}>
+          <span className="lp-display-i" style={{ fontSize: 22, color: 'var(--text)' }}>
+            {displayTasks.length - completed} <span style={{ color: 'var(--muted)', fontSize: 14 }}>open</span>
+          </span>
+          <span className="lp-mono" style={{ fontSize: 11, color: 'var(--faint)' }}>
+            {completed}/{displayTasks.length} done
+          </span>
+        </div>
+      )}
       <TaskHeatmap data={toHeatmap(taskHistory)} type="daily" onSelect={onSelectDate} />
 
       {dateLoading ? (

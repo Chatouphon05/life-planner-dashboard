@@ -6,6 +6,13 @@ const CATEGORY = {
   'Look Forward': { icon: '✦', color: 'var(--accent2)' },
 };
 
+const MONTHS_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+function fmtTarget(dateStr) {
+  if (!dateStr) return '';
+  const [, m, d] = dateStr.split('-').map(Number);
+  return `${MONTHS_FULL[m - 1]} ${d}`;
+}
+
 export default function Hero({ liveDate, theme, onToggleTheme, syncing, milestones = [], loading, tab = 'Daily' }) {
   const { date, mantra, city } = liveDate;
 
@@ -25,6 +32,13 @@ export default function Hero({ liveDate, theme, onToggleTheme, syncing, mileston
       if (!b.date) return -1;
       return a.date.localeCompare(b.date);
     });
+
+  // Desktop spread swaps the mantra for a countdown to the soonest upcoming
+  // milestone (mirrors the mockup's DesktopApp, which hardcodes a Brisbane
+  // countdown) — falls back to the mantra when there are no milestones at all.
+  const nearest = milestones
+    .filter(m => m.status !== 'Done' && m.daysLeft != null)
+    .sort((a, b) => a.daysLeft - b.daysLeft)[0] || null;
 
   return (
     <div style={{ padding: '24px 22px 18px', position: 'relative', flexShrink: 0 }}>
@@ -80,14 +94,24 @@ export default function Hero({ liveDate, theme, onToggleTheme, syncing, mileston
           fontSize: 14, color: 'var(--muted)', letterSpacing: '0.10em', textTransform: 'uppercase' }}>{small}</span>
       </div>
 
-      {/* mantra */}
-      <p className="lp-display-i" style={{
+      {/* mantra — mobile/narrow default; hidden on desktop when a countdown is available */}
+      <p className={`lp-display-i${nearest ? ' lp-hero-mantra' : ''}`} style={{
         marginTop: 16, marginBottom: 0,
         fontSize: 16, lineHeight: 1.4,
         color: 'var(--muted)', maxWidth: 320,
       }}>
         "{mantra}"
       </p>
+
+      {/* countdown to nearest milestone — desktop spread only (see index.css) */}
+      {nearest && (
+        <div className="lp-hero-countdown" style={{ marginTop: 18, alignItems: 'baseline', gap: 10 }}>
+          <span className="lp-display-i" style={{ fontSize: 38, color: 'var(--accent)' }}>{nearest.daysLeft}</span>
+          <div className="lp-mono" style={{ fontSize: 11, color: 'var(--muted)' }}>
+            days until<br />{nearest.name}{nearest.date ? ` · ${fmtTarget(nearest.date)}` : ''}
+          </div>
+        </div>
+      )}
 
       {/* ── Active milestone strip (hidden when nothing active) ── */}
       {(visible.length > 0 || loading) && (

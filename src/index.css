@@ -207,6 +207,10 @@ html::-webkit-scrollbar, body::-webkit-scrollbar,
   gap: 28px;
 }
 
+/* Hero's mantra/countdown swap — mantra by default, countdown to the
+   nearest milestone on the desktop spread (see 1100px block below). */
+.lp-hero-countdown { display: none; }
+
 /* ── Desktop: phone-column layout centered on wide screens ── */
 @media (min-width: 500px) {
   body {
@@ -244,6 +248,11 @@ html::-webkit-scrollbar, body::-webkit-scrollbar,
   }
 
   .lp-tabbar { display: none; }
+
+  /* Hero: swap mantra for the milestone countdown, matching the mockup's
+     DesktopApp (only when a countdown is actually available — see Hero.jsx) */
+  .lp-hero-mantra { display: none; }
+  .lp-hero-countdown { display: flex; }
 
   /* overrides the inline overflowY:'auto' set for the mobile pull-to-refresh
      scroll container — each .lp-pane scrolls independently instead */
