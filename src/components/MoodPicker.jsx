@@ -1,231 +1,106 @@
 import { useState, useCallback } from 'react';
-import { SectionHeader, Skeleton } from './Primitives.jsx';
+import { Eyebrow, Skeleton } from './Primitives.jsx';
 
-const MOODS    = ['🚀 Amazing', '😊 Good', '😐 Okay', '😔 Low', '😴 Tired'];
-const ENERGIES = ['⚡ High', '🔋 Medium', '🪫 Low'];
+const FIELDS = [
+  { key: 'energy', type: 'energy-score', label: 'Energy' },
+  { key: 'focus',  type: 'focus-score',  label: 'Focus'  },
+  { key: 'mood',   type: 'mood-score',   label: 'Mood'   },
+];
 
-const MONTHS_SHORT = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-const emojiOf  = v => (v ? v.split(' ')[0] : null);
-const ENERGY_LEVEL = { '⚡ High': 3, '🔋 Medium': 2, '🪫 Low': 1 };
-// Energy bar fill — amber intensity scales with energy (matches "amber = now/energy")
-const ENERGY_BG = {
-  3: 'var(--accent)',
-  2: 'color-mix(in oklch, var(--accent) 55%, transparent)',
-  1: 'color-mix(in oklch, var(--accent) 28%, transparent)',
-  0: 'var(--bg-3)',
-};
+const SCALE = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-function fmtDay(dateStr) {
-  const [, m, d] = dateStr.split('-');
-  return `${MONTHS_SHORT[Number(m) - 1]} ${Number(d)}`;
+function segmentColor(n) {
+  return n >= 8 ? 'var(--accent)' : n >= 5 ? 'var(--accent2)' : 'var(--muted)';
 }
 
-// 14-day strip: mood emoji + energy bar per day. Today (last entry) reflects
-// the live local selection so it updates the moment you tap a chip.
-function MoodStrip({ history, todayMood, todayEnergy }) {
-  const [sel, setSel] = useState(null);
-  if (!history?.length) return null;
-
-  const data = history.map((d, i, arr) =>
-    i === arr.length - 1
-      ? { ...d, mood: todayMood ?? d.mood, energy: todayEnergy ?? d.energy }
-      : d
-  );
-
-  const selItem = sel !== null ? data[sel] : null;
-  const detail  = selItem
-    ? `${fmtDay(selItem.date)}  ·  ${selItem.mood || 'no mood'}${selItem.energy ? '  ·  ' + selItem.energy : ''}`
-    : null;
-
+function ScoreRow({ label, value, error, disabled, onPick }) {
   return (
-    <div style={{ marginTop: 14, paddingTop: 12, borderTop: '0.5px solid var(--hair)' }}>
-      <div className="lp-mono" style={{
-        fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase',
-        color: 'var(--muted)', marginBottom: 8,
-      }}>
-        Last 14 days
-      </div>
-
-      <div style={{ display: 'flex', gap: 3 }}>
-        {data.map((d, i) => {
-          const isToday    = i === data.length - 1;
-          const isSelected = sel === i;
-          const emoji      = emojiOf(d.mood);
-          const elvl       = ENERGY_LEVEL[d.energy] || 0;
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, opacity: disabled ? 0.5 : 1 }}>
+      <span style={{ fontSize: 12, color: 'var(--muted)', width: 56, flexShrink: 0 }}>{label}</span>
+      <div style={{ display: 'flex', gap: 6, flex: 1 }}>
+        {SCALE.map(n => {
+          const active = value != null && n <= value;
           return (
-            <div
-              key={d.date}
-              onClick={() => setSel(sel === i ? null : i)}
-              style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, cursor: 'pointer' }}
-            >
-              <span style={{ fontSize: 14, lineHeight: 1.1, opacity: emoji ? 1 : 0.25 }}>
-                {emoji || '·'}
-              </span>
-              <div style={{
-                width: '100%', height: 4, borderRadius: 99,
-                background: ENERGY_BG[elvl],
-                outline: isToday ? '1.5px solid var(--accent)'
-                       : isSelected ? '1px solid var(--muted)'
-                       : '1px solid transparent',
-              }} />
-              <span className="lp-mono" style={{
-                fontSize: 8, lineHeight: 1, userSelect: 'none',
-                color: isToday ? 'var(--accent)' : 'var(--faint)',
-              }}>
-                {Number(d.date.split('-')[2])}
-              </span>
-            </div>
+            <span
+              key={n}
+              className={disabled ? '' : 'lp-tap'}
+              onClick={disabled ? undefined : () => onPick(n === value ? null : n)}
+              style={{
+                flex: 1, height: 14, borderRadius: 1,
+                background: active ? segmentColor(value) : 'var(--hair-strong)',
+                transition: 'background .15s',
+              }}
+            />
           );
         })}
       </div>
-
-      <div style={{ minHeight: 16, marginTop: 6 }}>
-        {detail && (
-          <span className="lp-mono" style={{ fontSize: 10, color: 'var(--muted)', letterSpacing: '0.03em' }}>
-            {detail}
-          </span>
-        )}
-      </div>
+      <span className="lp-mono" style={{
+        fontSize: 11, width: 20, textAlign: 'right', flexShrink: 0,
+        color: error ? 'var(--priority-high)' : 'var(--text)',
+      }}>
+        {error ? '!' : value ?? '–'}
+      </span>
     </div>
   );
 }
 
-function Chip({ label, selected, onSelect, disabled }) {
-  return (
-    <div
-      className={disabled ? '' : 'lp-tap'}
-      onClick={disabled ? undefined : onSelect}
-      style={{
-        display: 'inline-flex', alignItems: 'center',
-        padding: '5px 10px', borderRadius: 99,
-        border: selected
-          ? '0.5px solid var(--accent)'
-          : '0.5px solid var(--hair-strong)',
-        background: selected
-          ? 'color-mix(in oklch, var(--accent) 18%, var(--bg-2))'
-          : 'var(--bg-2)',
-        color: selected ? 'var(--accent)' : 'var(--muted)',
-        fontSize: 14,
-        transition: 'background .15s, border .15s, color .15s',
-        whiteSpace: 'nowrap',
-        opacity: disabled ? 0.4 : 1,
-      }}
-    >
-      {label}
-    </div>
-  );
-}
+export default function MoodPicker({ today, writeback, loading, dayLabel }) {
+  const { energyScore: initEnergy, focusScore: initFocus, moodScore: initMood, dailyId } = today || {};
 
-export default function MoodPicker({ today, writeback, loading, moodHistory }) {
+  const [values, setValues] = useState({ energy: initEnergy, focus: initFocus, mood: initMood });
+  const [errors, setErrors] = useState({});
+
+  const pick = useCallback(async (field, type, next) => {
+    if (!dailyId) return;
+    const current = values[field];
+    setValues(v => ({ ...v, [field]: next }));
+    setErrors(e => ({ ...e, [field]: false }));
+    try {
+      await writeback(type, dailyId, next);
+    } catch {
+      setValues(v => ({ ...v, [field]: current }));
+      setErrors(e => ({ ...e, [field]: true }));
+      setTimeout(() => setErrors(e => ({ ...e, [field]: false })), 2500);
+    }
+  }, [dailyId, values, writeback]);
+
   if (loading) return (
     <div>
-      <SectionHeader label="Mood" />
+      <Eyebrow>How are you</Eyebrow>
       <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <div>
-          <Skeleton width={32} height={9} style={{ marginBottom: 8 }} />
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {[80, 70, 65, 60, 70].map((w, i) => <Skeleton key={i} width={w} height={30} radius={99} />)}
+        {[0, 1, 2].map(i => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <Skeleton width={56} height={11} />
+            <Skeleton height={14} style={{ flex: 1 }} radius={1} />
+            <Skeleton width={20} height={11} />
           </div>
-        </div>
-        <div>
-          <Skeleton width={40} height={9} style={{ marginBottom: 8 }} />
-          <div style={{ display: 'flex', gap: 6 }}>
-            {[60, 80, 55].map((w, i) => <Skeleton key={i} width={w} height={30} radius={99} />)}
-          </div>
-        </div>
-        <div style={{ paddingTop: 12, borderTop: '0.5px solid var(--hair)' }}>
-          <Skeleton width={70} height={9} style={{ marginBottom: 8 }} />
-          <div style={{ display: 'flex', gap: 3 }}>
-            {Array(14).fill(0).map((_, i) => <Skeleton key={i} height={26} style={{ flex: 1 }} />)}
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );
-  const { mood: initMood, energy: initEnergy, dailyId } = today || {};
-
-  const [mood,      setMood]      = useState(initMood   || null);
-  const [energy,    setEnergy]    = useState(initEnergy || null);
-  const [moodErr,   setMoodErr]   = useState(false);
-  const [energyErr, setEnergyErr] = useState(false);
-
-  // Sync from prop when today changes (after refetch)
-  // We only update if the user hasn't set a local override yet
-  // (simplest: just re-init from prop on mount; after refetch parent re-mounts this component)
-
-  const pick = useCallback(async (type, value, current, set, setErr) => {
-    if (!dailyId) return;
-    set(value);
-    setErr(false);
-    try {
-      await writeback(type, dailyId, value === current ? null : value);
-    } catch {
-      set(current);
-      setErr(true);
-      setTimeout(() => setErr(false), 2500);
-    }
-  }, [dailyId, writeback]);
-
-  const pickMood   = (v) => pick('mood',   v, mood,   setMood,   setMoodErr);
-  const pickEnergy = (v) => pick('energy', v, energy, setEnergy, setEnergyErr);
 
   const disabled = !dailyId;
 
   return (
     <div>
-      <SectionHeader label="Mood" />
-
-      <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {/* Mood row */}
-        <div>
-          <div className="lp-mono" style={{
-            fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase',
-            color: moodErr ? 'var(--faint)' : 'var(--muted)', marginBottom: 6,
-          }}>
-            {moodErr ? 'sync failed · pull to retry' : 'Mood'}
-          </div>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {MOODS.map(m => (
-              <Chip
-                key={m}
-                label={m}
-                selected={mood === m}
-                onSelect={() => pickMood(m)}
-                disabled={disabled}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Energy row */}
-        <div>
-          <div className="lp-mono" style={{
-            fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase',
-            color: energyErr ? 'var(--faint)' : 'var(--muted)', marginBottom: 6,
-          }}>
-            {energyErr ? 'sync failed · pull to retry' : 'Energy'}
-          </div>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {ENERGIES.map(e => (
-              <Chip
-                key={e}
-                label={e}
-                selected={energy === e}
-                onSelect={() => pickEnergy(e)}
-                disabled={disabled}
-              />
-            ))}
-          </div>
-        </div>
-
-        {disabled && (
-          <p className="lp-mono" style={{ fontSize: 11, color: 'var(--faint)', margin: 0 }}>
-            No daily entry found — create today's page in Notion first.
-          </p>
-        )}
-
-        <MoodStrip history={moodHistory} todayMood={mood} todayEnergy={energy} />
+      <Eyebrow>How are you{dayLabel ? ` · ${dayLabel.slice(0, 3)} morning` : ''}</Eyebrow>
+      <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {FIELDS.map(f => (
+          <ScoreRow
+            key={f.key}
+            label={f.label}
+            value={values[f.key]}
+            error={errors[f.key]}
+            disabled={disabled}
+            onPick={(n) => pick(f.key, f.type, n)}
+          />
+        ))}
       </div>
+      {disabled && (
+        <p className="lp-mono" style={{ fontSize: 11, color: 'var(--faint)', marginTop: 10 }}>
+          No daily entry found — create today's page in Notion first.
+        </p>
+      )}
     </div>
   );
 }

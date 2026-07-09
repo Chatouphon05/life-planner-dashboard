@@ -94,10 +94,13 @@ function adaptWorkerData(raw) {
 
   // Today's mood + energy + Worker date (YYYY-MM-DD in Worker timezone)
   const today = {
-    date:    raw.today?.date    || null,
-    mood:    raw.today?.mood    || null,
-    energy:  raw.today?.energy  || null,
-    dailyId: raw.today?.dailyId || null,
+    date:        raw.today?.date        || null,
+    mood:        raw.today?.mood        || null,
+    energy:      raw.today?.energy      || null,
+    energyScore: raw.today?.energyScore ?? null,
+    focusScore:  raw.today?.focusScore  ?? null,
+    moodScore:   raw.today?.moodScore   ?? null,
+    dailyId:     raw.today?.dailyId     || null,
   };
 
   // 14-day history arrays (pass through from Worker)
@@ -196,7 +199,7 @@ const EMPTY_STATE = {
   error:         null,
   tasks:         [],
   habits:        [],
-  today:         { date: null, mood: null, energy: null, dailyId: null },
+  today:         { date: null, mood: null, energy: null, energyScore: null, focusScore: null, moodScore: null, dailyId: null },
   taskHistory:   [],
   habitHistory:  {},
   moodHistory:   [],

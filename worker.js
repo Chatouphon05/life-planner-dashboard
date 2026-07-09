@@ -383,6 +383,10 @@ async function getData(token) {
   const dailyEntry = dailyRes.results[0];
   const mood    = dailyEntry ? getSelect(dailyEntry.properties["Mood"])   : null;
   const energy  = dailyEntry ? getSelect(dailyEntry.properties["Energy"]) : null;
+  // 1-10 scores (mockup's bar-slider check-in) — additive alongside the legacy Mood/Energy selects above
+  const energyScore = dailyEntry ? getNum(dailyEntry.properties["Energy Score"]) : null;
+  const focusScore  = dailyEntry ? getNum(dailyEntry.properties["Focus Score"])  : null;
+  const moodScore   = dailyEntry ? getNum(dailyEntry.properties["Mood Score"])   : null;
   const dailyId = dailyEntry ? getId(dailyEntry) : null;
 
   const weekEntry  = weeklyRes.results[0];
@@ -506,7 +510,7 @@ async function getData(token) {
   })).filter(m => m.name);
 
   return {
-    today: { date: today, mood, energy, dailyId },
+    today: { date: today, mood, energy, energyScore, focusScore, moodScore, dailyId },
     tasks, taskHistory,
     habits, habitHistory,
     moodHistory,
@@ -537,6 +541,9 @@ async function handlePatch(body, token) {
     case "task-status": await patch({ "Status": value ? { select: { name: value } } : { select: null } }); break;
     case "mood":        await patch({ "Mood":   value ? { select: { name: value } } : { select: null } }); break;
     case "energy":      await patch({ "Energy": value ? { select: { name: value } } : { select: null } }); break;
+    case "energy-score": await patch({ "Energy Score": { number: value } }); break;
+    case "focus-score":  await patch({ "Focus Score":  { number: value } }); break;
+    case "mood-score":   await patch({ "Mood Score":   { number: value } }); break;
     case "create-task": {
       const { task: taskTitle, priority, date, notes, goalId, weeklyTaskId } = value;
       const props = {

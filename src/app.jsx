@@ -90,7 +90,7 @@ export default function App() {
   };
 
   const {
-    tasks, habits, today, taskHistory, habitHistory, moodHistory,
+    tasks, habits, today, taskHistory, habitHistory,
     priorities, weekId, monthly, goals,
     weeklyTasks, monthlyTasks, weeklyHeatmap, monthlyHeatmap,
     currentWeek, currentMonth,
@@ -173,7 +173,7 @@ export default function App() {
 
           <div className="lp-pane" data-pane="Daily">
             <ErrorBoundary>
-              <MoodPicker today={today} writeback={writeback} loading={loading} moodHistory={moodHistory} />
+              <MoodPicker today={today} writeback={writeback} loading={loading} dayLabel={liveDate.date.day} />
               <TodayTasks
                 tasks={tasks}
                 taskHistory={taskHistory}
