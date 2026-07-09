@@ -165,8 +165,10 @@ body {
 .lp-eyebrow   { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 400; }
 .lp-num       { font-variant-numeric: tabular-nums lining-nums; }
 
-.lp-scrollable                  { scrollbar-width: none; overscroll-behavior-y: contain; }
-.lp-scrollable::-webkit-scrollbar { display: none; }
+html, body, .lp-scrollable, .lp-pane { scrollbar-width: none; }
+html::-webkit-scrollbar, body::-webkit-scrollbar,
+.lp-scrollable::-webkit-scrollbar, .lp-pane::-webkit-scrollbar { display: none; }
+.lp-scrollable { overscroll-behavior-y: contain; }
 
 .lp-tap { cursor: pointer; -webkit-tap-highlight-color: transparent; user-select: none; }
 
