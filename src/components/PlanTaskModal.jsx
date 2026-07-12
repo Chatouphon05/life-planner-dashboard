@@ -12,21 +12,23 @@ function stripPriority(p) {
 }
 
 // level: 'weekly' | 'monthly'
-export default function PlanTaskModal({ task, level, onClose, writeback, refetch, defaultPeriod, goals, monthlyTasks, fetchExpand }) {
+export default function PlanTaskModal({ task, level, onClose, writeback, refetch, defaultPeriod, goals, monthlyTasks, quarterlyActions, fetchExpand }) {
   const isEdit       = !!task;
   const periodKey    = level === 'weekly' ? 'week' : 'month';
   const periodOptions = level === 'weekly' ? WEEKS : MONTHS;
 
-  const [name,          setName]          = useState(task?.task || '');
-  const [priority,      setPriority]      = useState(stripPriority(task?.priority));
-  const [status,        setStatus]        = useState(task?.status || 'Not Started');
-  const [period,        setPeriod]        = useState(task?.[periodKey] || defaultPeriod);
-  const [notes,         setNotes]         = useState(task?.notes || '');
-  const [goalId,        setGoalId]        = useState(task?.goalId || '');
-  const [monthlyTaskId, setMonthlyTaskId] = useState(task?.monthlyTaskId || '');
-  const [busy,          setBusy]          = useState(false);
-  const [err,           setErr]           = useState(null);
-  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [name,              setName]              = useState(task?.task || '');
+  const [priority,          setPriority]          = useState(stripPriority(task?.priority));
+  const [status,            setStatus]            = useState(task?.status || 'Not Started');
+  const [period,            setPeriod]            = useState(task?.[periodKey] || defaultPeriod);
+  const [notes,             setNotes]             = useState(task?.notes || '');
+  const [goalId,            setGoalId]            = useState(task?.goalId || '');
+  const [monthlyTaskId,     setMonthlyTaskId]     = useState(task?.monthlyTaskId || '');
+  const [deadline,          setDeadline]          = useState(task?.deadline || '');
+  const [quarterlyActionId, setQuarterlyActionId] = useState(task?.quarterlyActionId || '');
+  const [busy,              setBusy]              = useState(false);
+  const [err,               setErr]               = useState(null);
+  const [confirmDelete,     setConfirmDelete]     = useState(false);
 
   const [periodTasks,   setPeriodTasks]   = useState(null);
   const [periodLoading, setPeriodLoading] = useState(false);
@@ -58,7 +60,9 @@ export default function PlanTaskModal({ task, level, onClose, writeback, refetch
         [periodKey]: period,
         notes: notes.trim() || null,
         goalId: goalId || null,
-        ...(level === 'weekly' ? { monthlyTaskId: monthlyTaskId || null } : {}),
+        ...(level === 'weekly'
+          ? { monthlyTaskId: monthlyTaskId || null }
+          : { deadline: deadline || null, quarterlyActionId: quarterlyActionId || null }),
       };
       const createType = level === 'weekly' ? 'create-weekly-task' : 'create-monthly-task';
       const updateType = level === 'weekly' ? 'update-weekly-task' : 'update-monthly-task';
@@ -175,6 +179,28 @@ export default function PlanTaskModal({ task, level, onClose, writeback, refetch
           </select>
         </div>
 
+        {level === 'monthly' && (
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <span className="lp-mono" style={{ fontSize: 10, color: 'var(--faint)', letterSpacing: '0.08em' }}>DEADLINE</span>
+            <input
+              type="date"
+              value={deadline || ''}
+              onChange={e => setDeadline(e.target.value)}
+              style={{
+                background: 'var(--bg)', border: '0.5px solid var(--hair-strong)', borderRadius: 6,
+                outline: 'none', color: 'var(--text)', fontSize: 13,
+                fontFamily: 'var(--font-mono)', padding: '5px 8px', colorScheme: 'dark',
+              }}
+            />
+            {deadline && (
+              <button className="lp-tap" onClick={() => setDeadline('')}
+                style={{ background: 'none', border: 'none', color: 'var(--faint)', fontSize: 11, fontFamily: 'var(--font-mono)', cursor: 'pointer' }}>
+                clear
+              </button>
+            )}
+          </div>
+        )}
+
         {(periodLoading || (periodTasks && periodTasks.length > 0)) && (
           <div style={{
             display: 'flex', flexDirection: 'column', gap: 5,
@@ -240,6 +266,23 @@ export default function PlanTaskModal({ task, level, onClose, writeback, refetch
               >
                 <option value="">— none —</option>
                 {(monthlyTasks || []).map(m => <option key={m.id} value={m.id}>{m.task}</option>)}
+              </select>
+            </label>
+          )}
+          {level === 'monthly' && (
+            <label style={{ flex: '1 1 140px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span className="lp-mono" style={{ fontSize: 10, color: 'var(--faint)', letterSpacing: '0.08em' }}>QUARTERLY ACTION</span>
+              <select
+                value={quarterlyActionId}
+                onChange={e => setQuarterlyActionId(e.target.value)}
+                style={{
+                  background: 'var(--bg)', border: '0.5px solid var(--hair-strong)', borderRadius: 6,
+                  outline: 'none', color: 'var(--text)', fontSize: 12,
+                  fontFamily: 'var(--font-mono)', padding: '6px 8px', width: '100%',
+                }}
+              >
+                <option value="">— none —</option>
+                {(quarterlyActions || []).map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
               </select>
             </label>
           )}

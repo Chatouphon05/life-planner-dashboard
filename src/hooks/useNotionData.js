@@ -143,11 +143,22 @@ function adaptWorkerData(raw) {
 
   // Monthly tasks (hierarchy level 2)
   const monthlyTasks = (raw.monthlyTasks || []).map(t => ({
-    id:       t.id       || '',
-    task:     t.task     || '',
-    status:   t.status   || 'Not Started',
-    priority: t.priority || null,
-    month:    t.month    || null,
+    id:                t.id                || '',
+    task:              t.task              || '',
+    status:            t.status            || 'Not Started',
+    priority:          t.priority          || null,
+    month:             t.month             || null,
+    deadline:          t.deadline          || null,
+    quarterlyActionId: t.quarterlyActionId || null,
+  }));
+
+  // Quarterly Actions (hierarchy level 1.5, between Goals and Monthly Tasks)
+  const quarterlyActions = (raw.quarterlyActions || []).map(a => ({
+    id:      a.id      || '',
+    name:    a.name    || '',
+    quarter: a.quarter || '',
+    status:  a.status  || '',
+    goalId:  a.goalId  || null,
   }));
 
   const currentWeek  = raw.currentWeek  || '';
@@ -181,7 +192,7 @@ function adaptWorkerData(raw) {
     };
   });
 
-  return { tasks, habits, today, taskHistory, habitHistory, moodHistory, priorities, weekId, monthly, goals, weeklyTasks, monthlyTasks, weeklyHeatmap, monthlyHeatmap, currentWeek, currentMonth, milestones };
+  return { tasks, habits, today, taskHistory, habitHistory, moodHistory, priorities, weekId, monthly, goals, quarterlyActions, weeklyTasks, monthlyTasks, weeklyHeatmap, monthlyHeatmap, currentWeek, currentMonth, milestones };
 }
 
 // v3: week/month priorities+theme now source from Weekly/Monthly Tasks anchor
@@ -210,6 +221,7 @@ const EMPTY_STATE = {
   weekId:        null,
   monthly:       { theme: null, name: null, focusAreas: [] },
   goals:         [],
+  quarterlyActions: [],
   weeklyTasks:    [],
   monthlyTasks:   [],
   weeklyHeatmap:  [],

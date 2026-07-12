@@ -64,11 +64,12 @@ every database that exists in the workspace.
 |---|---|---|---|---|
 | 1 | ☀️ Daily Tasks | `c88c5452b1224fc3a8e421c77447e063` | ✅ today's tasks + 14-day history | ✅ `Done` checkbox, create/update/delete |
 | 2 | 📋 Weekly Tasks | `5e77a48652b247ca99a86710e12094bb` | ✅ current week + 12-week heatmap + this week's Review Anchor row | ✅ `Status`, `Top 3 Priorities` (on the anchor row), create/update/delete |
-| 3 | 🗓️ Monthly Tasks | `0eaa802009e147e1ac04425330958f06` | ✅ current month + 6-month heatmap + this month's Review Anchor row | ✅ `Status`, create/update/delete |
+| 3 | 🗓️ Monthly Tasks | `0eaa802009e147e1ac04425330958f06` | ✅ current month + 6-month heatmap + this month's Review Anchor row | ✅ `Status`, `Deadline`, `Quarterly Action`, create/update/delete |
 | 4 | 🔁 Habits | `e00177c934234bbebbcffed9cd847b98` | ✅ today's habits + 14-day history | ✅ `Done` checkbox (+ cron auto-seed) |
 | 5 | ☀️ Daily Journal | `f35023fab2344a4a8a71f87f6e7d9610` | ✅ today's mood/energy + 14-day history | ✅ `Mood`, `Energy`, `Energy Score`, `Focus Score`, `Mood Score` |
 | 6 | 🎯 Goals | `bde57e266a3f43438d5913bf205c10f3` | ✅ `Status ∈ {In Progress, On Track}` | ❌ read-only |
 | 7 | 🏁 Milestones | `810fe48f4d1e494c9aa62d38bc62a316` | ✅ `Status ∈ {Upcoming, Active}` | ❌ read-only (set manually in Notion) |
+| 8 | 📆 Quarterly Actions | `7724898965044601b9fa974d07871a9e` | ✅ all rows, unfiltered (small dataset) | ❌ read-only |
 
 **Retired** (see `plans-to-tasks-migration.md`): **📋 Weekly Plans**
 (`2682d573db944fcf84c08dac4acc1a02`) and **📆 Monthly Plans**
@@ -81,8 +82,13 @@ dead code and was removed from the Worker's `DB` map in the same change.
 **Task hierarchy** (via Notion relations, drilled into lazily — see §7):
 
 ```
-🎯 Goals ← 📆 Monthly Tasks ← 📋 Weekly Tasks ← ☀️ Daily Tasks
+🎯 Goals ← 📆 Quarterly Actions ← 🗓️ Monthly Tasks ← 📋 Weekly Tasks ← ☀️ Daily Tasks
 ```
+
+Quarterly Actions itself isn't drilled into (no expand UI) — the Worker
+fetches all rows flat and the frontend just resolves each Monthly Task's
+`quarterlyActionId` to a name/quarter/status for display, same pattern as
+`goalId` elsewhere in the app.
 
 ### Review Anchor rows
 
@@ -116,9 +122,9 @@ Only what the code touches — see `worker.js`'s parser functions
   Priorities` (rich_text, newline-separated — parsed into a list, see §8 —
   only populated on the Review Anchor row)
 - **Monthly Tasks**: `Task`, `Status`, `Priority`, `Month` (select, full
-  month name e.g. `"June"`), `Notes`, `Goal` (relation), `Row Type` (same
-  as above), `Theme` + `Focus Areas` (rich_text, only populated on the
-  Review Anchor row)
+  month name e.g. `"June"`), `Notes`, `Goal` (relation), `Deadline` (date),
+  `Quarterly Action` (relation), `Row Type` (same as above), `Theme` +
+  `Focus Areas` (rich_text, only populated on the Review Anchor row)
 - **Habits**: `Habit` (title), `Done` (checkbox), `Date`, `Category`
   (select), `Streak` (number)
 - **Daily Journal**: `Date`, `Mood` (select), `Energy` (select),
@@ -129,6 +135,11 @@ Only what the code touches — see `worker.js`'s parser functions
 - **Milestones**: `Name` (title), `Date`, `Start` (date), `Category`
   (select: Transition / Deadline / Look Forward), `Status` (select:
   Upcoming / Active / Done)
+- **Quarterly Actions**: `Action` (title), `Quarter` (select: Q1–Q4),
+  `Status` (select), `Priority` (select, not currently surfaced), `Goal`
+  (relation, not currently surfaced), `Monthly Tasks` (relation, inverse of
+  Monthly Tasks' `Quarterly Action` — not queried, the Worker only reads
+  the forward direction from Monthly Tasks)
 
 ## 4. What the Worker's GET response looks like
 
@@ -147,8 +158,9 @@ needs in a single JSON payload:
   "week":           { "id", "name", "priorities": [...] },
   "month":          { "name", "theme", "focus" },
   "goals":          [{ "id", "name", "area", "progress", "status", "quarter" }],
+  "quarterlyActions": [{ "id", "name", "quarter", "status", "goalId" }],  // all rows, unfiltered
   "weeklyTasks":    [...],   // current ISO week only
-  "monthlyTasks":   [...],   // current month only
+  "monthlyTasks":   [...],   // current month only — each has { id, task, status, priority, month, deadline, quarterlyActionId }
   "weeklyHeatmap":  [{ "week", "done", "total", "isCurrent" }],   // 12 weeks
   "monthlyHeatmap": [{ "month", "done", "total", "isCurrent" }],  // 6 months
   "currentWeek": "W28", "currentMonth": "July",
@@ -211,7 +223,7 @@ The app has 3 tabs: **Daily**, **Weekly**, **Monthly** (`src/app.jsx`,
 | Weekly | `WeeklyTasks` | `weeklyTasks`, `weeklyHeatmap`, `monthlyTasks`, `goals` | Weekly Tasks (current week + 12w heatmap, Review Anchor row excluded) | `task-status`, `daily-task-done` (via drilldown), create/update/delete |
 | Weekly | `TimeRemaining` | `liveDate.time` | **not from Notion** — computed client-side from the current date | — |
 | Monthly | `MonthlyFocus` | `monthly` | Monthly Tasks (current month's Review Anchor row) | — |
-| Monthly | `MonthlyTasks` | `monthlyTasks`, `monthlyHeatmap`, `goals` | Monthly Tasks (current month + 6mo heatmap, Review Anchor row excluded) | `task-status`, `daily-task-done` (via drilldown), create/update/delete |
+| Monthly | `MonthlyTasks` | `monthlyTasks`, `monthlyHeatmap`, `goals`, `quarterlyActions` | Monthly Tasks (current month + 6mo heatmap, Review Anchor row excluded); each row's `quarterlyActionId` resolved against `quarterlyActions` client-side for display | `task-status`, `daily-task-done` (via drilldown), create/update/delete (now incl. `deadline`, `quarterlyActionId`) |
 | Monthly | `Goals` | `goals` | Goals (`Status ∈ {In Progress, On Track}`) | — |
 | Monthly | `Milestones` | `milestones` | Milestones (`Status ∈ {Upcoming, Active}`) | — |
 | Monthly | `NavGrid` | — | static links out to Notion pages | — |

@@ -94,7 +94,7 @@ export default function App() {
 
   const {
     tasks, habits, today, taskHistory, habitHistory,
-    priorities, weekId, monthly, goals,
+    priorities, weekId, monthly, goals, quarterlyActions,
     weeklyTasks, monthlyTasks, weeklyHeatmap, monthlyHeatmap,
     currentWeek, currentMonth,
     milestones,
@@ -215,7 +215,7 @@ export default function App() {
           <div className="lp-pane" data-pane="Monthly">
             <ErrorBoundary>
               <MonthlyFocus monthly={monthly} loading={loading} monthName={liveDate.date.m} />
-              <MonthlyTasks monthlyTasks={monthlyTasks} currentMonth={currentMonth} loading={loading} fetchExpand={fetchExpand} writeback={writeback} refetch={refetch} goals={goals} monthlyHeatmap={monthlyHeatmap} />
+              <MonthlyTasks monthlyTasks={monthlyTasks} currentMonth={currentMonth} loading={loading} fetchExpand={fetchExpand} writeback={writeback} refetch={refetch} goals={goals} quarterlyActions={quarterlyActions} monthlyHeatmap={monthlyHeatmap} />
               <Goals goals={goals} loading={loading} />
               <Milestones milestones={milestones} loading={loading} />
               <NavGrid />

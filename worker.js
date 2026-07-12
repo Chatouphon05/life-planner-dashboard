@@ -17,13 +17,14 @@ const UTC_OFFSET_HOURS = 10;
 // that holds the period's forward-looking meta (Top 3 Priorities / Theme /
 // Focus Areas) alongside the review reflection.
 const DB = {
-  daily_tasks:   "c88c5452b1224fc3a8e421c77447e063",
-  weekly_tasks:  "5e77a48652b247ca99a86710e12094bb",
-  monthly_tasks: "0eaa802009e147e1ac04425330958f06",
-  habits:        "e00177c934234bbebbcffed9cd847b98",
-  daily:         "f35023fab2344a4a8a71f87f6e7d9610",
-  goals:         "bde57e266a3f43438d5913bf205c10f3",
-  milestones:    "810fe48f4d1e494c9aa62d38bc62a316",
+  daily_tasks:       "c88c5452b1224fc3a8e421c77447e063",
+  weekly_tasks:      "5e77a48652b247ca99a86710e12094bb",
+  monthly_tasks:     "0eaa802009e147e1ac04425330958f06",
+  habits:            "e00177c934234bbebbcffed9cd847b98",
+  daily:             "f35023fab2344a4a8a71f87f6e7d9610",
+  goals:             "bde57e266a3f43438d5913bf205c10f3",
+  milestones:        "810fe48f4d1e494c9aa62d38bc62a316",
+  quarterly_actions: "7724898965044601b9fa974d07871a9e",
 };
 
 const ROW_TYPE_ANCHOR = "Review Anchor";
@@ -260,13 +261,15 @@ async function getMonthlyTasksByMonth(monthStr, token) {
   }, null, token);
 
   return res.results.map(p => ({
-    id:       getId(p),
-    task:     getText(p.properties["Task"]),
-    status:   getSelect(p.properties["Status"]),
-    priority: getSelect(p.properties["Priority"]),
-    month:    getSelect(p.properties["Month"]),
-    notes:    getText(p.properties["Notes"]),
-    goalId:   getRelation(p.properties["Goal"])[0] || null,
+    id:                getId(p),
+    task:              getText(p.properties["Task"]),
+    status:            getSelect(p.properties["Status"]),
+    priority:          getSelect(p.properties["Priority"]),
+    month:             getSelect(p.properties["Month"]),
+    notes:             getText(p.properties["Notes"]),
+    deadline:          getDate(p.properties["Deadline"]),
+    goalId:            getRelation(p.properties["Goal"])[0]             || null,
+    quarterlyActionId: getRelation(p.properties["Quarterly Action"])[0] || null,
   })).filter(t => t.task);
 }
 
@@ -342,6 +345,7 @@ async function getData(token) {
     taskHistoryRes, habitHistoryRes,
     weeklyTasksRes, monthlyTasksRes,
     milestonesRes, dailyHistoryRes,
+    quarterlyActionsRes,
   ] = await Promise.all([
     q(DB.daily_tasks, { property: "Date", date: { equals: today } }),
     q(DB.habits,      { property: "Date", date: { equals: today } }),
@@ -384,6 +388,7 @@ async function getData(token) {
       { property: "Date", date: { on_or_after:  historyStartStr } },
       { property: "Date", date: { on_or_before: today } },
     ]}),
+    q(DB.quarterly_actions, null),
   ]);
 
   const tasks = tasksRes.results.map(p => ({
@@ -457,12 +462,22 @@ async function getData(token) {
   });
 
   const allMonthlyTasks = monthlyTasksRes.results.map(p => ({
-    id:       getId(p),
-    task:     getText(p.properties["Task"]),
-    status:   getSelect(p.properties["Status"]),
-    priority: getSelect(p.properties["Priority"]),
-    month:    getSelect(p.properties["Month"]),
+    id:                getId(p),
+    task:              getText(p.properties["Task"]),
+    status:            getSelect(p.properties["Status"]),
+    priority:          getSelect(p.properties["Priority"]),
+    month:             getSelect(p.properties["Month"]),
+    deadline:          getDate(p.properties["Deadline"]),
+    quarterlyActionId: getRelation(p.properties["Quarterly Action"])[0] || null,
   })).filter(t => t.task);
+
+  const quarterlyActions = quarterlyActionsRes.results.map(p => ({
+    id:      getId(p),
+    name:    getText(p.properties["Action"]),
+    quarter: getSelect(p.properties["Quarter"]),
+    status:  getSelect(p.properties["Status"]),
+    goalId:  getRelation(p.properties["Goal"])[0] || null,
+  })).filter(a => a.name);
 
   const monthlyTasks = allMonthlyTasks.filter(t => t.month === currentMonthName);
 
@@ -543,6 +558,7 @@ async function getData(token) {
     week:  { name: weekStr, priorities, id: weekAnchor ? getId(weekAnchor) : null },
     month: { name: currentMonthName, theme: monthTheme, focus: monthFocus },
     goals,
+    quarterlyActions,
     weeklyTasks, monthlyTasks,
     weeklyHeatmap, monthlyHeatmap,
     currentWeek:  weekStr,
@@ -626,25 +642,29 @@ async function handlePatch(body, token) {
       break;
     }
     case "create-monthly-task": {
-      const { task: taskTitle, priority, status, month, notes, goalId } = value;
+      const { task: taskTitle, priority, status, month, notes, goalId, deadline, quarterlyActionId } = value;
       const props = {
         "Task":   { title: [{ text: { content: taskTitle } }] },
         "Month":  { select: { name: month } },
         "Status": { select: { name: status || "Not Started" } },
       };
-      if (priority) props["Priority"] = priorityProp(priority);
-      if (notes)    props["Notes"]    = { rich_text: [{ text: { content: notes } }] };
-      if (goalId)   props["Goal"]     = { relation: [{ id: fmtId(goalId) }] };
+      if (priority)          props["Priority"]         = priorityProp(priority);
+      if (notes)              props["Notes"]            = { rich_text: [{ text: { content: notes } }] };
+      if (goalId)             props["Goal"]             = { relation: [{ id: fmtId(goalId) }] };
+      if (deadline)           props["Deadline"]         = { date: { start: deadline } };
+      if (quarterlyActionId)  props["Quarterly Action"] = { relation: [{ id: fmtId(quarterlyActionId) }] };
       await notionCreate(DB.monthly_tasks, props, token);
       break;
     }
     case "update-monthly-task": {
-      const { task: taskTitle, priority, status, month, notes, goalId } = value;
+      const { task: taskTitle, priority, status, month, notes, goalId, deadline, quarterlyActionId } = value;
       const props = {
-        "Priority": priorityProp(priority),
-        "Status":   status ? { select: { name: status } } : { select: null },
-        "Notes":    { rich_text: notes ? [{ text: { content: notes } }] : [] },
-        "Goal":     { relation: goalId ? [{ id: fmtId(goalId) }] : [] },
+        "Priority":         priorityProp(priority),
+        "Status":           status ? { select: { name: status } } : { select: null },
+        "Notes":            { rich_text: notes ? [{ text: { content: notes } }] : [] },
+        "Goal":             { relation: goalId            ? [{ id: fmtId(goalId)            }] : [] },
+        "Deadline":         { date: deadline ? { start: deadline } : null },
+        "Quarterly Action": { relation: quarterlyActionId ? [{ id: fmtId(quarterlyActionId) }] : [] },
       };
       if (taskTitle != null) props["Task"]  = { title: [{ text: { content: taskTitle } }] };
       if (month != null)     props["Month"] = { select: { name: month } };

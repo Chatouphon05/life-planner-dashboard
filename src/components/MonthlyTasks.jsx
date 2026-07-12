@@ -139,7 +139,14 @@ function ExpandBody({ state, monthlyTaskId, onToggleDailyTask }) {
   );
 }
 
-export default function MonthlyTasks({ monthlyTasks, currentMonth, loading, fetchExpand, writeback, refetch, goals, monthlyHeatmap = [] }) {
+// ISO "2026-07-31" → "Jul 31"
+function fmtDeadline(dateStr) {
+  const [, m, d] = dateStr.split('-').map(Number);
+  const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${MONTHS_SHORT[m - 1]} ${d}`;
+}
+
+export default function MonthlyTasks({ monthlyTasks, currentMonth, loading, fetchExpand, writeback, refetch, goals, quarterlyActions = [], monthlyHeatmap = [] }) {
   const [expanded,   setExpanded]   = useState(new Set());
   const [expandData, setExpandData] = useState({});
   const fetchCache = useRef({});
@@ -262,7 +269,9 @@ export default function MonthlyTasks({ monthlyTasks, currentMonth, loading, fetc
     </div>
   );
 
-  const effectiveStatus = (t) => overrides.hasOwnProperty(t.id) ? overrides[t.id] : t.status;
+  const effectiveStatus  = (t) => overrides.hasOwnProperty(t.id) ? overrides[t.id] : t.status;
+  const quarterlyActionById = Object.fromEntries(quarterlyActions.map(a => [a.id, a]));
+  const todayStr   = new Date().toISOString().split('T')[0];
   const total      = displayTasks.length;
   const labelMonth = selectedMonth || currentMonth;
   const label      = labelMonth ? `Monthly · ${labelMonth}` : 'Monthly · tasks';
@@ -368,6 +377,35 @@ export default function MonthlyTasks({ monthlyTasks, currentMonth, loading, fetc
                   </button>
                 </div>
 
+                {(t.deadline || t.quarterlyActionId) && (() => {
+                  const qa        = t.quarterlyActionId ? quarterlyActionById[t.quarterlyActionId] : null;
+                  const isOverdue = t.deadline && s !== 'Done' && s !== 'Dropped' && t.deadline < todayStr;
+                  return (
+                    <div style={{
+                      display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
+                      paddingLeft: 24, marginTop: -4, marginBottom: 6,
+                    }}>
+                      {t.deadline && (
+                        <span className="lp-mono" style={{
+                          fontSize: 10, letterSpacing: '0.04em',
+                          color: isOverdue ? 'var(--priority-high)' : 'var(--faint)',
+                        }}>
+                          ⊙ {fmtDeadline(t.deadline)}{isOverdue ? ' · overdue' : ''}
+                        </span>
+                      )}
+                      {qa && (
+                        <span className="lp-mono" style={{
+                          fontSize: 10, color: 'var(--muted)',
+                          padding: '2px 7px', borderRadius: 99,
+                          border: '0.5px solid var(--hair-strong)',
+                        }}>
+                          {qa.name}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })()}
+
                 {isFailed && (
                   <div className="lp-mono" style={{ fontSize: 11, color: 'var(--faint)', paddingLeft: 24, marginTop: -4, marginBottom: 4 }}>
                     sync failed · pull to retry
@@ -449,6 +487,7 @@ export default function MonthlyTasks({ monthlyTasks, currentMonth, loading, fetc
           refetch={refetch}
           defaultPeriod={selectedMonth || currentMonth}
           goals={goals}
+          quarterlyActions={quarterlyActions}
           fetchExpand={fetchExpand}
         />
       )}
