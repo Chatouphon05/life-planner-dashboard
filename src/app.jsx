@@ -80,11 +80,14 @@ export default function App() {
   useLayoutEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.content = theme === 'dark' ? '#06070c' : '#f5f0e8';
+    if (meta) {
+      meta.content = theme === 'dark' ? '#06070c' : theme === 'navy' ? '#030b1a' : '#f5f0e8';
+    }
   }, [theme]);
 
+  const THEME_ORDER = ['dark', 'navy', 'light'];
   const toggleTheme = () => {
-    const next = theme === 'dark' ? 'light' : 'dark';
+    const next = THEME_ORDER[(THEME_ORDER.indexOf(theme) + 1) % THEME_ORDER.length];
     setTheme(next);
     localStorage.setItem('lp-theme', next);
   };

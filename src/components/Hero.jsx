@@ -13,8 +13,12 @@ function fmtTarget(dateStr) {
   return `${MONTHS_FULL[m - 1]} ${d}`;
 }
 
+const THEME_ORDER = ['dark', 'navy', 'light'];
+const THEME_ICON   = { dark: '○', navy: '◐', light: '●' };
+
 export default function Hero({ liveDate, theme, onToggleTheme, syncing, milestones = [], loading, tab = 'Daily' }) {
   const { date, mantra, city } = liveDate;
+  const nextTheme = THEME_ORDER[(THEME_ORDER.indexOf(theme) + 1) % THEME_ORDER.length];
 
   const crumbs = [ String(date.y), date.m, `Week ${date.weekNum}`, date.day.slice(0, 3) ];
   const depth  = tab === 'Monthly' ? 2 : tab === 'Weekly' ? 3 : 4;
@@ -59,13 +63,13 @@ export default function Hero({ liveDate, theme, onToggleTheme, syncing, mileston
         WebkitBackdropFilter: 'blur(8px)',
       }}>
         <span className="lp-mono" style={{ fontSize: 11, color: 'var(--accent)', lineHeight: 1 }}>
-          {theme === 'dark' ? '○' : '●'}
+          {THEME_ICON[theme]}
         </span>
         <span className="lp-mono" style={{
           fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase',
           color: 'var(--muted)',
         }}>
-          {theme === 'dark' ? 'light' : 'dark'}
+          {nextTheme}
         </span>
       </div>
 
