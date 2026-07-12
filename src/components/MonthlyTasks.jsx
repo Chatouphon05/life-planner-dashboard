@@ -146,6 +146,14 @@ function fmtDeadline(dateStr) {
   return `${MONTHS_SHORT[m - 1]} ${d}`;
 }
 
+// Same High/Medium/Low → color convention as Primitives.jsx's TaskRow
+function priorityColor(priority) {
+  if (priority?.includes('High'))   return 'var(--priority-high)';
+  if (priority?.includes('Low'))    return 'var(--priority-low)';
+  if (priority?.includes('Medium')) return 'var(--accent)';
+  return 'var(--muted)';
+}
+
 export default function MonthlyTasks({ monthlyTasks, currentMonth, loading, fetchExpand, writeback, refetch, goals, quarterlyActions = [], monthlyHeatmap = [] }) {
   const [expanded,   setExpanded]   = useState(new Set());
   const [expandData, setExpandData] = useState({});
@@ -394,13 +402,22 @@ export default function MonthlyTasks({ monthlyTasks, currentMonth, loading, fetc
                         </span>
                       )}
                       {qa && (
-                        <span className="lp-mono" style={{
-                          fontSize: 10, color: 'var(--muted)',
-                          padding: '2px 7px', borderRadius: 99,
-                          border: '0.5px solid var(--hair-strong)',
-                        }}>
+                        <a
+                          href={`https://www.notion.so/${qa.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={e => e.stopPropagation()}
+                          className="lp-mono lp-tap"
+                          style={{
+                            fontSize: 10, color: priorityColor(qa.priority),
+                            padding: '2px 7px', borderRadius: 99,
+                            border: `0.5px solid color-mix(in oklch, ${priorityColor(qa.priority)} 40%, var(--hair-strong))`,
+                            textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4,
+                          }}
+                        >
                           {qa.name}
-                        </span>
+                          <span style={{ opacity: 0.6 }}>↗</span>
+                        </a>
                       )}
                     </div>
                   );

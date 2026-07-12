@@ -154,11 +154,12 @@ function adaptWorkerData(raw) {
 
   // Quarterly Actions (hierarchy level 1.5, between Goals and Monthly Tasks)
   const quarterlyActions = (raw.quarterlyActions || []).map(a => ({
-    id:      a.id      || '',
-    name:    a.name    || '',
-    quarter: a.quarter || '',
-    status:  a.status  || '',
-    goalId:  a.goalId  || null,
+    id:       a.id       || '',
+    name:     a.name     || '',
+    quarter:  a.quarter  || '',
+    status:   a.status   || '',
+    priority: a.priority || null,
+    goalId:   a.goalId   || null,
   }));
 
   const currentWeek  = raw.currentWeek  || '';

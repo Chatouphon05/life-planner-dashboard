@@ -472,11 +472,12 @@ async function getData(token) {
   })).filter(t => t.task);
 
   const quarterlyActions = quarterlyActionsRes.results.map(p => ({
-    id:      getId(p),
-    name:    getText(p.properties["Action"]),
-    quarter: getSelect(p.properties["Quarter"]),
-    status:  getSelect(p.properties["Status"]),
-    goalId:  getRelation(p.properties["Goal"])[0] || null,
+    id:       getId(p),
+    name:     getText(p.properties["Action"]),
+    quarter:  getSelect(p.properties["Quarter"]),
+    status:   getSelect(p.properties["Status"]),
+    priority: getSelect(p.properties["Priority"]),
+    goalId:   getRelation(p.properties["Goal"])[0] || null,
   })).filter(a => a.name);
 
   const monthlyTasks = allMonthlyTasks.filter(t => t.month === currentMonthName);

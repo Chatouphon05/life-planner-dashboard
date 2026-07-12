@@ -136,10 +136,11 @@ Only what the code touches — see `worker.js`'s parser functions
   (select: Transition / Deadline / Look Forward), `Status` (select:
   Upcoming / Active / Done)
 - **Quarterly Actions**: `Action` (title), `Quarter` (select: Q1–Q4),
-  `Status` (select), `Priority` (select, not currently surfaced), `Goal`
-  (relation, not currently surfaced), `Monthly Tasks` (relation, inverse of
-  Monthly Tasks' `Quarterly Action` — not queried, the Worker only reads
-  the forward direction from Monthly Tasks)
+  `Status` (select), `Priority` (select — colors the linked-action pill in
+  `MonthlyTasks`, same High/Medium/Low convention as everywhere else),
+  `Goal` (relation, not currently surfaced), `Monthly Tasks` (relation,
+  inverse of Monthly Tasks' `Quarterly Action` — not queried, the Worker
+  only reads the forward direction from Monthly Tasks)
 
 ## 4. What the Worker's GET response looks like
 
@@ -158,7 +159,7 @@ needs in a single JSON payload:
   "week":           { "id", "name", "priorities": [...] },
   "month":          { "name", "theme", "focus" },
   "goals":          [{ "id", "name", "area", "progress", "status", "quarter" }],
-  "quarterlyActions": [{ "id", "name", "quarter", "status", "goalId" }],  // all rows, unfiltered
+  "quarterlyActions": [{ "id", "name", "quarter", "status", "priority", "goalId" }],  // all rows, unfiltered
   "weeklyTasks":    [...],   // current ISO week only
   "monthlyTasks":   [...],   // current month only — each has { id, task, status, priority, month, deadline, quarterlyActionId }
   "weeklyHeatmap":  [{ "week", "done", "total", "isCurrent" }],   // 12 weeks
