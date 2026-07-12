@@ -11,18 +11,25 @@ const MONTH_NAMES          = ['January','February','March','April','May','June',
 // Brisbane (UTC+10) since Jun 7 2026 move. Was 7 (Laos). Redeploy after changing.
 const UTC_OFFSET_HOURS = 10;
 
+// Weekly/Monthly Plans are retired (see plans-to-tasks-migration.md) — the
+// Tasks hierarchy is now the single source of truth. Weekly/Monthly Tasks
+// each carry one "Review Anchor" row per period (Row Type = "Review Anchor")
+// that holds the period's forward-looking meta (Top 3 Priorities / Theme /
+// Focus Areas) alongside the review reflection.
 const DB = {
-  tasks:         "972a5ee5fce3470796efa210a62ffdcb",
   daily_tasks:   "c88c5452b1224fc3a8e421c77447e063",
   weekly_tasks:  "5e77a48652b247ca99a86710e12094bb",
   monthly_tasks: "0eaa802009e147e1ac04425330958f06",
   habits:        "e00177c934234bbebbcffed9cd847b98",
   daily:         "f35023fab2344a4a8a71f87f6e7d9610",
-  weekly:        "2682d573db944fcf84c08dac4acc1a02",
-  monthly:       "a24a10e0ad52408ab4fdd70e2768b979",
   goals:         "bde57e266a3f43438d5913bf205c10f3",
   milestones:    "810fe48f4d1e494c9aa62d38bc62a316",
 };
+
+const ROW_TYPE_ANCHOR = "Review Anchor";
+// Matches unset Row Type (pre-migration rows) as well as explicit "Task" —
+// only rows explicitly tagged Review Anchor are excluded.
+const excludeAnchors = { property: "Row Type", select: { does_not_equal: ROW_TYPE_ANCHOR } };
 
 // ── Date helpers ──────────────────────────────────────────────────────────────
 
@@ -226,7 +233,10 @@ async function getTasksByDate(dateStr, token) {
 
 async function getWeeklyTasksByWeek(weekStr, token) {
   const res = await notionQuery(DB.weekly_tasks, {
-    property: "Week", select: { equals: weekStr },
+    and: [
+      { property: "Week", select: { equals: weekStr } },
+      excludeAnchors,
+    ],
   }, null, token);
 
   return res.results.map(p => ({
@@ -243,7 +253,10 @@ async function getWeeklyTasksByWeek(weekStr, token) {
 
 async function getMonthlyTasksByMonth(monthStr, token) {
   const res = await notionQuery(DB.monthly_tasks, {
-    property: "Month", select: { equals: monthStr },
+    and: [
+      { property: "Month", select: { equals: monthStr } },
+      excludeAnchors,
+    ],
   }, null, token);
 
   return res.results.map(p => ({
@@ -274,8 +287,10 @@ async function getWeeklyTaskDrilldown(weeklyTaskId, token) {
 
 async function getMonthlyTaskDrilldown(monthlyTaskId, token) {
   const weeklyRes = await notionQuery(DB.weekly_tasks, {
-    property: "Monthly Task",
-    relation: { contains: fmtId(monthlyTaskId) },
+    and: [
+      { property: "Monthly Task", relation: { contains: fmtId(monthlyTaskId) } },
+      excludeAnchors,
+    ],
   }, null, token);
 
   const weeklyTasks = weeklyRes.results.map(p => ({
@@ -323,7 +338,7 @@ async function getData(token) {
 
   const [
     tasksRes, habitsRes, dailyRes,
-    weeklyRes, monthlyRes, goalsRes,
+    weekAnchorRes, monthAnchorRes, goalsRes,
     taskHistoryRes, habitHistoryRes,
     weeklyTasksRes, monthlyTasksRes,
     milestonesRes, dailyHistoryRes,
@@ -331,10 +346,15 @@ async function getData(token) {
     q(DB.daily_tasks, { property: "Date", date: { equals: today } }),
     q(DB.habits,      { property: "Date", date: { equals: today } }),
     q(DB.daily,       { property: "Date", date: { equals: today } }),
-    q(DB.weekly,  { property: "Status", select: { equals: "In Progress" } }),
-    q(DB.monthly, { or: [
-      { property: "Status", select: { equals: "In Progress" } },
-      { property: "Status", select: { equals: "Not Started" } },
+    // Weekly/Monthly Plans replaced by per-period anchor rows living inside
+    // the Tasks hierarchy — see plans-to-tasks-migration.md §3.2-3.3.
+    q(DB.weekly_tasks, { and: [
+      { property: "Week",     select: { equals: weekStr } },
+      { property: "Row Type", select: { equals: ROW_TYPE_ANCHOR } },
+    ]}),
+    q(DB.monthly_tasks, { and: [
+      { property: "Month",    select: { equals: currentMonthName } },
+      { property: "Row Type", select: { equals: ROW_TYPE_ANCHOR } },
     ]}),
     q(DB.goals, { or: [
       { property: "Status", select: { equals: "In Progress" } },
@@ -348,8 +368,14 @@ async function getData(token) {
       { property: "Date", date: { on_or_after:  historyStartStr } },
       { property: "Date", date: { on_or_before: today } },
     ]}),
-    q(DB.weekly_tasks,  { or: last12Weeks.map(w => ({ property: "Week",  select: { equals: w } })) }),
-    q(DB.monthly_tasks, { or: last6Months.map(m => ({ property: "Month", select: { equals: m } })) }),
+    q(DB.weekly_tasks, { and: [
+      { or: last12Weeks.map(w => ({ property: "Week",  select: { equals: w } })) },
+      excludeAnchors,
+    ]}),
+    q(DB.monthly_tasks, { and: [
+      { or: last6Months.map(m => ({ property: "Month", select: { equals: m } })) },
+      excludeAnchors,
+    ]}),
     q(DB.milestones, { or: [
       { property: "Status", select: { equals: "Upcoming" } },
       { property: "Status", select: { equals: "Active"   } },
@@ -389,17 +415,17 @@ async function getData(token) {
   const moodScore   = dailyEntry ? getNum(dailyEntry.properties["Mood Score"])   : null;
   const dailyId = dailyEntry ? getId(dailyEntry) : null;
 
-  const weekEntry  = weeklyRes.results[0];
-  const weekName   = weekEntry ? getText(weekEntry.properties["Week"]) : "";
-  const weekRaw    = weekEntry ? getText(weekEntry.properties["Top 3 Priorities"]) : "";
-  const priorities = weekRaw.split("\n")
+  // Anchor rows may not exist yet for a brand-new period (cron creates them
+  // daily — see ensureAnchors) — read path stays graceful either way.
+  const weekAnchor  = weekAnchorRes.results[0]  || null;
+  const weekRaw     = weekAnchor ? getText(weekAnchor.properties["Top 3 Priorities"]) : "";
+  const priorities  = weekRaw.split("\n")
     .map(t => t.replace(/^[-•*\d.]\s*/, "").trim())
     .filter(Boolean);
 
-  const monthEntry = monthlyRes.results[0];
-  const monthName  = monthEntry ? getText(monthEntry.properties["Month"])      : "";
-  const monthTheme = monthEntry ? getText(monthEntry.properties["Theme"])       : "";
-  const monthFocus = monthEntry ? getText(monthEntry.properties["Focus Areas"]) : "";
+  const monthAnchor = monthAnchorRes.results[0] || null;
+  const monthTheme  = monthAnchor ? getText(monthAnchor.properties["Theme"])       : "";
+  const monthFocus  = monthAnchor ? getText(monthAnchor.properties["Focus Areas"]) : "";
 
   const goals = goalsRes.results.map(p => ({
     id:       getId(p),
@@ -514,8 +540,8 @@ async function getData(token) {
     tasks, taskHistory,
     habits, habitHistory,
     moodHistory,
-    week:  { name: weekName, priorities, id: weekEntry ? getId(weekEntry) : null },
-    month: { name: monthName, theme: monthTheme, focus: monthFocus },
+    week:  { name: weekStr, priorities, id: weekAnchor ? getId(weekAnchor) : null },
+    month: { name: currentMonthName, theme: monthTheme, focus: monthFocus },
     goals,
     weeklyTasks, monthlyTasks,
     weeklyHeatmap, monthlyHeatmap,
@@ -695,6 +721,48 @@ async function seedHabits(token) {
   return { ok: failed.length === 0, created: succeeded, failed: failed.length ? failed : undefined, date: today };
 }
 
+// ── Cron: ensure this period's Review Anchor rows exist ───────────────────────
+// Low-energy resilience (plans-to-tasks-migration.md §5, "preferred" option) —
+// runs daily alongside seedHabits so the current week's/month's anchor row is
+// always in place well before Sunday Review or month-end need to write to it.
+
+async function ensureAnchors(token) {
+  const today            = laosDateStr(0);
+  const weekStr          = getISOWeekStr(today);
+  const currentMonthName = MONTH_NAMES[new Date(today + "T12:00:00Z").getUTCMonth()];
+
+  const [weekRes, monthRes] = await Promise.all([
+    notionQuery(DB.weekly_tasks, { and: [
+      { property: "Week",     select: { equals: weekStr } },
+      { property: "Row Type", select: { equals: ROW_TYPE_ANCHOR } },
+    ]}, null, token),
+    notionQuery(DB.monthly_tasks, { and: [
+      { property: "Month",    select: { equals: currentMonthName } },
+      { property: "Row Type", select: { equals: ROW_TYPE_ANCHOR } },
+    ]}, null, token),
+  ]);
+
+  const results = await Promise.allSettled([
+    weekRes.results.length ? Promise.resolve({ skipped: true }) : notionCreate(DB.weekly_tasks, {
+      "Task":     { title: [{ text: { content: `📝 Weekly Review — ${weekStr}` } }] },
+      "Week":     { select: { name: weekStr } },
+      "Row Type": { select: { name: ROW_TYPE_ANCHOR } },
+    }, token),
+    monthRes.results.length ? Promise.resolve({ skipped: true }) : notionCreate(DB.monthly_tasks, {
+      "Task":     { title: [{ text: { content: `📝 Monthly Review — ${currentMonthName}` } }] },
+      "Month":    { select: { name: currentMonthName } },
+      "Row Type": { select: { name: ROW_TYPE_ANCHOR } },
+    }, token),
+  ]);
+
+  const [weekResult, monthResult] = results;
+  return {
+    ok: results.every(r => r.status === 'fulfilled'),
+    week:  weekResult.status  === 'fulfilled' ? (weekResult.value.skipped   ? 'exists' : 'created') : `error: ${weekResult.reason?.message}`,
+    month: monthResult.status === 'fulfilled' ? (monthResult.value.skipped ? 'exists' : 'created') : `error: ${monthResult.reason?.message}`,
+  };
+}
+
 // ── Cloudflare Worker export ──────────────────────────────────────────────────
 
 export default {
@@ -762,6 +830,9 @@ export default {
 
   async scheduled(event, env) {
     // Cloudflare invokes this at the cron schedule — no HTTP auth needed
-    await seedHabits(env.NOTION_TOKEN);
+    await Promise.allSettled([
+      seedHabits(env.NOTION_TOKEN),
+      ensureAnchors(env.NOTION_TOKEN),
+    ]);
   },
 };

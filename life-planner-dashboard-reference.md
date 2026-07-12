@@ -2,6 +2,12 @@
 
 > Authoritative reference for all Claude sessions working on this project.
 > Read this file first. Do not assume — verify here.
+>
+> ⚠️ **Partially superseded (July 2026):** §5's Weekly Plans/Monthly Plans
+> rows are retired — see `plans-to-tasks-migration.md` and
+> `notion-data-mapping.md` for the current model (Review Anchor rows inside
+> Weekly/Monthly Tasks power `week.priorities`/`month.theme`/`month.focus`
+> now). Everything else here is still accurate.
 
 ---
 
@@ -104,11 +110,17 @@ All connected to integration "Life Planner Dashboard". IDs live in `DB` in `work
 | 🗓️ Monthly Tasks | `0eaa802009e147e1ac04425330958f06` | ✅ Status |
 | 🔁 Habits | `e00177c934234bbebbcffed9cd847b98` | ✅ Done checkbox (+ cron auto-seed) |
 | ☀️ Daily Journal (mood/energy) | `f35023fab2344a4a8a71f87f6e7d9610` | ✅ Mood + Energy |
-| 📋 Weekly Plans | `2682d573db944fcf84c08dac4acc1a02` | ✅ Top 3 Priorities (Sunday Review) |
-| 📆 Monthly Plans | `a24a10e0ad52408ab4fdd70e2768b979` | ❌ Read only |
 | 🎯 Goals | `bde57e266a3f43438d5913bf205c10f3` | ❌ Read only |
 | 🏁 Milestones | `810fe48f4d1e494c9aa62d38bc62a316` | ❌ Read only (Status set manually in Notion) |
-| ✅ Tasks (legacy standalone) | `972a5ee5fce3470796efa210a62ffdcb` | (superseded by Daily Tasks) |
+
+**Retired** (July 2026, see `plans-to-tasks-migration.md`): 📋 Weekly Plans
+(`2682d573db944fcf84c08dac4acc1a02`) and 📆 Monthly Plans
+(`a24a10e0ad52408ab4fdd70e2768b979`) — replaced by a Review Anchor row
+(`Row Type = "Review Anchor"`) inside Weekly/Monthly Tasks per period,
+which now carries `Top 3 Priorities` / `Theme` / `Focus Areas`. The legacy
+standalone ✅ Tasks DB (`972a5ee5fce3470796efa210a62ffdcb`) was already dead
+code (superseded by Daily Tasks) and was dropped from `worker.js`'s `DB`
+map in the same change.
 
 **Task hierarchy:** Monthly Task → Weekly Task → Daily Task (via Notion relations).
 The dashboard drills down lazily: tapping a weekly/monthly task fetches its

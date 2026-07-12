@@ -184,7 +184,10 @@ function adaptWorkerData(raw) {
   return { tasks, habits, today, taskHistory, habitHistory, moodHistory, priorities, weekId, monthly, goals, weeklyTasks, monthlyTasks, weeklyHeatmap, monthlyHeatmap, currentWeek, currentMonth, milestones };
 }
 
-const CACHE_KEY = 'lp-data-v2';
+// v3: week/month priorities+theme now source from Weekly/Monthly Tasks anchor
+// rows instead of the retired Plans DBs — bump forces one clean refetch past
+// any stale cached payload (see plans-to-tasks-migration.md).
+const CACHE_KEY = 'lp-data-v3';
 
 function loadCache() {
   try { return JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); } catch { return null; }

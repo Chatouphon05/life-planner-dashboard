@@ -2,6 +2,13 @@
 > Read this file before touching any Notion-related code.
 > This is the authoritative reference for all database IDs, schemas, and relationships.
 > Last updated: May 26, 2026
+>
+> ⚠️ **Partially superseded (July 2026):** 📋 Weekly Plans and 📆 Monthly
+> Plans are retired — see `plans-to-tasks-migration.md` and
+> `notion-data-mapping.md` for the current model (Review Anchor rows inside
+> Weekly/Monthly Tasks). The legacy standalone ✅ Tasks DB described below
+> was also removed from `worker.js`'s `DB` map (it was already dead code).
+> Everything else on this page is still accurate.
 
 ---
 

@@ -21,7 +21,7 @@ export default function MonthlyFocus({ monthly, loading, monthName }) {
         </p>
       ) : (
         <p className="lp-mono" style={{ fontSize: 13, color: 'var(--faint)', margin: '14px 0' }}>
-          No theme set — add one in your Monthly Plan.
+          No theme set — add one on this month's Monthly Review row in Notion.
         </p>
       )}
       {monthly.focusAreas.length > 0 && (

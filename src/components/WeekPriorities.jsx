@@ -22,7 +22,7 @@ export default function WeekPriorities({ priorities, loading }) {
     <div>
       <Eyebrow>This week · top 3</Eyebrow>
       <p className="lp-mono" style={{ fontSize: 13, color: 'var(--faint)', marginTop: 16 }}>
-        No priorities set — update your Weekly Plan in Notion.
+        No priorities set — add them via Sunday Review or on this week's Weekly Review row in Notion.
       </p>
     </div>
   );
