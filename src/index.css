@@ -318,17 +318,13 @@ html::-webkit-scrollbar, body::-webkit-scrollbar,
     box-shadow: none;
   }
 
-  /* Daily/Weekly/Monthly stay a permanent 3-up spread. Calendar is excluded
-     — a real day/week/month calendar view needs more than a quarter-column
-     — and instead keeps normal tab-switch behavior even at this width (see
-     .lp-root[data-active-tab="Calendar"] below). The tab bar itself stays
-     visible (unlike the old Daily/Weekly/Monthly-only desktop layout) since
-     it's the only way to reach the Calendar tab in the first place; clicking
-     Daily/Weekly/Monthly while on Calendar just returns to the 3-up spread. */
-  .lp-tabbar {
-    max-width: 900px;
-    margin: 0 auto;
-  }
+  /* Daily/Weekly/Monthly stay a permanent 3-up spread with no tab bar —
+     nothing to switch between since all three are already visible at once.
+     Calendar is excluded (a real day/week/month view needs more than a
+     quarter-column) and reachable instead via the small Calendar/Dashboard
+     toggle in Hero.jsx, which only renders at this width. */
+  .lp-tabbar { display: none; }
+  .lp-desktop-cal-toggle { display: flex !important; }
 
   /* Hero: swap mantra for the milestone countdown, matching the mockup's
      DesktopApp (only when a countdown is actually available — see Hero.jsx) */

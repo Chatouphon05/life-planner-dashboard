@@ -170,7 +170,7 @@ export default function App() {
     <div className="lp-root" data-active-tab={tab}>
       <PullIndicator pull={pull} refreshing={refreshing} />
 
-      <Hero liveDate={liveDateFinal} theme={theme} onToggleTheme={toggleTheme} syncing={stale} milestones={milestones} loading={loading} tab={tab} />
+      <Hero liveDate={liveDateFinal} theme={theme} onToggleTheme={toggleTheme} syncing={stale} milestones={milestones} loading={loading} tab={tab} onChangeTab={setTab} />
       <div className="lp-tabbar">
         <TabBar tab={tab} onChange={setTab} badges={{ Daily: tasks.filter(t => !t.done).length }} />
       </div>

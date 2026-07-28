@@ -16,7 +16,7 @@ function fmtTarget(dateStr) {
 const THEME_ORDER = ['dark', 'navy', 'light'];
 const THEME_ICON   = { dark: '○', navy: '◐', light: '●' };
 
-export default function Hero({ liveDate, theme, onToggleTheme, syncing, milestones = [], loading, tab = 'Daily' }) {
+export default function Hero({ liveDate, theme, onToggleTheme, syncing, milestones = [], loading, tab = 'Daily', onChangeTab }) {
   const { date, mantra, city } = liveDate;
   const nextTheme = THEME_ORDER[(THEME_ORDER.indexOf(theme) + 1) % THEME_ORDER.length];
 
@@ -52,25 +52,50 @@ export default function Hero({ liveDate, theme, onToggleTheme, syncing, mileston
         zIndex: -1,
       }} />
 
-      {/* theme toggle — top-right */}
-      <div className="lp-tap" onClick={onToggleTheme} style={{
-        position: 'absolute', top: 20, right: 20,
-        display: 'flex', alignItems: 'center', gap: 5,
-        padding: '5px 10px', borderRadius: 99,
-        border: '0.5px solid var(--hair-strong)',
-        background: 'var(--bg-2)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
-      }}>
-        <span className="lp-mono" style={{ fontSize: 11, color: 'var(--accent)', lineHeight: 1 }}>
-          {THEME_ICON[theme]}
-        </span>
-        <span className="lp-mono" style={{
-          fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase',
-          color: 'var(--muted)',
+      {/* top-right controls: theme toggle always; a Calendar/Dashboard
+          switch too, but only at desktop widths — the 1100px 3-up spread
+          has no tab bar, so this is the only way in (or back out). */}
+      <div style={{ position: 'absolute', top: 20, right: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
+        {onChangeTab && (
+          <div
+            className="lp-tap lp-desktop-cal-toggle"
+            onClick={() => onChangeTab(tab === 'Calendar' ? 'Daily' : 'Calendar')}
+            style={{
+              display: 'none', alignItems: 'center', gap: 5,
+              padding: '5px 10px', borderRadius: 99,
+              border: '0.5px solid var(--hair-strong)',
+              background: tab === 'Calendar' ? 'var(--accent)' : 'var(--bg-2)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+            }}
+          >
+            <span className="lp-mono" style={{
+              fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase',
+              color: tab === 'Calendar' ? 'var(--bg)' : 'var(--muted)',
+            }}>
+              {tab === 'Calendar' ? '‹ Dashboard' : '▦ Calendar'}
+            </span>
+          </div>
+        )}
+
+        <div className="lp-tap" onClick={onToggleTheme} style={{
+          display: 'flex', alignItems: 'center', gap: 5,
+          padding: '5px 10px', borderRadius: 99,
+          border: '0.5px solid var(--hair-strong)',
+          background: 'var(--bg-2)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
         }}>
-          {nextTheme}
-        </span>
+          <span className="lp-mono" style={{ fontSize: 11, color: 'var(--accent)', lineHeight: 1 }}>
+            {THEME_ICON[theme]}
+          </span>
+          <span className="lp-mono" style={{
+            fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase',
+            color: 'var(--muted)',
+          }}>
+            {nextTheme}
+          </span>
+        </div>
       </div>
 
       {/* breadcrumb eyebrow */}
