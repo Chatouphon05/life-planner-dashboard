@@ -1,11 +1,8 @@
 import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { useNotionData } from './hooks/useNotionData.js';
-import { useCalendarData } from './hooks/useCalendarData.js';
 import Hero         from './components/Hero.jsx';
 import TabBar       from './components/TabBar.jsx';
-import ConnectionBanner from './components/ConnectionBanner.jsx';
-import CalendarFilterPills from './components/CalendarFilterPills.jsx';
-import EventAgenda   from './components/EventAgenda.jsx';
+import CalendarTab  from './components/CalendarTab.jsx';
 import NavGrid      from './components/NavGrid.jsx';
 import TodayTasks   from './components/TodayTasks.jsx';
 import QuickCapture from './components/QuickCapture.jsx';
@@ -107,8 +104,6 @@ export default function App() {
     milestones,
     liveDate, loading, stale, error, refetch, writeback, fetchExpand,
   } = useNotionData();
-
-  const calendarStatus = useCalendarData();
 
   // Override city based on whether any Transition milestone is Done
   const city = milestones.some(m => m.category === 'Transition' && m.status === 'Done')
@@ -242,22 +237,7 @@ export default function App() {
 
           <div className="lp-pane" data-pane="Calendar">
             <ErrorBoundary>
-              <ConnectionBanner status={calendarStatus} onRefresh={calendarStatus.refetch} />
-              {calendarStatus.connected && (
-                <>
-                  <CalendarFilterPills
-                    calendars={calendarStatus.calendars}
-                    selectedIds={calendarStatus.selectedCalendarIds}
-                    onToggle={calendarStatus.toggleCalendar}
-                  />
-                  <EventAgenda
-                    events={calendarStatus.events}
-                    calendars={calendarStatus.calendars}
-                    loading={calendarStatus.eventsLoading}
-                    error={calendarStatus.eventsError}
-                  />
-                </>
-              )}
+              <CalendarTab />
             </ErrorBoundary>
             <div style={{ height: 40 }} />
           </div>

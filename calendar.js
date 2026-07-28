@@ -121,14 +121,6 @@ function addDaysToDateStr(dateStr, days) {
   return dt.toISOString().split("T")[0];
 }
 
-function dayRange(dateStr) {
-  const suffix = offsetSuffix();
-  return {
-    timeMin: `${dateStr}T00:00:00${suffix}`,
-    timeMax: `${addDaysToDateStr(dateStr, 1)}T00:00:00${suffix}`,
-  };
-}
-
 function todayDateStr() {
   const ms = Date.now() + UTC_OFFSET_HOURS * 3600 * 1000;
   return new Date(ms).toISOString().split("T")[0];
@@ -170,22 +162,23 @@ function normalizeEvent(ev, calendarId) {
   };
 }
 
+// General-purpose window fetch: start=YYYY-MM-DD (default today) + days=N
+// (default 1). Covers Day(1)/4-day(4)/Week(7)/Schedule(~30)/Month-grid(~42)
+// from the frontend — no separate "range" enum needed.
 async function handleCalendarEvents(request, env, CORS) {
   const url   = new URL(request.url);
-  const range = url.searchParams.get("range") || "day";
-  const date  = url.searchParams.get("date") || todayDateStr();
-
-  if (range !== "day") {
-    return json({ error: `range=${range} isn't supported yet — only "day"` }, 400, CORS);
-  }
+  const start = url.searchParams.get("start") || todayDateStr();
+  const days  = Math.max(1, Math.min(60, parseInt(url.searchParams.get("days"), 10) || 1));
 
   const calParam = url.searchParams.get("cal");
   const calendarIds = calParam
     ? calParam.split(",").filter(Boolean)
     : (await fetchCalendarList(env)).filter(c => c.selected).map(c => c.id);
 
-  const { timeMin, timeMax } = dayRange(date);
-  const params = new URLSearchParams({ timeMin, timeMax, singleEvents: "true", orderBy: "startTime", maxResults: "250" });
+  const suffix = offsetSuffix();
+  const timeMin = `${start}T00:00:00${suffix}`;
+  const timeMax = `${addDaysToDateStr(start, days)}T00:00:00${suffix}`;
+  const params = new URLSearchParams({ timeMin, timeMax, singleEvents: "true", orderBy: "startTime", maxResults: "2500" });
 
   const errors = [];
   const eventLists = await Promise.all(calendarIds.map(async (calendarId) => {
@@ -199,7 +192,7 @@ async function handleCalendarEvents(request, env, CORS) {
   }));
 
   const events = eventLists.flat().sort((a, b) => new Date(a.start) - new Date(b.start));
-  return json({ date, events, ...(errors.length ? { errors } : {}) }, 200, CORS);
+  return json({ start, days, events, ...(errors.length ? { errors } : {}) }, 200, CORS);
 }
 
 // ── OAuth flow ────────────────────────────────────────────────────────────────
