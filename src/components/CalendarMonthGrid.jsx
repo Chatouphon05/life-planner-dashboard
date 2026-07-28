@@ -51,7 +51,7 @@ function layoutRowSegments(rowDays, multiDayEvents) {
 
 export default function CalendarMonthGrid({ anchorDate, events, calendars, loading, onSelectDay }) {
   if (loading) return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 2 }}>
       {Array.from({ length: 35 }, (_, i) => <Skeleton key={i} height={70} radius={4} />)}
     </div>
   );
@@ -77,7 +77,7 @@ export default function CalendarMonthGrid({ anchorDate, events, calendars, loadi
 
   return (
     <div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 4 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', marginBottom: 4 }}>
         {DAYS_SHORT.map((d, i) => (
           <div key={i} className="lp-mono" style={{ textAlign: 'center', fontSize: 9, color: 'var(--faint)', padding: '4px 0' }}>{d}</div>
         ))}
@@ -88,7 +88,7 @@ export default function CalendarMonthGrid({ anchorDate, events, calendars, loadi
           const visibleLanes = Math.min(row.laneCount, MAX_LANES);
           return (
             <div key={ri} style={{ position: 'relative' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 1 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 1 }}>
                 {row.rowDays.map(day => {
                   const inMonth = Number(day.slice(5, 7)) === monthNum;
                   const dayNum  = Number(day.slice(8, 10));
@@ -104,7 +104,7 @@ export default function CalendarMonthGrid({ anchorDate, events, calendars, loadi
                       onClick={() => onSelectDay?.(day)}
                       className="lp-tap"
                       style={{
-                        minHeight: 76, padding: '3px 3px 2px',
+                        minWidth: 0, minHeight: 76, padding: '3px 3px 2px',
                         background: isToday ? 'color-mix(in oklch, var(--accent) 8%, transparent)' : 'transparent',
                         border: '0.5px solid var(--hair)',
                         opacity: inMonth ? 1 : 0.35,
