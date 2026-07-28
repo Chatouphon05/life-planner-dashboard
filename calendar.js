@@ -6,6 +6,12 @@
 const GOOGLE_AUTH_URL      = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN_URL     = "https://oauth2.googleapis.com/token";
 const GOOGLE_USERINFO_URL  = "https://www.googleapis.com/oauth2/v2/userinfo";
+const GOOGLE_CALENDAR_API  = "https://www.googleapis.com/calendar/v3";
+
+// Keep in sync with worker.js's own UTC_OFFSET_HOURS — both encode the same
+// "what timezone is 'today' in" decision, duplicated because calendar.js
+// can't import from worker.js (worker.js imports calendar.js, not vice versa).
+const UTC_OFFSET_HOURS = 10;
 // `email` is added alongside `calendar` so the userinfo lookup in the
 // callback can surface the connected address in the banner — the calendar
 // scope alone doesn't grant access to userinfo.
@@ -80,6 +86,120 @@ async function getValidAccessToken(env) {
     return refreshed.access_token;
   }
   return tokens.access_token;
+}
+
+// Wraps a Google API call with a single refresh-and-retry on 401, as a
+// safety net alongside getValidAccessToken's proactive refresh (clock skew,
+// stale KV read).
+async function googleFetch(env, url, options = {}) {
+  const accessToken = await getValidAccessToken(env);
+  const withAuth = (token) => fetch(url, {
+    ...options,
+    headers: { ...(options.headers || {}), Authorization: `Bearer ${token}` },
+  });
+
+  let res = await withAuth(accessToken);
+  if (res.status === 401) {
+    const tokens = await getTokens(env);
+    const refreshed = await refreshAccessToken(env, tokens);
+    res = await withAuth(refreshed.access_token);
+  }
+  return res;
+}
+
+// ── Date helpers (day range only — week/month land with Phase C) ───────────
+
+function offsetSuffix() {
+  const sign = UTC_OFFSET_HOURS >= 0 ? "+" : "-";
+  return `${sign}${String(Math.abs(UTC_OFFSET_HOURS)).padStart(2, "0")}:00`;
+}
+
+function addDaysToDateStr(dateStr, days) {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  dt.setUTCDate(dt.getUTCDate() + days);
+  return dt.toISOString().split("T")[0];
+}
+
+function dayRange(dateStr) {
+  const suffix = offsetSuffix();
+  return {
+    timeMin: `${dateStr}T00:00:00${suffix}`,
+    timeMax: `${addDaysToDateStr(dateStr, 1)}T00:00:00${suffix}`,
+  };
+}
+
+function todayDateStr() {
+  const ms = Date.now() + UTC_OFFSET_HOURS * 3600 * 1000;
+  return new Date(ms).toISOString().split("T")[0];
+}
+
+// ── Calendar list + events ──────────────────────────────────────────────────
+
+async function fetchCalendarList(env) {
+  const res = await googleFetch(env, `${GOOGLE_CALENDAR_API}/users/me/calendarList`);
+  if (!res.ok) throw new Error(`Calendar list failed: ${res.status}: ${await res.text()}`);
+  const data = await res.json();
+  return (data.items || [])
+    .filter(c => !c.deleted)
+    .map(c => ({
+      id:         c.id,
+      name:       c.summaryOverride || c.summary,
+      color:      c.backgroundColor || "#5b9bf0",
+      primary:    !!c.primary,
+      selected:   c.selected !== false,
+      accessRole: c.accessRole,
+    }));
+}
+
+async function handleCalendarList(env, CORS) {
+  const calendars = await fetchCalendarList(env);
+  return json({ calendars }, 200, CORS);
+}
+
+function normalizeEvent(ev, calendarId) {
+  return {
+    id:          ev.id,
+    calendarId,
+    title:       ev.summary || "(untitled)",
+    start:       ev.start?.dateTime || ev.start?.date || null,
+    end:         ev.end?.dateTime   || ev.end?.date    || null,
+    allDay:      !!ev.start?.date,
+    location:    ev.location    || null,
+    description: ev.description || null,
+  };
+}
+
+async function handleCalendarEvents(request, env, CORS) {
+  const url   = new URL(request.url);
+  const range = url.searchParams.get("range") || "day";
+  const date  = url.searchParams.get("date") || todayDateStr();
+
+  if (range !== "day") {
+    return json({ error: `range=${range} isn't supported yet — only "day"` }, 400, CORS);
+  }
+
+  const calParam = url.searchParams.get("cal");
+  const calendarIds = calParam
+    ? calParam.split(",").filter(Boolean)
+    : (await fetchCalendarList(env)).filter(c => c.selected).map(c => c.id);
+
+  const { timeMin, timeMax } = dayRange(date);
+  const params = new URLSearchParams({ timeMin, timeMax, singleEvents: "true", orderBy: "startTime", maxResults: "250" });
+
+  const errors = [];
+  const eventLists = await Promise.all(calendarIds.map(async (calendarId) => {
+    const res = await googleFetch(env, `${GOOGLE_CALENDAR_API}/calendars/${encodeURIComponent(calendarId)}/events?${params}`);
+    if (!res.ok) {
+      errors.push({ calendarId, status: res.status });
+      return [];
+    }
+    const data = await res.json();
+    return (data.items || []).map(ev => normalizeEvent(ev, calendarId));
+  }));
+
+  const events = eventLists.flat().sort((a, b) => new Date(a.start) - new Date(b.start));
+  return json({ date, events, ...(errors.length ? { errors } : {}) }, 200, CORS);
 }
 
 // ── OAuth flow ────────────────────────────────────────────────────────────────
@@ -198,6 +318,8 @@ export async function handleCalendarRequest(request, env, CORS) {
     if (url.pathname === "/auth/google/start")    return await handleAuthStart(request, env, CORS);
     if (url.pathname === "/auth/google/callback") return await handleAuthCallback(request, env);
     if (url.pathname === "/calendar/status")      return await handleStatus(env, CORS);
+    if (url.pathname === "/calendar/calendars")   return await handleCalendarList(env, CORS);
+    if (url.pathname === "/calendar")             return await handleCalendarEvents(request, env, CORS);
 
     return json({ error: "Not found" }, 404, CORS);
   } catch (e) {

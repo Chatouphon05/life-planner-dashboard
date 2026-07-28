@@ -4,6 +4,8 @@ import { useCalendarData } from './hooks/useCalendarData.js';
 import Hero         from './components/Hero.jsx';
 import TabBar       from './components/TabBar.jsx';
 import ConnectionBanner from './components/ConnectionBanner.jsx';
+import CalendarFilterPills from './components/CalendarFilterPills.jsx';
+import EventAgenda   from './components/EventAgenda.jsx';
 import NavGrid      from './components/NavGrid.jsx';
 import TodayTasks   from './components/TodayTasks.jsx';
 import QuickCapture from './components/QuickCapture.jsx';
@@ -241,6 +243,21 @@ export default function App() {
           <div className="lp-pane" data-pane="Calendar">
             <ErrorBoundary>
               <ConnectionBanner status={calendarStatus} onRefresh={calendarStatus.refetch} />
+              {calendarStatus.connected && (
+                <>
+                  <CalendarFilterPills
+                    calendars={calendarStatus.calendars}
+                    selectedIds={calendarStatus.selectedCalendarIds}
+                    onToggle={calendarStatus.toggleCalendar}
+                  />
+                  <EventAgenda
+                    events={calendarStatus.events}
+                    calendars={calendarStatus.calendars}
+                    loading={calendarStatus.eventsLoading}
+                    error={calendarStatus.eventsError}
+                  />
+                </>
+              )}
             </ErrorBoundary>
             <div style={{ height: 40 }} />
           </div>
