@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { useNotionData } from './hooks/useNotionData.js';
+import { useCalendarData } from './hooks/useCalendarData.js';
 import Hero         from './components/Hero.jsx';
 import TabBar       from './components/TabBar.jsx';
+import ConnectionBanner from './components/ConnectionBanner.jsx';
 import NavGrid      from './components/NavGrid.jsx';
 import TodayTasks   from './components/TodayTasks.jsx';
 import QuickCapture from './components/QuickCapture.jsx';
@@ -67,7 +69,10 @@ function FAB({ onClick }) {
 }
 
 export default function App() {
-  const [tab, setTab]               = useState('Daily');
+  // Google OAuth redirects back to `/?tab=Calendar&gcal=connected` (or gcal=error) —
+  // land on the right tab immediately, then strip the params so a reload/share
+  // doesn't replay them.
+  const [tab, setTab]               = useState(() => new URLSearchParams(window.location.search).get('tab') || 'Daily');
   const [pull, setPull]             = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [theme, setTheme]           = useState(() => localStorage.getItem('lp-theme') || 'dark');
@@ -101,6 +106,8 @@ export default function App() {
     liveDate, loading, stale, error, refetch, writeback, fetchExpand,
   } = useNotionData();
 
+  const calendarStatus = useCalendarData();
+
   // Override city based on whether any Transition milestone is Done
   const city = milestones.some(m => m.category === 'Transition' && m.status === 'Done')
     ? 'Brisbane'
@@ -111,6 +118,14 @@ export default function App() {
 
   const liveDateFinal = { ...liveDate, city, mantra };
   const todayStr = new Date().toISOString().split('T')[0];
+
+  // Strip the OAuth redirect's ?tab=&gcal= params once consumed above
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('tab') || params.has('gcal')) {
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
 
   // Pull-to-refresh gesture
   useEffect(() => {
@@ -155,7 +170,7 @@ export default function App() {
   }, [refetch]);
 
   return (
-    <div className="lp-root">
+    <div className="lp-root" data-active-tab={tab}>
       <PullIndicator pull={pull} refreshing={refreshing} />
 
       <Hero liveDate={liveDateFinal} theme={theme} onToggleTheme={toggleTheme} syncing={stale} milestones={milestones} loading={loading} tab={tab} />
@@ -219,6 +234,13 @@ export default function App() {
               <Goals goals={goals} loading={loading} />
               <Milestones milestones={milestones} loading={loading} />
               <NavGrid />
+            </ErrorBoundary>
+            <div style={{ height: 40 }} />
+          </div>
+
+          <div className="lp-pane" data-pane="Calendar">
+            <ErrorBoundary>
+              <ConnectionBanner status={calendarStatus} onRefresh={calendarStatus.refetch} />
             </ErrorBoundary>
             <div style={{ height: 40 }} />
           </div>

@@ -3,6 +3,8 @@
 // Set token: npx wrangler secret put NOTION_TOKEN
 // Logs:      npx wrangler tail
 
+import { handleCalendarRequest } from "./calendar.js";
+
 const NOTION_VERSION       = "2022-06-28";
 const NOTION_TIMEOUT_MS    = 8000;
 const ALLOWED_ORIGINS      = ["https://lunkystch.com", "https://www.lunkystch.com"];
@@ -788,10 +790,18 @@ async function ensureAnchors(token) {
 
 export default {
   async fetch(request, env) {
-    const token  = env.NOTION_TOKEN;
     const origin = request.headers.get("Origin") || "";
     const CORS   = getCORS(origin);
 
+    // Google Calendar OAuth + status routes — separate concern from the Notion
+    // proxy below (different upstream, different auth model), handled entirely
+    // in calendar.js. Checked by real pathname since Notion routes never use one.
+    const pathname = new URL(request.url).pathname;
+    if (pathname.startsWith("/auth/google") || pathname.startsWith("/calendar")) {
+      return handleCalendarRequest(request, env, CORS);
+    }
+
+    const token = env.NOTION_TOKEN;
     if (!token) return new Response(
       JSON.stringify({ error: "NOTION_TOKEN secret not set — run: npx wrangler secret put NOTION_TOKEN" }),
       { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }

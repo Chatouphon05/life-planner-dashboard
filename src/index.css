@@ -269,9 +269,10 @@ html::-webkit-scrollbar, body::-webkit-scrollbar,
    tab-switching. At desktop widths (see 1100px block below) all three
    panes are shown at once as a side-by-side spread instead. */
 .lp-pane { display: none; }
-.lp-content[data-active-tab="Daily"]   .lp-pane[data-pane="Daily"],
-.lp-content[data-active-tab="Weekly"]  .lp-pane[data-pane="Weekly"],
-.lp-content[data-active-tab="Monthly"] .lp-pane[data-pane="Monthly"] {
+.lp-content[data-active-tab="Daily"]    .lp-pane[data-pane="Daily"],
+.lp-content[data-active-tab="Weekly"]   .lp-pane[data-pane="Weekly"],
+.lp-content[data-active-tab="Monthly"]  .lp-pane[data-pane="Monthly"],
+.lp-content[data-active-tab="Calendar"] .lp-pane[data-pane="Calendar"] {
   display: flex;
   flex-direction: column;
   gap: 28px;
@@ -317,6 +318,10 @@ html::-webkit-scrollbar, body::-webkit-scrollbar,
     box-shadow: none;
   }
 
+  /* Daily/Weekly/Monthly stay a permanent 3-up spread with no tab bar.
+     Calendar is excluded — a real day/week/month calendar view needs more
+     than a quarter-column — and instead keeps normal tab-switch behavior
+     even at this width (see .lp-root[data-active-tab="Calendar"] below). */
   .lp-tabbar { display: none; }
 
   /* Hero: swap mantra for the milestone countdown, matching the mockup's
@@ -335,7 +340,9 @@ html::-webkit-scrollbar, body::-webkit-scrollbar,
     padding: 0 !important;
   }
 
-  .lp-pane {
+  .lp-pane[data-pane="Daily"],
+  .lp-pane[data-pane="Weekly"],
+  .lp-pane[data-pane="Monthly"] {
     display: flex !important;
     flex-direction: column;
     gap: 28px;
@@ -344,7 +351,29 @@ html::-webkit-scrollbar, body::-webkit-scrollbar,
     padding: 32px 30px;
     border-right: 0.5px solid var(--hair);
   }
-  .lp-pane:last-child { border-right: none; }
+  .lp-pane[data-pane="Monthly"] { border-right: none; }
+  .lp-pane[data-pane="Calendar"] { display: none; }
+
+  /* Calendar tab active: fall back to the normal single-pane tab-switch
+     behavior (same rules as mobile) instead of the forced 3-up spread. */
+  .lp-root[data-active-tab="Calendar"] .lp-tabbar    { display: flex; }
+  .lp-root[data-active-tab="Calendar"] .lp-scrollable { overflow: auto !important; }
+  .lp-root[data-active-tab="Calendar"] .lp-content {
+    display: flex !important;
+    padding: 20px 22px !important;
+  }
+  .lp-root[data-active-tab="Calendar"] .lp-pane[data-pane="Daily"],
+  .lp-root[data-active-tab="Calendar"] .lp-pane[data-pane="Weekly"],
+  .lp-root[data-active-tab="Calendar"] .lp-pane[data-pane="Monthly"] {
+    display: none !important;
+  }
+  .lp-root[data-active-tab="Calendar"] .lp-pane[data-pane="Calendar"] {
+    display: flex !important;
+    flex-direction: column;
+    gap: 28px;
+    height: auto;
+    padding: 0;
+  }
 }
 
 /* ── Accessibility: respect reduced-motion preference ── */
