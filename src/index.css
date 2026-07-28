@@ -318,11 +318,17 @@ html::-webkit-scrollbar, body::-webkit-scrollbar,
     box-shadow: none;
   }
 
-  /* Daily/Weekly/Monthly stay a permanent 3-up spread with no tab bar.
-     Calendar is excluded — a real day/week/month calendar view needs more
-     than a quarter-column — and instead keeps normal tab-switch behavior
-     even at this width (see .lp-root[data-active-tab="Calendar"] below). */
-  .lp-tabbar { display: none; }
+  /* Daily/Weekly/Monthly stay a permanent 3-up spread. Calendar is excluded
+     — a real day/week/month calendar view needs more than a quarter-column
+     — and instead keeps normal tab-switch behavior even at this width (see
+     .lp-root[data-active-tab="Calendar"] below). The tab bar itself stays
+     visible (unlike the old Daily/Weekly/Monthly-only desktop layout) since
+     it's the only way to reach the Calendar tab in the first place; clicking
+     Daily/Weekly/Monthly while on Calendar just returns to the 3-up spread. */
+  .lp-tabbar {
+    max-width: 900px;
+    margin: 0 auto;
+  }
 
   /* Hero: swap mantra for the milestone countdown, matching the mockup's
      DesktopApp (only when a countdown is actually available — see Hero.jsx) */
@@ -356,7 +362,6 @@ html::-webkit-scrollbar, body::-webkit-scrollbar,
 
   /* Calendar tab active: fall back to the normal single-pane tab-switch
      behavior (same rules as mobile) instead of the forced 3-up spread. */
-  .lp-root[data-active-tab="Calendar"] .lp-tabbar    { display: flex; }
   .lp-root[data-active-tab="Calendar"] .lp-scrollable { overflow: auto !important; }
   .lp-root[data-active-tab="Calendar"] .lp-content {
     display: flex !important;
