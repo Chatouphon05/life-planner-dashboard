@@ -6,7 +6,13 @@
 const GOOGLE_AUTH_URL      = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN_URL     = "https://oauth2.googleapis.com/token";
 const GOOGLE_USERINFO_URL  = "https://www.googleapis.com/oauth2/v2/userinfo";
-const GOOGLE_CALENDAR_SCOPE = "https://www.googleapis.com/auth/calendar";
+// `email` is added alongside `calendar` so the userinfo lookup in the
+// callback can surface the connected address in the banner — the calendar
+// scope alone doesn't grant access to userinfo.
+const GOOGLE_SCOPES = [
+  "https://www.googleapis.com/auth/calendar",
+  "https://www.googleapis.com/auth/userinfo.email",
+].join(" ");
 const TOKENS_KEY   = "google:tokens";
 const FRONTEND_URL = "https://lunkystch.com";
 const REDIRECT_URI = "https://api.lunkystch.com/auth/google/callback";
@@ -92,7 +98,7 @@ async function handleAuthStart(request, env, CORS) {
     client_id:     env.GOOGLE_CLIENT_ID,
     redirect_uri:  REDIRECT_URI,
     response_type: "code",
-    scope:         GOOGLE_CALENDAR_SCOPE,
+    scope:         GOOGLE_SCOPES,
     access_type:   "offline",
     prompt:        "consent",
     state,
